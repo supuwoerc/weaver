@@ -8,7 +8,7 @@ import (
 func InitPingRouter(r *gin.RouterGroup) *gin.RouterGroup {
 	group := r.Group("ping")
 	{
-		group.GET("/", api.Ping)
+		group.GET("", api.Ping)
 	}
 	return group
 }
