@@ -1,0 +1,5 @@
+.idea
+.vscode
+temp/
+/docker/data/
+/docker/redis/
