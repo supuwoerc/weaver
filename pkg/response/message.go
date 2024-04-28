@@ -6,6 +6,7 @@ var code2message = map[int]string{
 	INVALID_PARAMS: "参数错误",
 	INVALID_TOKEN:  "鉴权失败",
 	UNKNOWN_ERROR:  "未知错误",
+	RECOVERY_ERROR: "严重错误，请联系管理员",
 }
 
 func GetMessage(code int) string {
