@@ -24,7 +24,7 @@ func HttpResponse[T any](ctx *gin.Context, code int, data T, message string) {
 	if message != "" {
 		msg = message
 	}
-	ctx.JSON(http.StatusOK, BasicResponse[T]{
+	ctx.AbortWithStatusJSON(http.StatusOK, BasicResponse[T]{
 		Code:    code,
 		Data:    data,
 		Message: msg,
