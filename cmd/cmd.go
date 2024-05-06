@@ -9,8 +9,8 @@ import (
 func Start() {
 	global.Logger = initialize.InitZapLogger()
 	global.DB = initialize.InitGORM()
-	router := initialize.InitRouter()
-	initialize.InitServer(router)
+	handle := initialize.InitEngine()
+	initialize.InitServer(handle)
 }
 
 func Clean() {

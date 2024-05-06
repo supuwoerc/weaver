@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter() *gin.Engine {
+func InitEngine() *gin.Engine {
 	// 不携带日志和Recovery中间件，自己添加中间件，为了方便收集Recovery日志
 	r := gin.New()
 	// 控制台logger中间件
@@ -15,8 +15,7 @@ func InitRouter() *gin.Engine {
 	r.Use(middleware.Recovery())
 	// 跨域中间件
 	r.Use(middleware.Cors())
-	group := r.Group("api")
-	router.InitPingRouter(group)
-	router.InitPublicRouter(group)
+	// 注册路由
+	router.InitRouter(r)
 	return r
 }

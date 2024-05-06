@@ -10,5 +10,6 @@ func Ping(ctx *gin.Context) {
 }
 
 func Exception(ctx *gin.Context) {
-	response.SuccessWithData[any](ctx, nil)
+	num := 100 - 100
+	response.SuccessWithData[int](ctx, 1/num)
 }

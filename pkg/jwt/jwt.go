@@ -47,8 +47,8 @@ func generateRefreshToken(createAt time.Time) (string, error) {
 	return generateToken(0, "", 0, createAt, duration)
 }
 
-// 生成长短token
-func GenerateAccessAndRefreshToken(accessToken, refreshToken string) (string, string, error) {
+// 校验并生成长短token
+func ReGenerateAccessAndRefreshToken(accessToken, refreshToken string) (string, string, error) {
 	if _, err := ParseToken(refreshToken); err != nil {
 		return "", "", constant.REFRESH_TOKEN_PARSE_ERROR
 	}
@@ -61,6 +61,20 @@ func GenerateAccessAndRefreshToken(accessToken, refreshToken string) (string, st
 	}
 	createAt := time.Now()
 	newAccessToken, err := generateAccessToken(claims.ID, claims.Name, claims.Gender, createAt)
+	if err != nil {
+		return "", "", err
+	}
+	newRefreshToken, err := generateRefreshToken(createAt)
+	if err != nil {
+		return "", "", err
+	}
+	return newAccessToken, newRefreshToken, nil
+}
+
+// 生成长短token
+func GenerateAccessAndRefreshToken(id uint, name string, gender models.UserGender) (string, string, error) {
+	createAt := time.Now()
+	newAccessToken, err := generateAccessToken(id, name, gender, createAt)
 	if err != nil {
 		return "", "", err
 	}
