@@ -6,9 +6,14 @@ import (
 )
 
 type BasicApi struct {
-	Logger *zap.SugaredLogger
+	logger *zap.SugaredLogger
 }
 
-func NewBasicApi() BasicApi {
-	return BasicApi{Logger: global.Logger}
+var basicApi *BasicApi
+
+func NewBasicApi() *BasicApi {
+	if basicApi == nil {
+		basicApi = &BasicApi{logger: global.Logger}
+	}
+	return basicApi
 }

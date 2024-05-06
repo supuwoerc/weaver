@@ -68,3 +68,8 @@ func FailWithData[T any](ctx *gin.Context, data T) {
 func FailWithMessage(ctx *gin.Context, message string) {
 	HttpResponse[any](ctx, ERROR, nil, message)
 }
+
+// 失败响应-参数错误
+func ParamsValidateFail(ctx *gin.Context) {
+	HttpResponse[any](ctx, INVALID_PARAMS, nil, "")
+}

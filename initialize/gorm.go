@@ -2,8 +2,8 @@ package initialize
 
 import (
 	"fmt"
-	"gin-web/models"
 	"gin-web/pkg/global"
+	"gin-web/repository/dao"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -40,5 +40,5 @@ func InitGORM() *gorm.DB {
 }
 
 func autoMigrate(db *gorm.DB) {
-	_ = db.AutoMigrate(&models.User{})
+	_ = db.AutoMigrate(&dao.User{})
 }
