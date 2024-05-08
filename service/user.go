@@ -4,6 +4,7 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -24,6 +25,10 @@ func NewUserService() *UserService {
 }
 
 func (u *UserService) SignUp(context context.Context, user models.User) error {
-	// TODO:BCrypt加密
+	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.Password = string(password)
 	return u.repository.Create(context, user)
 }

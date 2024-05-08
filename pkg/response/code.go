@@ -9,5 +9,9 @@ const (
 	UNKNOWN_ERROR                 = 10004 // 未知错误
 	RECOVERY_ERROR                = 10005 // 发生recovery
 	INVALID_REFRESH_TOKEN         = 10006 // 长token失效
-	UNNECESSARY_REFRESH_TOKEN     = 1007  // 不必要的刷新token(短token还未过期)
+	UNNECESSARY_REFRESH_TOKEN     = 10007 // 不必要的刷新token(短token还未过期)
+)
+
+const (
+	USER_CREATE_DUPLICATE_EMAIL int = 20000 // 用户创建email重复导致的唯一索引错误
 )
