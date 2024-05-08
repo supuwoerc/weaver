@@ -40,3 +40,12 @@ func (u UserDAO) Insert(ctx context.Context, user User) error {
 	}
 	return err
 }
+
+func (u UserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
+	var user User
+	err := u.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		return user, constant.USER_LOGIN_EMAIL_NOT_FOUND_ERR
+	}
+	return user, err
+}

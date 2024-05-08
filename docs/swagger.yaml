@@ -1,4 +1,14 @@
 definitions:
+  request.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
   request.SignUpRequest:
     properties:
       email:
@@ -20,6 +30,36 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/public/user/login:
+    post:
+      consumes:
+      - application/json
+      description: 用于用户登录
+      parameters:
+      - description: 注册参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 操作成功
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 操作失败
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数错误
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      summary: 用户登录
+      tags:
+      - 用户管理模块
   /api/v1/public/user/signup:
     post:
       consumes:
@@ -47,11 +87,7 @@ paths:
           description: 参数错误
           schema:
             $ref: '#/definitions/response.BasicResponse-any'
-        "20000":
-          description: 邮箱已注册
-          schema:
-            $ref: '#/definitions/response.BasicResponse-any'
-      summary: 用户登录
+      summary: 用户注册
       tags:
       - 用户管理模块
 swagger: "2.0"

@@ -14,4 +14,6 @@ const (
 
 const (
 	USER_CREATE_DUPLICATE_EMAIL int = 20000 // 用户创建email重复导致的唯一索引错误
+	USER_LOGIN_EMAIL_NOT_FOUND  int = 20001 // 用户登录email未查询到
+	USER_LOGIN_FAIL             int = 20002 // 用户登录失败
 )

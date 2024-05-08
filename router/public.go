@@ -12,5 +12,6 @@ func InitPublicRouter(r *gin.RouterGroup) {
 		userApi := v1.NewUserApi()
 		userGroup := group.Group("user")
 		userGroup.POST("/signup", userApi.SignUp)
+		userGroup.POST("/login", userApi.Login)
 	}
 }

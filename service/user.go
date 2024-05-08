@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"gin-web/models"
+	"gin-web/pkg/constant"
 	"gin-web/repository"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -31,4 +32,16 @@ func (u *UserService) SignUp(context context.Context, user models.User) error {
 	}
 	user.Password = string(password)
 	return u.repository.Create(context, user)
+}
+
+func (u *UserService) Login(ctx context.Context, email string, password string) (models.User, error) {
+	user, err := u.repository.FindByEmail(ctx, email)
+	if err != nil {
+		return models.User{}, err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return models.User{}, constant.USER_LOGIN_FAIL_ERR
+	}
+	return user, nil
 }

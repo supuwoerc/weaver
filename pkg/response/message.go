@@ -10,6 +10,8 @@ var code2message = map[int]string{
 	INVALID_REFRESH_TOKEN:       "错误的RefreshToken",
 	UNNECESSARY_REFRESH_TOKEN:   "不必要的刷新",
 	USER_CREATE_DUPLICATE_EMAIL: "邮箱已注册",
+	USER_LOGIN_EMAIL_NOT_FOUND:  "用户不存在",
+	USER_LOGIN_FAIL:             "用户名或密码错误",
 }
 
 func GetMessage(code int) string {

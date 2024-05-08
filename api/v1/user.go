@@ -26,7 +26,7 @@ func NewUserApi() UserApi {
 }
 
 // @Tags 用户管理模块
-// @Summary 用户登录
+// @Summary 用户注册
 // @Description 用于用户注册帐号
 // @Accept json
 // @Produce json
@@ -34,10 +34,8 @@ func NewUserApi() UserApi {
 // @Success 10000 {object} response.BasicResponse[any] "操作成功"
 // @Failure 10001 {object} response.BasicResponse[any] "操作失败"
 // @Failure 10002 {object} response.BasicResponse[any] "参数错误"
-// @Failure 20000 {object} response.BasicResponse[any] "邮箱已注册"
 // @Router /api/v1/public/user/signup [post]
 func (u UserApi) SignUp(ctx *gin.Context) {
-	// {"code":10000,"message":"操作成功"
 	var params request.SignUpRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx)
@@ -55,5 +53,37 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 		response.FailWithMessage(ctx, err.Error())
 		return
 	}
+	response.Success(ctx)
+}
+
+// @Tags 用户管理模块
+// @Summary 用户登录
+// @Description 用于用户登录
+// @Accept json
+// @Produce json
+// @Param body body request.LoginRequest true "注册参数"
+// @Success 10000 {object} response.BasicResponse[any] "操作成功"
+// @Failure 10001 {object} response.BasicResponse[any] "操作失败"
+// @Failure 10002 {object} response.BasicResponse[any] "参数错误"
+// @Router /api/v1/public/user/login [post]
+func (u UserApi) Login(ctx *gin.Context) {
+	var params request.LoginRequest
+	if err := ctx.ShouldBindJSON(&params); err != nil {
+		response.ParamsValidateFail(ctx)
+		return
+	}
+	user, err := u.service.Login(ctx.Request.Context(), params.Email, params.Password)
+	switch err {
+	default:
+		// TODO:签发token
+		user.Password = ""
+		response.SuccessWithData[models.User](ctx, user)
+	case constant.USER_LOGIN_FAIL_ERR, constant.USER_LOGIN_EMAIL_NOT_FOUND_ERR:
+		response.FailWithMessage(ctx, constant.USER_LOGIN_FAIL_ERR.Error())
+	}
+}
+
+// 获取个人信息
+func (u UserApi) Profile(ctx *gin.Context) {
 	response.Success(ctx)
 }
