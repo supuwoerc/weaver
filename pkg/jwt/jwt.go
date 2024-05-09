@@ -30,7 +30,7 @@ func generateToken(id uint, name string, gender models.UserGender, createAt time
 		Gender: gender,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(TOKEN_SECRET)
+	return token.SignedString([]byte(TOKEN_SECRET))
 }
 
 // 生成短token

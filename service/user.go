@@ -26,11 +26,12 @@ func NewUserService() *UserService {
 }
 
 func (u *UserService) SignUp(context context.Context, user models.User) error {
-	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	password, err := bcrypt.GenerateFromPassword([]byte(*user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	user.Password = string(password)
+	var pwd = string(password)
+	user.Password = &pwd
 	return u.repository.Create(context, user)
 }
 
@@ -39,7 +40,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	if err != nil {
 		return models.User{}, err
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
 	if err != nil {
 		return models.User{}, constant.USER_LOGIN_FAIL_ERR
 	}

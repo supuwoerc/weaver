@@ -3,6 +3,7 @@ package v1
 import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/jwt"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/service"
@@ -48,7 +49,7 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 	}
 	if err = u.service.SignUp(ctx.Request.Context(), models.User{
 		Email:    params.Email,
-		Password: params.Password,
+		Password: &params.Password,
 	}); err != nil {
 		response.FailWithMessage(ctx, err.Error())
 		return
@@ -75,9 +76,17 @@ func (u UserApi) Login(ctx *gin.Context) {
 	user, err := u.service.Login(ctx.Request.Context(), params.Email, params.Password)
 	switch err {
 	default:
-		// TODO:签发token
-		user.Password = ""
-		response.SuccessWithData[models.User](ctx, user)
+		user.Password = nil
+		accessToken, refreshToken, err := jwt.GenerateAccessAndRefreshToken(user.ID, user.NickName, user.Gender)
+		if err != nil {
+			response.FailWithMessage(ctx, err.Error())
+			return
+		}
+		response.SuccessWithData[response.LoginResponse](ctx, response.LoginResponse{
+			User:         user,
+			Token:        accessToken,
+			RefreshToken: refreshToken,
+		})
 	case constant.USER_LOGIN_FAIL_ERR, constant.USER_LOGIN_EMAIL_NOT_FOUND_ERR:
 		response.FailWithMessage(ctx, constant.USER_LOGIN_FAIL_ERR.Error())
 	}

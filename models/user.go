@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type UserGender int
 
 const (
@@ -11,10 +9,11 @@ const (
 )
 
 type User struct {
-	Email    string
-	Password string
-	NickName string
-	Gender   UserGender
-	About    string
-	Birthday time.Time
+	ID       uint       `json:"id"`
+	Email    string     `json:"email"`
+	Password *string    `json:"password,omitempty"`
+	NickName string     `json:"nick_name"`
+	Gender   UserGender `json:"gender"`
+	About    string     `json:"about"`
+	Birthday string     `json:"birthday"`
 }

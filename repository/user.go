@@ -24,19 +24,20 @@ func NewUserRepository() *UserRepository {
 
 func toModelUser(u dao.User) models.User {
 	return models.User{
+		ID:       u.ID,
 		Email:    u.Email,
-		Password: u.Password,
+		Password: &u.Password,
 		NickName: u.NickName,
 		Gender:   models.UserGender(u.Gender),
 		About:    u.About,
-		Birthday: time.UnixMilli(u.Birthday),
+		Birthday: time.UnixMilli(u.Birthday).Format(time.DateTime),
 	}
 }
 
 func (u UserRepository) Create(ctx context.Context, user models.User) error {
 	return u.dao.Insert(ctx, dao.User{
 		Email:    user.Email,
-		Password: user.Password,
+		Password: *user.Password,
 	})
 }
 
