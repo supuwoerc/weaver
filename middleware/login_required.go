@@ -12,6 +12,7 @@ func tokenInvalidResponse(ctx *gin.Context) {
 }
 
 func LoginRequired() gin.HandlerFunc {
+	// TODO:长短token实现
 	return func(ctx *gin.Context) {
 		// TODO:从配置文件中读取
 		token := ctx.GetHeader("Authorization")
