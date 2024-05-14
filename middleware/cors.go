@@ -22,7 +22,7 @@ func Cors() gin.HandlerFunc {
 			return false
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type", "Token", "Accept"},
+		AllowHeaders:     []string{"Content-Type", "Authorization", "Locale"},
 		AllowCredentials: true,
 	})
 }
