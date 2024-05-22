@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -12,9 +13,9 @@ import (
 )
 
 func InitZapLogger() *zap.SugaredLogger {
-	logMode := zapcore.DebugLevel
-	// TODO:根据环境来切换日志级别
-	core := zapcore.NewCore(getEncoder(), getWriterSyncer(), logMode)
+	level := viper.Get("logger.level")
+	logMode := level.(int)
+	core := zapcore.NewCore(getEncoder(), getWriterSyncer(), zapcore.Level(logMode))
 	return zap.New(core).Sugar()
 }
 
@@ -30,20 +31,21 @@ func getEncoder() zapcore.Encoder {
 
 func getWriterSyncer() zapcore.WriteSyncer {
 	projectDir, err := os.Getwd()
-	// TODO:根据配置读取日志存储位置
-	targetDir := "log"
+	targetDir := viper.GetString("logger.dir")
+	maxSize := viper.GetInt("logger.maxSize")
+	maxBackups := viper.GetInt("logger.maxBackups")
+	maxAge := viper.GetInt("logger.maxAge")
 	if err != nil {
 		panic(err)
 	}
 	separator := filepath.Separator
 	logFileNameWithoutSuffix := strings.Join([]string{projectDir, targetDir, time.Now().Format(time.DateOnly)}, string(separator))
 	logFileName := fmt.Sprintf("%s.txt", logFileNameWithoutSuffix)
-	// TODO:根据配置修改日志分割配置
 	lumberjackLogger := &lumberjack.Logger{
 		Filename:   logFileName,
-		MaxSize:    1,  // 文件切割大小
-		MaxBackups: 10, // 至多保留多少文件
-		MaxAge:     90, // 保留文件最大天数
+		MaxSize:    maxSize,    // 文件切割大小
+		MaxBackups: maxBackups, // 至多保留多少文件
+		MaxAge:     maxAge,     // 保留文件最大天数
 		Compress:   true,
 	}
 	defer func() {

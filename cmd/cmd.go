@@ -7,6 +7,7 @@ import (
 )
 
 func Start() {
+	initialize.InitConfig()
 	global.Logger = initialize.InitZapLogger()
 	global.DB = initialize.InitGORM()
 	handle := initialize.InitEngine()

@@ -1,0 +1,17 @@
+jwt:
+  expires: 1440              # token过期时长(分钟)
+  refreshTokenExpires: 10080 # refresh_token的过期时长(分钟)
+  secret: gin_web_secret     # 密钥
+  issuer: gin_web            # issuer
+  tokenKey: Authorization    # 客户端token对应的header-key
+  tokenPrefix: "Bearer "     # token前缀
+logger:
+  maxSize: 1     # 日志文件切割尺寸(m)
+  maxBackups: 10 # 保留文件对最大个数
+  maxAge: 90     # 保留文件对最大天数
+  level: -1
+  dir: log
+cors:
+  originPrefix:
+    - http://localhost
+    - http://127.0.0.1

@@ -4,6 +4,7 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/spf13/viper"
 	"time"
 )
 
@@ -14,14 +15,18 @@ type TokenClaims struct {
 	Gender models.UserGender
 }
 
-// TODO:读取配置文件获取
-const TOKEN_SECRET = "token_secret"
+var (
+	TOKEN_SECRET          = viper.GetString("jwt.secret")
+	TOKEN_ISSUER          = viper.GetString("jwt.secret")
+	TOKEN_EXPIRES         = viper.GetDuration("jwt.expires") * time.Minute
+	REFRESH_TOKEN_EXPIRES = viper.GetDuration("jwt.refreshTokenExpires") * time.Minute
+)
 
 // 生成token
 func generateToken(id uint, name string, gender models.UserGender, createAt time.Time, duration time.Duration) (string, error) {
 	claims := TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "gin_web", // TODO:读取配置文件获取
+			Issuer:    TOKEN_ISSUER,
 			IssuedAt:  jwt.NewNumericDate(createAt),
 			ExpiresAt: jwt.NewNumericDate(createAt.Add(duration)),
 		},
@@ -35,16 +40,12 @@ func generateToken(id uint, name string, gender models.UserGender, createAt time
 
 // 生成短token
 func generateAccessToken(id uint, name string, gender models.UserGender, createAt time.Time) (string, error) {
-	// TODO:读取配置文件获取
-	duration := 1 * 24 * time.Hour
-	return generateToken(id, name, gender, createAt, duration)
+	return generateToken(id, name, gender, createAt, TOKEN_EXPIRES)
 }
 
 // 生成长token
 func generateRefreshToken(createAt time.Time) (string, error) {
-	// TODO:读取配置文件获取
-	duration := 7 * 24 * time.Hour
-	return generateToken(0, "", 0, createAt, duration)
+	return generateToken(0, "", 0, createAt, REFRESH_TOKEN_EXPIRES)
 }
 
 // 校验并生成长短token

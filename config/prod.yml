@@ -1,0 +1,10 @@
+server:
+  port: 80
+mysql:
+  dsn: gin_web:gin_web@tcp(127.0.0.1:3306)/gin_web?charset=utf8mb4&parseTime=True&loc=Local
+  maxIdleConn: 10
+  maxOpenConn: 10
+gorm:
+  logLevel: 2
+logger:
+  level: 1

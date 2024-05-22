@@ -4,6 +4,7 @@ import (
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"strings"
 )
 
@@ -13,11 +14,10 @@ func tokenInvalidResponse(ctx *gin.Context) {
 
 func LoginRequired() gin.HandlerFunc {
 	// TODO:长短token实现
+	tokenKey := viper.GetString("jwt.tokenKey")
+	prefix := viper.GetString("jwt.tokenPrefix")
 	return func(ctx *gin.Context) {
-		// TODO:从配置文件中读取
-		token := ctx.GetHeader("Authorization")
-		// TODO:从配置文件中读取
-		var prefix = "Bearer "
+		token := ctx.GetHeader(tokenKey)
 		if token == "" || strings.HasPrefix(token, prefix) {
 			tokenInvalidResponse(ctx)
 			return
@@ -27,7 +27,6 @@ func LoginRequired() gin.HandlerFunc {
 			tokenInvalidResponse(ctx)
 			return
 		}
-		// TODO:从配置文件中读取key
 		ctx.Set("user", claims)
 	}
 }

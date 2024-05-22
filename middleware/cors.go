@@ -3,18 +3,15 @@ package middleware
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"strings"
 )
 
-var (
-	INCLUDE_PREFIX []string = []string{"http://localhost", "http://127.0.0.1"}
-)
-
 func Cors() gin.HandlerFunc {
+	originPrefix := viper.GetStringSlice("cors.originPrefix")
 	return cors.New(cors.Config{
 		AllowOriginFunc: func(origin string) bool {
-			// TODO:只允许本地和特定域名，读取配置来设置domain
-			for _, val := range INCLUDE_PREFIX {
+			for _, val := range originPrefix {
 				if strings.HasPrefix(origin, val) {
 					return true
 				}
