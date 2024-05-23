@@ -4,3 +4,6 @@ temp/
 log/
 /docker/data/
 /docker/redis/
+/config/dev.yml
+/config/prod.yml
+/config/test.yml
