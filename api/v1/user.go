@@ -77,7 +77,8 @@ func (u UserApi) Login(ctx *gin.Context) {
 	switch err {
 	default:
 		user.Password = nil
-		accessToken, refreshToken, err := jwt.GenerateAccessAndRefreshToken(user.ID, user.NickName, user.Gender)
+		builder := jwt.NewJwtBuilder()
+		accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(user.ID, user.NickName, user.Gender)
 		if err != nil {
 			response.FailWithMessage(ctx, err.Error())
 			return

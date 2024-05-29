@@ -22,8 +22,20 @@ var (
 	REFRESH_TOKEN_EXPIRES = viper.GetDuration("jwt.refreshTokenExpires") * time.Minute
 )
 
+type JwtBuilder struct {
+}
+
+var jwtBuilder *JwtBuilder
+
+func NewJwtBuilder() *JwtBuilder {
+	if jwtBuilder == nil {
+		jwtBuilder = &JwtBuilder{}
+	}
+	return jwtBuilder
+}
+
 // 生成token
-func generateToken(id uint, name string, gender models.UserGender, createAt time.Time, duration time.Duration) (string, error) {
+func (j *JwtBuilder) generateToken(id uint, name string, gender models.UserGender, createAt time.Time, duration time.Duration) (string, error) {
 	claims := TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    TOKEN_ISSUER,
@@ -39,21 +51,21 @@ func generateToken(id uint, name string, gender models.UserGender, createAt time
 }
 
 // 生成短token
-func generateAccessToken(id uint, name string, gender models.UserGender, createAt time.Time) (string, error) {
-	return generateToken(id, name, gender, createAt, TOKEN_EXPIRES)
+func (j *JwtBuilder) generateAccessToken(id uint, name string, gender models.UserGender, createAt time.Time) (string, error) {
+	return j.generateToken(id, name, gender, createAt, TOKEN_EXPIRES)
 }
 
 // 生成长token
-func generateRefreshToken(createAt time.Time) (string, error) {
-	return generateToken(0, "", 0, createAt, REFRESH_TOKEN_EXPIRES)
+func (j *JwtBuilder) generateRefreshToken(createAt time.Time) (string, error) {
+	return j.generateToken(0, "", 0, createAt, REFRESH_TOKEN_EXPIRES)
 }
 
 // 校验并生成长短token
-func ReGenerateAccessAndRefreshToken(accessToken, refreshToken string) (string, string, error) {
-	if _, err := ParseToken(refreshToken); err != nil {
+func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string) (string, string, error) {
+	if _, err := j.ParseToken(refreshToken); err != nil {
 		return "", "", constant.REFRESH_TOKEN_PARSE_ERROR
 	}
-	claims, err := ParseToken(accessToken)
+	claims, err := j.ParseToken(accessToken)
 	if err == nil {
 		return "", "", constant.UNNECESSARY_REFRESH_TOKEN_ERROR
 	}
@@ -61,11 +73,11 @@ func ReGenerateAccessAndRefreshToken(accessToken, refreshToken string) (string, 
 		return "", "", err
 	}
 	createAt := time.Now()
-	newAccessToken, err := generateAccessToken(claims.ID, claims.Name, claims.Gender, createAt)
+	newAccessToken, err := j.generateAccessToken(claims.ID, claims.Name, claims.Gender, createAt)
 	if err != nil {
 		return "", "", err
 	}
-	newRefreshToken, err := generateRefreshToken(createAt)
+	newRefreshToken, err := j.generateRefreshToken(createAt)
 	if err != nil {
 		return "", "", err
 	}
@@ -74,13 +86,13 @@ func ReGenerateAccessAndRefreshToken(accessToken, refreshToken string) (string, 
 }
 
 // 生成长短token
-func GenerateAccessAndRefreshToken(id uint, name string, gender models.UserGender) (string, string, error) {
+func (j *JwtBuilder) GenerateAccessAndRefreshToken(id uint, name string, gender models.UserGender) (string, string, error) {
 	createAt := time.Now()
-	newAccessToken, err := generateAccessToken(id, name, gender, createAt)
+	newAccessToken, err := j.generateAccessToken(id, name, gender, createAt)
 	if err != nil {
 		return "", "", err
 	}
-	newRefreshToken, err := generateRefreshToken(createAt)
+	newRefreshToken, err := j.generateRefreshToken(createAt)
 	if err != nil {
 		return "", "", err
 	}
@@ -88,7 +100,7 @@ func GenerateAccessAndRefreshToken(id uint, name string, gender models.UserGende
 }
 
 // 解析token
-func ParseToken(tokenString string) (TokenClaims, error) {
+func (j *JwtBuilder) ParseToken(tokenString string) (TokenClaims, error) {
 	claims := TokenClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return TOKEN_SECRET, nil

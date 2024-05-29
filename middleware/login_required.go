@@ -20,13 +20,14 @@ func LoginRequired() gin.HandlerFunc {
 	tokenKey := viper.GetString("jwt.tokenKey")
 	refreshTokenKey := viper.GetString("jwt.refreshTokenKey")
 	prefix := viper.GetString("jwt.tokenPrefix")
+	jwtBuilder := jwt.NewJwtBuilder()
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader(tokenKey)
 		if token == "" || !strings.HasPrefix(token, prefix) {
 			tokenInvalidResponse(ctx)
 			return
 		}
-		claims, err := jwt.ParseToken(token[len(prefix):])
+		claims, err := jwtBuilder.ParseToken(token[len(prefix):])
 		if err == nil {
 			// token正常且未过期
 			ctx.Set("user", claims)
@@ -34,7 +35,7 @@ func LoginRequired() gin.HandlerFunc {
 		} else if ctx.Request.URL.Path == REFRESH_URL {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
-			newToken, newRefreshToken, refreshErr := jwt.ReGenerateAccessAndRefreshToken(token, refreshToken)
+			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateAccessAndRefreshToken(token, refreshToken)
 			if refreshErr != nil {
 				return
 			}
