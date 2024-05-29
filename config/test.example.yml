@@ -1,5 +1,9 @@
 server:
   port: 8080
+redis:
+  addr: localhost:6379
+  password:
+  db: 0
 mysql:
   dsn: gin_web:gin_web@tcp(127.0.0.1:3306)/gin_web?charset=utf8mb4&parseTime=True&loc=Local
   maxIdleConn: 10

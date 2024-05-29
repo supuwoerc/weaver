@@ -1,6 +1,9 @@
 package router
 
-import "github.com/gin-gonic/gin"
+import (
+	"gin-web/middleware"
+	"github.com/gin-gonic/gin"
+)
 
 func InitRouter(r *gin.Engine) {
 	group := r.Group("api/v1")
@@ -10,6 +13,8 @@ func InitRouter(r *gin.Engine) {
 	InitSwagger(r)
 	// 开放api(不需要走鉴权中间件)
 	InitPublicRouter(group)
+	// 登录鉴权中间件
+	group.Use(middleware.LoginRequired())
 	// 用户模块
 	InitUserRouter(group)
 }

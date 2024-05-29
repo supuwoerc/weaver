@@ -69,6 +69,7 @@ func ReGenerateAccessAndRefreshToken(accessToken, refreshToken string) (string, 
 	if err != nil {
 		return "", "", err
 	}
+	// TODO：将旧的token和refresh_token加入黑名单
 	return newAccessToken, newRefreshToken, nil
 }
 
