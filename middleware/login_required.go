@@ -3,6 +3,7 @@ package middleware
 import (
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
+	"gin-web/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"strings"
@@ -14,6 +15,10 @@ const (
 
 func tokenInvalidResponse(ctx *gin.Context) {
 	response.HttpResponse[any](ctx, response.INVALID_TOKEN, nil, response.GetMessage(response.INVALID_TOKEN))
+}
+
+func refreshTokenInvalidResponse(ctx *gin.Context) {
+	response.HttpResponse[any](ctx, response.INVALID_REFRESH_TOKEN, nil, response.GetMessage(response.INVALID_REFRESH_TOKEN))
 }
 
 func LoginRequired() gin.HandlerFunc {
@@ -28,15 +33,24 @@ func LoginRequired() gin.HandlerFunc {
 			return
 		}
 		claims, err := jwtBuilder.ParseToken(token[len(prefix):])
+		userRepository := repository.NewUserRepository()
 		if err == nil {
-			// token正常且未过期
+			// token解析正常,判断是不是在不redis中
+			exist, existErr := userRepository.TokenPairExist(ctx, claims.Email)
+			if existErr != nil || !exist {
+				tokenInvalidResponse(ctx)
+				return
+			}
 			ctx.Set("user", claims)
 			return
 		} else if ctx.Request.URL.Path == REFRESH_URL {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
-			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateAccessAndRefreshToken(token, refreshToken)
+			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateAccessAndRefreshToken(token, refreshToken, func(claims jwt.TokenClaims) error {
+				return userRepository.DelTokenPair(ctx, claims.Email)
+			})
 			if refreshErr != nil {
+				refreshTokenInvalidResponse(ctx)
 				return
 			}
 			response.SuccessWithData[response.RefreshTokenResponse](ctx, response.RefreshTokenResponse{
@@ -49,6 +63,5 @@ func LoginRequired() gin.HandlerFunc {
 			tokenInvalidResponse(ctx)
 			return
 		}
-
 	}
 }

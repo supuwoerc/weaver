@@ -17,3 +17,8 @@ type User struct {
 	About    string     `json:"about"`
 	Birthday string     `json:"birthday"`
 }
+
+type TokenPair struct {
+	AccessToken  string
+	RefreshToken string
+}

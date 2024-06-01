@@ -3,7 +3,6 @@ package v1
 import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/jwt"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/service"
@@ -73,23 +72,23 @@ func (u UserApi) Login(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx)
 		return
 	}
-	user, err := u.service.Login(ctx.Request.Context(), params.Email, params.Password)
-	switch err {
-	default:
+	user, pair, err := u.service.Login(ctx.Request.Context(), params.Email, params.Password)
+	switch {
+	case pair != nil:
 		user.Password = nil
-		builder := jwt.NewJwtBuilder()
-		accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(user.ID, user.NickName, user.Gender)
 		if err != nil {
 			response.FailWithMessage(ctx, err.Error())
 			return
 		}
 		response.SuccessWithData[response.LoginResponse](ctx, response.LoginResponse{
 			User:         user,
-			Token:        accessToken,
-			RefreshToken: refreshToken,
+			Token:        pair.AccessToken,
+			RefreshToken: pair.RefreshToken,
 		})
-	case constant.USER_LOGIN_FAIL_ERR, constant.USER_LOGIN_EMAIL_NOT_FOUND_ERR:
+	case err == constant.USER_LOGIN_FAIL_ERR || err == constant.USER_LOGIN_EMAIL_NOT_FOUND_ERR:
 		response.FailWithMessage(ctx, constant.USER_LOGIN_FAIL_ERR.Error())
+	default:
+		response.FailWithMessage(ctx, err.Error())
 	}
 }
 

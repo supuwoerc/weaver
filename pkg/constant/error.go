@@ -25,4 +25,7 @@ var USER_LOGIN_EMAIL_NOT_FOUND_ERR = errors.New(response.GetMessage(response.USE
 // 用户登录失败
 var USER_LOGIN_FAIL_ERR = errors.New(response.GetMessage(response.USER_LOGIN_FAIL))
 
+// 用户登录时的redis存储token对失败
+var USER_LOGIN_TOKEN_PAIR_CACHE_ERR = errors.New(response.GetMessage(response.USER_LOGIN_TOKEN_PAIR_CACHE_ERR))
+
 // NOTE:USER模块-END

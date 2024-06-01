@@ -10,9 +10,12 @@ import (
 
 type TokenClaims struct {
 	jwt.RegisteredClaims
-	ID     uint
-	Name   string
-	Gender models.UserGender
+	ID       uint
+	Email    string
+	NickName string
+	Gender   models.UserGender
+	About    string
+	Birthday string
 }
 
 var (
@@ -42,9 +45,9 @@ func (j *JwtBuilder) generateToken(id uint, name string, gender models.UserGende
 			IssuedAt:  jwt.NewNumericDate(createAt),
 			ExpiresAt: jwt.NewNumericDate(createAt.Add(duration)),
 		},
-		ID:     id,
-		Name:   name,
-		Gender: gender,
+		ID:       id,
+		NickName: name,
+		Gender:   gender,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(TOKEN_SECRET))
@@ -60,8 +63,10 @@ func (j *JwtBuilder) generateRefreshToken(createAt time.Time) (string, error) {
 	return j.generateToken(0, "", 0, createAt, REFRESH_TOKEN_EXPIRES)
 }
 
+type RefreshTokenCallback func(claims TokenClaims) error
+
 // 校验并生成长短token
-func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string) (string, string, error) {
+func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string, callback RefreshTokenCallback) (string, string, error) {
 	if _, err := j.ParseToken(refreshToken); err != nil {
 		return "", "", constant.REFRESH_TOKEN_PARSE_ERROR
 	}
@@ -73,7 +78,7 @@ func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken s
 		return "", "", err
 	}
 	createAt := time.Now()
-	newAccessToken, err := j.generateAccessToken(claims.ID, claims.Name, claims.Gender, createAt)
+	newAccessToken, err := j.generateAccessToken(claims.ID, claims.NickName, claims.Gender, createAt)
 	if err != nil {
 		return "", "", err
 	}
@@ -81,7 +86,12 @@ func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken s
 	if err != nil {
 		return "", "", err
 	}
-	// TODO：将旧的token和refresh_token加入黑名单
+	if callback != nil {
+		callbackErr := callback(claims)
+		if callbackErr != nil {
+			return "", "", callbackErr
+		}
+	}
 	return newAccessToken, newRefreshToken, nil
 }
 

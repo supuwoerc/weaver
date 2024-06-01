@@ -13,7 +13,8 @@ const (
 )
 
 const (
-	USER_CREATE_DUPLICATE_EMAIL int = 20000 // 用户创建email重复导致的唯一索引错误
-	USER_LOGIN_EMAIL_NOT_FOUND  int = 20001 // 用户登录email未查询到
-	USER_LOGIN_FAIL             int = 20002 // 用户登录失败
+	USER_CREATE_DUPLICATE_EMAIL     int = 20000 // 用户创建email重复导致的唯一索引错误
+	USER_LOGIN_EMAIL_NOT_FOUND      int = 20001 // 用户登录email未查询到
+	USER_LOGIN_FAIL                 int = 20002 // 用户登录失败
+	USER_LOGIN_TOKEN_PAIR_CACHE_ERR int = 20003 // 用户登录时的redis存储token对失败
 )

@@ -3,12 +3,14 @@ package repository
 import (
 	"context"
 	"gin-web/models"
+	"gin-web/repository/cache"
 	"gin-web/repository/dao"
 	"time"
 )
 
 type UserRepository struct {
-	dao *dao.UserDAO
+	dao   *dao.UserDAO
+	cache *cache.UserCache
 }
 
 var userRepository *UserRepository
@@ -16,7 +18,8 @@ var userRepository *UserRepository
 func NewUserRepository() *UserRepository {
 	if userRepository == nil {
 		userRepository = &UserRepository{
-			dao: dao.NewUserDAO(),
+			dao:   dao.NewUserDAO(),
+			cache: cache.NewUserCache(),
 		}
 	}
 	return userRepository
@@ -44,4 +47,16 @@ func (u UserRepository) Create(ctx context.Context, user models.User) error {
 func (u UserRepository) FindByEmail(ctx context.Context, email string) (models.User, error) {
 	user, err := u.dao.FindByEmail(ctx, email)
 	return toModelUser(user), err
+}
+
+func (u UserRepository) CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
+	return u.cache.HSetTokenPair(ctx, email, pair)
+}
+
+func (u UserRepository) TokenPairExist(ctx context.Context, email string) (bool, error) {
+	return u.cache.HExistsTokenPair(ctx, email)
+}
+
+func (u UserRepository) DelTokenPair(ctx context.Context, email string) error {
+	return u.cache.HDelTokenPair(ctx, email)
 }
