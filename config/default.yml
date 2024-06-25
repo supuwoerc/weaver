@@ -1,3 +1,5 @@
+system:
+  defaultLang: cn
 jwt:
   expires: 1440              # token过期时长(分钟)
   refreshTokenExpires: 10080 # refresh_token的过期时长(分钟)

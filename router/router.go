@@ -7,6 +7,8 @@ import (
 
 func InitRouter(r *gin.Engine) {
 	group := r.Group("api/v1")
+	// 国际化中间件
+	group.Use(middleware.I18N())
 	// 系统基础测试
 	InitPingRouter(group)
 	// swagger文档

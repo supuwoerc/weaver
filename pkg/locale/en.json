@@ -1,0 +1,54 @@
+[
+  {
+    "id": "10000",
+    "translation": "Implementation success"
+  },
+  {
+    "id": "10001",
+    "translation": "Failure of execution"
+  },
+  {
+    "id": "10002",
+    "translation": "Parameter error"
+  },
+  {
+    "id": "10003",
+    "translation": "Authentication failure"
+  },
+  {
+    "id": "10004",
+    "translation": "Unknown error"
+  },
+  {
+    "id": "10005",
+    "translation": "Serious error, please contact the administrator"
+  },
+  {
+    "id": "10006",
+    "translation": "Wrong RefreshToken"
+  },
+  {
+    "id": "10007",
+    "translation": "Unnecessary refreshing"
+  },
+  {
+    "id": "20000",
+    "translation": "Email registered"
+  },
+  {
+    "id": "20001",
+    "translation": "The user does not exist"
+  },
+  {
+    "id": "20002",
+    "translation": "Incorrect user name or password"
+  },
+  {
+    "id": "20003",
+    "translation": "TokenPair record failure"
+  },
+  {
+    "id": "20004",
+    "translation": "Illegal password format"
+  }
+]

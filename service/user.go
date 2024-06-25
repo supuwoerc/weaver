@@ -46,7 +46,14 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 		return models.User{}, nil, constant.USER_LOGIN_FAIL_ERR
 	}
 	builder := jwt.NewJwtBuilder()
-	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(user.ID, user.NickName, user.Gender)
+	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
+		UID:      user.ID,
+		Email:    user.Email,
+		NickName: user.NickName,
+		Gender:   user.Gender,
+		About:    user.About,
+		Birthday: user.Birthday,
+	})
 	if err != nil {
 		return models.User{}, nil, err
 	}

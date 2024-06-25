@@ -14,19 +14,19 @@ const (
 )
 
 func tokenInvalidResponse(ctx *gin.Context) {
-	response.HttpResponse[any](ctx, response.INVALID_TOKEN, nil, response.GetMessage(response.INVALID_TOKEN))
+	response.HttpResponse[any](ctx, response.INVALID_TOKEN, nil, nil, nil)
 }
 
 func refreshTokenInvalidResponse(ctx *gin.Context) {
-	response.HttpResponse[any](ctx, response.INVALID_REFRESH_TOKEN, nil, response.GetMessage(response.INVALID_REFRESH_TOKEN))
+	response.HttpResponse[any](ctx, response.INVALID_REFRESH_TOKEN, nil, nil, nil)
 }
 
 func LoginRequired() gin.HandlerFunc {
 	tokenKey := viper.GetString("jwt.tokenKey")
 	refreshTokenKey := viper.GetString("jwt.refreshTokenKey")
 	prefix := viper.GetString("jwt.tokenPrefix")
-	jwtBuilder := jwt.NewJwtBuilder()
 	return func(ctx *gin.Context) {
+		jwtBuilder := jwt.NewJwtBuilder()
 		token := ctx.GetHeader(tokenKey)
 		if token == "" || !strings.HasPrefix(token, prefix) {
 			tokenInvalidResponse(ctx)
@@ -36,7 +36,7 @@ func LoginRequired() gin.HandlerFunc {
 		userRepository := repository.NewUserRepository()
 		if err == nil {
 			// token解析正常,判断是不是在不redis中
-			exist, existErr := userRepository.TokenPairExist(ctx, claims.Email)
+			exist, existErr := userRepository.TokenPairExist(ctx, claims.User.Email)
 			if existErr != nil || !exist {
 				tokenInvalidResponse(ctx)
 				return
@@ -47,7 +47,7 @@ func LoginRequired() gin.HandlerFunc {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
 			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateAccessAndRefreshToken(token, refreshToken, func(claims jwt.TokenClaims) error {
-				return userRepository.DelTokenPair(ctx, claims.Email)
+				return userRepository.DelTokenPair(ctx, claims.User.Email)
 			})
 			if refreshErr != nil {
 				refreshTokenInvalidResponse(ctx)

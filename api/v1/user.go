@@ -43,7 +43,7 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 	}
 	passwordValid, err := u.passwordRegexExp.MatchString(params.Password)
 	if err != nil || !passwordValid {
-		response.FailWithMessage(ctx, "密码格式错误")
+		response.HttpResponse[any](ctx, response.PASSWORD_VALID_ERR, nil, nil, nil)
 		return
 	}
 	if err = u.service.SignUp(ctx.Request.Context(), models.User{

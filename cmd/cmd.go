@@ -11,6 +11,7 @@ func Start() {
 	global.Logger = initialize.InitZapLogger()
 	global.DB = initialize.InitGORM()
 	global.RedisClient = initialize.InitRedis()
+	global.Localizer = initialize.InitI18N()
 	handle := initialize.InitEngine()
 	initialize.InitServer(handle)
 }

@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"github.com/golang-jwt/jwt/v5"
@@ -8,9 +9,8 @@ import (
 	"time"
 )
 
-type TokenClaims struct {
-	jwt.RegisteredClaims
-	ID       uint
+type TokenClaimsBasic struct {
+	UID      uint
 	Email    string
 	NickName string
 	Gender   models.UserGender
@@ -18,12 +18,10 @@ type TokenClaims struct {
 	Birthday string
 }
 
-var (
-	TOKEN_SECRET          = viper.GetString("jwt.secret")
-	TOKEN_ISSUER          = viper.GetString("jwt.secret")
-	TOKEN_EXPIRES         = viper.GetDuration("jwt.expires") * time.Minute
-	REFRESH_TOKEN_EXPIRES = viper.GetDuration("jwt.refreshTokenExpires") * time.Minute
-)
+type TokenClaims struct {
+	jwt.RegisteredClaims
+	User *TokenClaimsBasic
+}
 
 type JwtBuilder struct {
 }
@@ -38,29 +36,27 @@ func NewJwtBuilder() *JwtBuilder {
 }
 
 // 生成token
-func (j *JwtBuilder) generateToken(id uint, name string, gender models.UserGender, createAt time.Time, duration time.Duration) (string, error) {
+func (j *JwtBuilder) generateToken(user *TokenClaimsBasic, createAt time.Time, duration time.Duration) (string, error) {
 	claims := TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    TOKEN_ISSUER,
+			Issuer:    viper.GetString("jwt.issuer"),
 			IssuedAt:  jwt.NewNumericDate(createAt),
 			ExpiresAt: jwt.NewNumericDate(createAt.Add(duration)),
 		},
-		ID:       id,
-		NickName: name,
-		Gender:   gender,
+		User: user,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(TOKEN_SECRET))
+	return token.SignedString([]byte(viper.GetString("jwt.secret")))
 }
 
 // 生成短token
-func (j *JwtBuilder) generateAccessToken(id uint, name string, gender models.UserGender, createAt time.Time) (string, error) {
-	return j.generateToken(id, name, gender, createAt, TOKEN_EXPIRES)
+func (j *JwtBuilder) generateAccessToken(user *TokenClaimsBasic, createAt time.Time) (string, error) {
+	return j.generateToken(user, createAt, viper.GetDuration("jwt.expires")*time.Minute)
 }
 
 // 生成长token
 func (j *JwtBuilder) generateRefreshToken(createAt time.Time) (string, error) {
-	return j.generateToken(0, "", 0, createAt, REFRESH_TOKEN_EXPIRES)
+	return j.generateToken(nil, createAt, viper.GetDuration("jwt.refreshTokenExpires")*time.Minute)
 }
 
 type RefreshTokenCallback func(claims TokenClaims) error
@@ -78,7 +74,14 @@ func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken s
 		return "", "", err
 	}
 	createAt := time.Now()
-	newAccessToken, err := j.generateAccessToken(claims.ID, claims.NickName, claims.Gender, createAt)
+	newAccessToken, err := j.generateAccessToken(&TokenClaimsBasic{
+		UID:      claims.User.UID,
+		Email:    claims.User.Email,
+		NickName: claims.User.NickName,
+		Gender:   claims.User.Gender,
+		About:    claims.User.About,
+		Birthday: claims.User.Birthday,
+	}, createAt)
 	if err != nil {
 		return "", "", err
 	}
@@ -96,9 +99,9 @@ func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken s
 }
 
 // 生成长短token
-func (j *JwtBuilder) GenerateAccessAndRefreshToken(id uint, name string, gender models.UserGender) (string, string, error) {
+func (j *JwtBuilder) GenerateAccessAndRefreshToken(user *TokenClaimsBasic) (string, string, error) {
 	createAt := time.Now()
-	newAccessToken, err := j.generateAccessToken(id, name, gender, createAt)
+	newAccessToken, err := j.generateAccessToken(user, createAt)
 	if err != nil {
 		return "", "", err
 	}
@@ -112,10 +115,11 @@ func (j *JwtBuilder) GenerateAccessAndRefreshToken(id uint, name string, gender 
 // 解析token
 func (j *JwtBuilder) ParseToken(tokenString string) (TokenClaims, error) {
 	claims := TokenClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return TOKEN_SECRET, nil
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(viper.GetString("jwt.secret")), nil
 	})
 	if err != nil {
+		fmt.Println(err)
 		return claims, err
 	}
 	if !token.Valid {
