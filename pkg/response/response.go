@@ -1,6 +1,8 @@
 package response
 
 import (
+	"errors"
+	"gin-web/pkg/global"
 	"github.com/gin-gonic/gin"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"net/http"
@@ -8,6 +10,7 @@ import (
 )
 
 const TranslatorKey = "translator"
+const Locale = "locale"
 
 // BasicResponse 通用的数据返回
 type BasicResponse[T any] struct {
@@ -69,19 +72,31 @@ func SuccessWithPageData[T any](ctx *gin.Context, total int64, list []T) {
 	}, nil, nil)
 }
 
-// Fail 失败响应-不携带数据
-func Fail(ctx *gin.Context) {
-	HttpResponse[any](ctx, ERROR, nil, nil, nil)
-}
-
-// FailWithData 失败响应-携带数据
-func FailWithData[T any](ctx *gin.Context, data T) {
-	HttpResponse[any](ctx, ERROR, data, nil, nil)
-}
-
 // FailWithMessage 失败响应-携带消息
 func FailWithMessage(ctx *gin.Context, message string) {
 	HttpResponse[any](ctx, ERROR, nil, nil, &message)
+}
+
+// FailWithCode 失败响应
+func FailWithCode(ctx *gin.Context, code StatusCode) {
+	HttpResponse[any](ctx, code, nil, nil, nil)
+}
+
+// FailWithError 失败响应
+func FailWithError(ctx *gin.Context, err error) {
+	for code, e := range global.LocaleErrors[global.CN] {
+		if errors.Is(e, err) {
+			FailWithCode(ctx, code)
+			return
+		}
+	}
+	for code, e := range global.LocaleErrors[global.EN] {
+		if errors.Is(e, err) {
+			FailWithCode(ctx, code)
+			return
+		}
+	}
+	FailWithMessage(ctx, err.Error())
 }
 
 // ParamsValidateFail 失败响应-参数错误

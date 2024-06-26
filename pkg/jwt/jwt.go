@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/response"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
 	"time"
@@ -24,13 +26,16 @@ type TokenClaims struct {
 }
 
 type JwtBuilder struct {
+	ctx *gin.Context
 }
 
 var jwtBuilder *JwtBuilder
 
-func NewJwtBuilder() *JwtBuilder {
+func NewJwtBuilder(ctx *gin.Context) *JwtBuilder {
 	if jwtBuilder == nil {
-		jwtBuilder = &JwtBuilder{}
+		jwtBuilder = &JwtBuilder{
+			ctx: ctx,
+		}
 	}
 	return jwtBuilder
 }
@@ -64,13 +69,13 @@ type RefreshTokenCallback func(claims TokenClaims) error
 // 校验并生成长短token
 func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string, callback RefreshTokenCallback) (string, string, error) {
 	if _, err := j.ParseToken(refreshToken); err != nil {
-		return "", "", constant.REFRESH_TOKEN_PARSE_ERROR
+		return "", "", constant.GetError(j.ctx, response.INVALID_REFRESH_TOKEN)
 	}
 	claims, err := j.ParseToken(accessToken)
 	if err == nil {
-		return "", "", constant.UNNECESSARY_REFRESH_TOKEN_ERROR
+		return "", "", constant.GetError(j.ctx, response.UNNECESSARY_REFRESH_TOKEN)
 	}
-	if err != constant.TOKEN_PARSE_ERROR {
+	if err != constant.GetError(j.ctx, response.INVALID_TOKEN) {
 		return "", "", err
 	}
 	createAt := time.Now()
@@ -123,7 +128,7 @@ func (j *JwtBuilder) ParseToken(tokenString string) (TokenClaims, error) {
 		return claims, err
 	}
 	if !token.Valid {
-		return TokenClaims{}, constant.TOKEN_PARSE_ERROR
+		return TokenClaims{}, constant.GetError(j.ctx, response.INVALID_TOKEN)
 	}
 	return claims, nil
 }

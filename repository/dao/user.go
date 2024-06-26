@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/global"
+	"gin-web/pkg/response"
+	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
 
 type UserDAO struct {
-	db *gorm.DB
+	*BasicDAO
 }
 
 var userDAO *UserDAO
@@ -25,9 +26,9 @@ type User struct {
 	Birthday int64  `gorm:"comment:生日"` // 生日
 }
 
-func NewUserDAO() *UserDAO {
+func NewUserDAO(ctx *gin.Context) *UserDAO {
 	if userDAO == nil {
-		userDAO = &UserDAO{db: global.DB}
+		userDAO = &UserDAO{BasicDAO: NewBasicDao(ctx)}
 	}
 	return userDAO
 }
@@ -36,7 +37,7 @@ func (u UserDAO) Insert(ctx context.Context, user User) error {
 	err := u.db.WithContext(ctx).Create(&user).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-		return constant.USER_CREATE_DUPLICATE_EMAIL_ERR
+		return constant.GetError(u.ctx, response.USER_CREATE_DUPLICATE_EMAIL)
 	}
 	return err
 }
@@ -45,7 +46,7 @@ func (u UserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
 	var user User
 	err := u.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return user, constant.USER_LOGIN_EMAIL_NOT_FOUND_ERR
+		return user, constant.GetError(u.ctx, response.USER_LOGIN_EMAIL_NOT_FOUND)
 	}
 	return user, err
 }

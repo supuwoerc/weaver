@@ -5,7 +5,9 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
+	"gin-web/pkg/response"
 	"gin-web/repository"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,11 +18,11 @@ type UserService struct {
 
 var userService *UserService
 
-func NewUserService() *UserService {
+func NewUserService(ctx *gin.Context) *UserService {
 	if userService == nil {
 		userService = &UserService{
-			BasicService: NewBasicService(),
-			repository:   repository.NewUserRepository(),
+			BasicService: NewBasicService(ctx),
+			repository:   repository.NewUserRepository(ctx),
 		}
 	}
 	return userService
@@ -43,9 +45,9 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
 	if err != nil {
-		return models.User{}, nil, constant.USER_LOGIN_FAIL_ERR
+		return models.User{}, nil, constant.GetError(u.ctx, response.USER_LOGIN_FAIL)
 	}
-	builder := jwt.NewJwtBuilder()
+	builder := jwt.NewJwtBuilder(u.ctx)
 	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
 		UID:      user.ID,
 		Email:    user.Email,

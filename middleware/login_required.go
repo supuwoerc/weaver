@@ -26,14 +26,14 @@ func LoginRequired() gin.HandlerFunc {
 	refreshTokenKey := viper.GetString("jwt.refreshTokenKey")
 	prefix := viper.GetString("jwt.tokenPrefix")
 	return func(ctx *gin.Context) {
-		jwtBuilder := jwt.NewJwtBuilder()
+		jwtBuilder := jwt.NewJwtBuilder(ctx)
 		token := ctx.GetHeader(tokenKey)
 		if token == "" || !strings.HasPrefix(token, prefix) {
 			tokenInvalidResponse(ctx)
 			return
 		}
 		claims, err := jwtBuilder.ParseToken(token[len(prefix):])
-		userRepository := repository.NewUserRepository()
+		userRepository := repository.NewUserRepository(ctx)
 		if err == nil {
 			// token解析正常,判断是不是在不redis中
 			exist, existErr := userRepository.TokenPairExist(ctx, claims.User.Email)

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"gin-web/initialize"
+	"gin-web/pkg/constant"
 	"gin-web/pkg/global"
 )
 
@@ -12,6 +13,10 @@ func Start() {
 	global.DB = initialize.InitGORM()
 	global.RedisClient = initialize.InitRedis()
 	global.Localizer = initialize.InitI18N()
+	global.LocaleErrors = constant.InitErrors(constant.InitParams{
+		CN: global.Localizer[global.CN],
+		EN: global.Localizer[global.EN],
+	})
 	handle := initialize.InitEngine()
 	initialize.InitServer(handle)
 }

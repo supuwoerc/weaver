@@ -8,8 +8,14 @@ import (
 )
 
 var (
-	Logger      *zap.SugaredLogger
-	DB          *gorm.DB
-	RedisClient *redis.RedisClient
-	Localizer   map[string]*i18n.Localizer
+	Logger       *zap.SugaredLogger
+	DB           *gorm.DB
+	RedisClient  *redis.RedisClient
+	Localizer    map[string]*i18n.Localizer
+	LocaleErrors map[string]map[int]error
+)
+
+const (
+	CN string = "cn"
+	EN string = "en"
 )

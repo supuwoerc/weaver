@@ -2,31 +2,75 @@ package constant
 
 import (
 	"errors"
-	"fmt"
+	"gin-web/pkg/global"
 	"gin-web/pkg/response"
+	"github.com/gin-gonic/gin"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/spf13/viper"
+	"strconv"
 )
 
-// 短TOKEN解析错误
-var TOKEN_PARSE_ERROR = errors.New(fmt.Sprintf("%d", response.INVALID_TOKEN))
+type StatusCode2Error map[response.StatusCode]error
 
-// 长TOKEN解析错误
-var REFRESH_TOKEN_PARSE_ERROR = errors.New(fmt.Sprintf("%d", response.INVALID_REFRESH_TOKEN))
+var cnErrorMap StatusCode2Error
+var enErrorMap StatusCode2Error
 
-// 不必要的刷新短TOKEN
-var UNNECESSARY_REFRESH_TOKEN_ERROR = errors.New(fmt.Sprintf("%d", response.UNNECESSARY_REFRESH_TOKEN))
+var systemModuleCode = []response.StatusCode{
+	response.INVALID_TOKEN,
+	response.INVALID_REFRESH_TOKEN,
+	response.UNNECESSARY_REFRESH_TOKEN,
+}
+var userModuleCode = []response.StatusCode{
+	response.USER_CREATE_DUPLICATE_EMAIL,
+	response.USER_LOGIN_EMAIL_NOT_FOUND,
+	response.USER_LOGIN_FAIL,
+	response.USER_LOGIN_TOKEN_PAIR_CACHE_ERR,
+}
 
-// NOTE:USER模块-START
+type InitParams struct {
+	CN *i18n.Localizer
+	EN *i18n.Localizer
+}
 
-// 创建用户时数据库唯一索引错误
-var USER_CREATE_DUPLICATE_EMAIL_ERR = errors.New(fmt.Sprintf("%d", response.USER_CREATE_DUPLICATE_EMAIL))
+func initWithLang(localizer *i18n.Localizer, codes []response.StatusCode, sourceMap *StatusCode2Error) {
+	for _, code := range codes {
+		msg := localizer.MustLocalize(&i18n.LocalizeConfig{
+			MessageID: strconv.Itoa(code),
+		})
+		(*sourceMap)[code] = errors.New(msg)
+	}
+}
 
-// 用户登录email未查询到错误
-var USER_LOGIN_EMAIL_NOT_FOUND_ERR = errors.New(fmt.Sprintf("%d", response.USER_LOGIN_EMAIL_NOT_FOUND))
+func InitErrors(localizer InitParams) map[string]map[int]error {
+	var codes []response.StatusCode
+	if cnErrorMap == nil || enErrorMap == nil {
+		codes = append(codes, systemModuleCode...)
+		codes = append(codes, userModuleCode...)
+	}
+	if cnErrorMap == nil {
+		cnErrorMap = StatusCode2Error{}
+		initWithLang(localizer.CN, codes, &cnErrorMap)
+	}
+	if enErrorMap == nil {
+		enErrorMap = StatusCode2Error{}
+		initWithLang(localizer.EN, codes, &enErrorMap)
+	}
+	return map[string]map[int]error{
+		"cn": cnErrorMap,
+		"en": enErrorMap,
+	}
+}
 
-// 用户登录失败
-var USER_LOGIN_FAIL_ERR = errors.New(fmt.Sprintf("%d", response.USER_LOGIN_FAIL))
-
-// 用户登录时的redis存储token对失败
-var USER_LOGIN_TOKEN_PAIR_CACHE_ERR = errors.New(fmt.Sprintf("%d", response.USER_LOGIN_TOKEN_PAIR_CACHE_ERR))
-
-// NOTE:USER模块-END
+func GetError(ctx *gin.Context, code response.StatusCode) error {
+	value, exists := ctx.Get(response.Locale)
+	locale := ""
+	if exists {
+		locale = value.(string)
+	} else {
+		locale = viper.GetString("system.defaultLang")
+	}
+	if locale == global.CN {
+		return cnErrorMap[code]
+	}
+	return enErrorMap[code]
+}

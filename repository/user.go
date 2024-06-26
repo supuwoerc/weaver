@@ -5,6 +5,7 @@ import (
 	"gin-web/models"
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
+	"github.com/gin-gonic/gin"
 	"time"
 )
 
@@ -15,11 +16,11 @@ type UserRepository struct {
 
 var userRepository *UserRepository
 
-func NewUserRepository() *UserRepository {
+func NewUserRepository(ctx *gin.Context) *UserRepository {
 	if userRepository == nil {
 		userRepository = &UserRepository{
-			dao:   dao.NewUserDAO(),
-			cache: cache.NewUserCache(),
+			dao:   dao.NewUserDAO(ctx),
+			cache: cache.NewUserCache(ctx),
 		}
 	}
 	return userRepository

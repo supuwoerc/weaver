@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/global"
-	"gin-web/pkg/redis"
+	"gin-web/pkg/response"
+	"github.com/gin-gonic/gin"
 )
 
 type UserCache struct {
-	redis *redis.RedisClient
+	*BasicCache
 }
 
 const USER_CACHE_KEY = "user_cache"
@@ -22,16 +22,16 @@ var (
 
 var userCache *UserCache
 
-func NewUserCache() *UserCache {
+func NewUserCache(ctx *gin.Context) *UserCache {
 	if userCache == nil {
-		userCache = &UserCache{redis: global.RedisClient}
+		userCache = &UserCache{BasicCache: NewBasicCache(ctx)}
 	}
 	return userCache
 }
 
 func (u *UserCache) HSetTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
 	if pair == nil {
-		return constant.USER_LOGIN_TOKEN_PAIR_CACHE_ERR
+		return constant.GetError(u.ctx, response.USER_LOGIN_TOKEN_PAIR_CACHE_ERR)
 	}
 	result, err := json.Marshal(pair)
 	if err != nil {

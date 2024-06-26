@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var languages = []string{"cn", "en"}
+var languages = []string{global.CN, global.EN}
 
 func I18N() gin.HandlerFunc {
 	return func(context *gin.Context) {
@@ -23,5 +23,6 @@ func I18N() gin.HandlerFunc {
 			locale = viper.GetString("system.defaultLang")
 		}
 		context.Set(response.TranslatorKey, global.Localizer[locale])
+		context.Set(response.Locale, locale)
 	}
 }

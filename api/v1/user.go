@@ -14,14 +14,16 @@ type UserApi struct {
 	*BasicApi
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
-	service          *service.UserService
+	service          func(ctx *gin.Context) *service.UserService
 }
 
 func NewUserApi() UserApi {
 	return UserApi{
 		BasicApi:         NewBasicApi(),
 		passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
-		service:          service.NewUserService(),
+		service: func(ctx *gin.Context) *service.UserService {
+			return service.NewUserService(ctx)
+		},
 	}
 }
 
@@ -46,11 +48,11 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 		response.HttpResponse[any](ctx, response.PASSWORD_VALID_ERR, nil, nil, nil)
 		return
 	}
-	if err = u.service.SignUp(ctx.Request.Context(), models.User{
+	if err = u.service(ctx).SignUp(ctx.Request.Context(), models.User{
 		Email:    params.Email,
 		Password: &params.Password,
 	}); err != nil {
-		response.FailWithMessage(ctx, err.Error())
+		response.FailWithError(ctx, err)
 		return
 	}
 	response.Success(ctx)
@@ -72,12 +74,12 @@ func (u UserApi) Login(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx)
 		return
 	}
-	user, pair, err := u.service.Login(ctx.Request.Context(), params.Email, params.Password)
+	user, pair, err := u.service(ctx).Login(ctx.Request.Context(), params.Email, params.Password)
 	switch {
 	case pair != nil:
 		user.Password = nil
 		if err != nil {
-			response.FailWithMessage(ctx, err.Error())
+			response.FailWithError(ctx, err)
 			return
 		}
 		response.SuccessWithData[response.LoginResponse](ctx, response.LoginResponse{
@@ -85,8 +87,8 @@ func (u UserApi) Login(ctx *gin.Context) {
 			Token:        pair.AccessToken,
 			RefreshToken: pair.RefreshToken,
 		})
-	case err == constant.USER_LOGIN_FAIL_ERR || err == constant.USER_LOGIN_EMAIL_NOT_FOUND_ERR:
-		response.FailWithMessage(ctx, constant.USER_LOGIN_FAIL_ERR.Error())
+	case err == constant.GetError(ctx, response.USER_LOGIN_FAIL) || err == constant.GetError(ctx, response.USER_LOGIN_EMAIL_NOT_FOUND):
+		response.FailWithCode(ctx, response.USER_LOGIN_FAIL)
 	default:
 		response.FailWithMessage(ctx, err.Error())
 	}
