@@ -23,7 +23,7 @@ jobs:
       - name: Build-Application
         run: |
           export GIN_MODE=release
-          GOOS=linux go build -o build/main -v
+          GOOS=linux go build -o build/learn_gin_web -v
 
       - name: Display-Build-Result
         run: ls -R build/
@@ -35,7 +35,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
-          source: build/main,run.sh
+          source: build/learn_gin_web,run.sh
           target: /var/www/learn-gin-web
 
       - name: Deploy-Application-To-Ubuntu

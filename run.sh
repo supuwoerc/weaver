@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the application name and directories
-APP_NAME="main"
+APP_NAME="learn_gin_web"
 DEPLOY_DIR="/var/www/learn-gin-web/build"
 PID_FILE="$DEPLOY_DIR/$APP_NAME.pid"
 APP_BINARY="$DEPLOY_DIR/$APP_NAME"

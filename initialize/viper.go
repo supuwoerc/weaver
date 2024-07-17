@@ -45,6 +45,6 @@ func InitConfig() {
 	viper.AddConfigPath(configPath)
 	e := viper.ReadInConfig()
 	if e != nil {
-		panic(err)
+		panic(e)
 	}
 }
