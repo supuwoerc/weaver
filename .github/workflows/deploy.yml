@@ -50,3 +50,6 @@ jobs:
             ls -l
             chmod +x ./run.sh
             ./run.sh
+
+      - name: End
+        run: echo 'build and deploy end...'
