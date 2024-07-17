@@ -4,7 +4,7 @@ name: Deploy-Learn-Gin-Web
     branches:
       - main
 jobs:
-  build-GoAppliation:
+  Build-And-Deploy-Application:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout-Repository
@@ -28,17 +28,25 @@ jobs:
       - name: Display-Build-Result
         run: ls -R build/
 
+      - name: Copy-Build-Result-And-Script
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.REMOTE_PORT }}
+          source: build/main,run.sh
+          target: /var/www/learn-gin-web
+
       - name: Deploy-Application-To-Ubuntu
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.REMOTE_HOST }
-          username: ${{ secrets.REMOTE_USER }
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
           script: |
-            mkdir -p /var/www/learn-gin-web
-            mv $GITHUB_WORKSPACE/build/main var/www/learn-gin-web/main
-            mv $GITHUB_WORKSPACE/run.sh var/www/learn-gin-web/run.sh
             cd /var/www/learn-gin-web
             ls -l
+            chmod +x ./run.sh
             ./run.sh
