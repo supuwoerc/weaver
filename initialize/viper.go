@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"os"
@@ -9,15 +10,19 @@ import (
 
 const (
 	_CONFIG_TYPE = "yml"
-	_CONFIG_PATH = "./config"
 )
 
 func InitConfig() {
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	configPath := fmt.Sprintf("%s%s", dir, "/config")
 	v := viper.New()
 	v.SetConfigType(_CONFIG_TYPE)
-	v.AddConfigPath(_CONFIG_PATH)
+	v.AddConfigPath(configPath)
 	v.SetConfigName("default")
-	err := v.ReadInConfig()
+	err = v.ReadInConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +42,7 @@ func InitConfig() {
 	}
 	viper.SetConfigName(env)
 	viper.SetConfigType(_CONFIG_TYPE)
-	viper.AddConfigPath(_CONFIG_PATH)
+	viper.AddConfigPath(configPath)
 	e := viper.ReadInConfig()
 	if e != nil {
 		panic(err)
