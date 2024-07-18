@@ -2,7 +2,7 @@
 
 # Define the application name and directories
 APP_NAME="learn_gin_web"
-DEPLOY_DIR="/var/www/learn-gin-web/build"
+DEPLOY_DIR="/var/www/learn-gin-web"
 PID_FILE="$DEPLOY_DIR/$APP_NAME.pid"
 APP_BINARY="$DEPLOY_DIR/$APP_NAME"
 
