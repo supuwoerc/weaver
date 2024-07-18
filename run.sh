@@ -10,7 +10,7 @@ LOG_FILE="$DEPLOY_DIR/$APP_NAME.log"
 # Function to start the application
 start_app() {
   echo "Starting the new application..."
-  nohup GIN_MODE=release $APP_BINARY > $LOG_FILE 2>&1 &
+  nohup env GIN_MODE=release $APP_BINARY > $LOG_FILE 2>&1 &
   NEW_PID=$!
   echo $NEW_PID > $PID_FILE
   echo "New application started with PID $NEW_PID."
