@@ -9,7 +9,7 @@ APP_BINARY="$DEPLOY_DIR/$APP_NAME"
 # Function to start the application
 start_app() {
   echo "Starting the new application..."
-  GIN_MODE=release $APP_BINARY &
+  nohup GIN_MODE=release $APP_BINARY &> /dev/null &
   NEW_PID=$!
   echo $NEW_PID > $PID_FILE
   echo "New application started with PID $NEW_PID."
