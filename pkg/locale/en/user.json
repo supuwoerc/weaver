@@ -1,0 +1,22 @@
+[
+  {
+    "id": "20000",
+    "other": "Email registered"
+  },
+  {
+    "id": "20001",
+    "other": "The user does not exist"
+  },
+  {
+    "id": "20002",
+    "other": "Incorrect user name or password"
+  },
+  {
+    "id": "20003",
+    "other": "TokenPair record failure"
+  },
+  {
+    "id": "20004",
+    "other": "Illegal password format"
+  }
+]

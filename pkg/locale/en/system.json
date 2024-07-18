@@ -1,0 +1,34 @@
+[
+  {
+    "id": "10000",
+    "other": "Implementation success"
+  },
+  {
+    "id": "10001",
+    "other": "Failure of execution"
+  },
+  {
+    "id": "10002",
+    "other": "Parameter error"
+  },
+  {
+    "id": "10003",
+    "other": "Authentication failure"
+  },
+  {
+    "id": "10004",
+    "other": "Unknown error"
+  },
+  {
+    "id": "10005",
+    "other": "Serious error, please contact the administrator"
+  },
+  {
+    "id": "10006",
+    "other": "Wrong RefreshToken"
+  },
+  {
+    "id": "10007",
+    "other": "Unnecessary refreshing"
+  }
+]
