@@ -48,7 +48,7 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 		response.HttpResponse[any](ctx, response.PASSWORD_VALID_ERR, nil, nil, nil)
 		return
 	}
-	if err = u.service(ctx).SignUp(ctx.Request.Context(), models.User{
+	if err = u.service(ctx).SignUp(ctx.Request.Context(), params.ID, params.Code, models.User{
 		Email:    params.Email,
 		Password: &params.Password,
 	}); err != nil {

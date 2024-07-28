@@ -21,3 +21,7 @@ const (
 	USER_LOGIN_TOKEN_PAIR_CACHE_ERR            = 20003 // 用户登录时的redis存储token对失败
 	PASSWORD_VALID_ERR                         = 20004 // 密码格式错误
 )
+
+const (
+	CAPTCHA_VERIFY_FAIL StatusCode = 30000 // 验证码校验错误
+)

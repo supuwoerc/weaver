@@ -26,6 +26,9 @@ var userModuleCode = []response.StatusCode{
 	response.USER_LOGIN_FAIL,
 	response.USER_LOGIN_TOKEN_PAIR_CACHE_ERR,
 }
+var captchaModuleCode = []response.StatusCode{
+	response.CAPTCHA_VERIFY_FAIL,
+}
 
 type InitParams struct {
 	CN *i18n.Localizer
@@ -46,6 +49,7 @@ func InitErrors(localizer InitParams) map[string]map[int]error {
 	if cnErrorMap == nil || enErrorMap == nil {
 		codes = append(codes, systemModuleCode...)
 		codes = append(codes, userModuleCode...)
+		codes = append(codes, captchaModuleCode...)
 	}
 	if cnErrorMap == nil {
 		cnErrorMap = StatusCode2Error{}
