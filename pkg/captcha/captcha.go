@@ -14,7 +14,7 @@ type Captcha struct {
 }
 
 func init() {
-	captchaClient = base64Captcha.NewCaptcha(base64Captcha.NewDriverDigit(100, 380, 6, 0.3, 80), RedisStore{})
+	captchaClient = base64Captcha.NewCaptcha(base64Captcha.NewDriverDigit(100, 348, 6, 0.3, 80), RedisStore{})
 }
 
 var captcha *Captcha
