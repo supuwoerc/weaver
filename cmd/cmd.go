@@ -17,6 +17,7 @@ func Start() {
 		CN: global.Localizer[global.CN],
 		EN: global.Localizer[global.EN],
 	})
+	global.CasbinEnforcer = initialize.InitCasbin(global.DB)
 	handle := initialize.InitEngine()
 	initialize.InitServer(handle)
 }

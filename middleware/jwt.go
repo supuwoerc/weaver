@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
 	"gin-web/repository"
@@ -14,11 +15,11 @@ const (
 )
 
 func tokenInvalidResponse(ctx *gin.Context) {
-	response.HttpResponse[any](ctx, response.INVALID_TOKEN, nil, nil, nil)
+	response.FailWithError(ctx, constant.GetError(ctx, response.INVALID_TOKEN))
 }
 
 func refreshTokenInvalidResponse(ctx *gin.Context) {
-	response.HttpResponse[any](ctx, response.INVALID_REFRESH_TOKEN, nil, nil, nil)
+	response.FailWithError(ctx, constant.GetError(ctx, response.INVALID_REFRESH_TOKEN))
 }
 
 func LoginRequired() gin.HandlerFunc {

@@ -12,6 +12,8 @@ const (
 	RECOVERY_ERROR                       = 10005 // 发生recovery
 	INVALID_REFRESH_TOKEN                = 10006 // 长token错误
 	UNNECESSARY_REFRESH_TOKEN            = 10007 // 不必要的刷新token(短token还未过期)
+	CASBIN_ERR                           = 10008 // casbin校验出错
+	CASBIN_INVALID                       = 10009 // casbin校验未通过
 )
 
 const (

@@ -19,6 +19,8 @@ var systemModuleCode = []response.StatusCode{
 	response.INVALID_TOKEN,
 	response.INVALID_REFRESH_TOKEN,
 	response.UNNECESSARY_REFRESH_TOKEN,
+	response.CASBIN_ERR,
+	response.CASBIN_INVALID,
 }
 var userModuleCode = []response.StatusCode{
 	response.USER_CREATE_DUPLICATE_EMAIL,

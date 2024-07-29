@@ -20,4 +20,6 @@ cors:
     - http://127.0.0.1
 captcha:
   keyPrefix: "captcha:"
-  expiration: 60000000000 # Nanosecond
+  expiration: 60 # 秒
+casbin:
+  cacheExpireTime: 3600 # 秒

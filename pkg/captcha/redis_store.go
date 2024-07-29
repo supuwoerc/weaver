@@ -18,7 +18,8 @@ func getKeyPrefix() string {
 }
 
 func getExpiration() time.Duration {
-	return viper.GetDuration("captcha.expiration")
+	expiration := viper.GetDuration("captcha.expiration")
+	return expiration * time.Second
 }
 
 func (r RedisStore) Set(id string, value string) error {
