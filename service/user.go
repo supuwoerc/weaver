@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"gin-web/models"
-	"gin-web/pkg/captcha"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
@@ -14,6 +13,7 @@ import (
 
 type UserService struct {
 	*BasicService
+	*CaptchaService
 	repository *repository.UserRepository
 }
 
@@ -22,16 +22,16 @@ var userService *UserService
 func NewUserService(ctx *gin.Context) *UserService {
 	if userService == nil {
 		userService = &UserService{
-			BasicService: NewBasicService(ctx),
-			repository:   repository.NewUserRepository(ctx),
+			BasicService:   NewBasicService(ctx),
+			CaptchaService: NewCaptchaService(ctx),
+			repository:     repository.NewUserRepository(ctx),
 		}
 	}
 	return userService
 }
 
 func (u *UserService) SignUp(context context.Context, id string, code string, user models.User) error {
-	c := captcha.NewCaptcha()
-	verify := c.Verify(id, code)
+	verify := u.CaptchaService.Verify(id, code)
 	if !verify {
 		return constant.GetError(u.ctx, response.CAPTCHA_VERIFY_FAIL)
 	}
