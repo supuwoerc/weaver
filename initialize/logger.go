@@ -12,11 +12,12 @@ import (
 	"time"
 )
 
-func InitZapLogger() *zap.SugaredLogger {
+func InitZapLogger() (*zap.SugaredLogger, *lumberjack.Logger) {
 	level := viper.Get("logger.level")
 	logMode := level.(int)
-	core := zapcore.NewCore(getEncoder(), getWriterSyncer(), zapcore.Level(logMode))
-	return zap.New(core).Sugar()
+	syncer, logger := getWriterSyncer()
+	core := zapcore.NewCore(getEncoder(), syncer, zapcore.Level(logMode))
+	return zap.New(core).Sugar(), logger
 }
 
 func getEncoder() zapcore.Encoder {
@@ -29,7 +30,7 @@ func getEncoder() zapcore.Encoder {
 	return zapcore.NewJSONEncoder(config)
 }
 
-func getWriterSyncer() zapcore.WriteSyncer {
+func getWriterSyncer() (zapcore.WriteSyncer, *lumberjack.Logger) {
 	projectDir, err := os.Getwd()
 	targetDir := viper.GetString("logger.dir")
 	maxSize := viper.GetInt("logger.maxSize")
@@ -51,5 +52,5 @@ func getWriterSyncer() zapcore.WriteSyncer {
 	defer func() {
 		_ = lumberjackLogger.Close()
 	}()
-	return zapcore.NewMultiWriteSyncer(zapcore.AddSync(lumberjackLogger), zapcore.AddSync(os.Stdout))
+	return zapcore.NewMultiWriteSyncer(zapcore.AddSync(lumberjackLogger), zapcore.AddSync(os.Stdout)), lumberjackLogger
 }

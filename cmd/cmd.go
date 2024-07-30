@@ -9,7 +9,8 @@ import (
 
 func Start() {
 	initialize.InitConfig()
-	global.Logger = initialize.InitZapLogger()
+	logger, writer := initialize.InitZapLogger()
+	global.Logger = logger
 	global.DB = initialize.InitGORM()
 	global.RedisClient = initialize.InitRedis()
 	global.Localizer = initialize.InitI18N()
@@ -18,7 +19,7 @@ func Start() {
 		EN: global.Localizer[global.EN],
 	})
 	global.CasbinEnforcer = initialize.InitCasbin(global.DB)
-	handle := initialize.InitEngine()
+	handle := initialize.InitEngine(writer)
 	initialize.InitServer(handle)
 }
 
