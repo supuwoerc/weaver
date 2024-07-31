@@ -55,6 +55,7 @@ func InitErrors(localizer InitParams) map[string]map[int]error {
 		codes = append(codes, systemModuleCode...)
 		codes = append(codes, userModuleCode...)
 		codes = append(codes, captchaModuleCode...)
+		codes = append(codes, roleModuleCode...)
 	}
 	if cnErrorMap == nil {
 		cnErrorMap = StatusCode2Error{}
