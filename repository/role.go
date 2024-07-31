@@ -29,7 +29,7 @@ func toModelRole(r dao.Role) models.Role {
 	}
 }
 
-func (r RoleRepository) Create(ctx context.Context, name string) error {
+func (r *RoleRepository) Create(ctx context.Context, name string) error {
 	return r.dao.Insert(ctx, dao.Role{
 		Name: name,
 	})

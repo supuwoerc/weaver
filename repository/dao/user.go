@@ -33,7 +33,7 @@ func NewUserDAO(ctx *gin.Context) *UserDAO {
 	return userDAO
 }
 
-func (u UserDAO) Insert(ctx context.Context, user User) error {
+func (u *UserDAO) Insert(ctx context.Context, user User) error {
 	err := u.db.WithContext(ctx).Create(&user).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
@@ -42,7 +42,7 @@ func (u UserDAO) Insert(ctx context.Context, user User) error {
 	return err
 }
 
-func (u UserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
+func (u *UserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
 	var user User
 	err := u.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {

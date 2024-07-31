@@ -38,26 +38,26 @@ func toModelUser(u dao.User) models.User {
 	}
 }
 
-func (u UserRepository) Create(ctx context.Context, user models.User) error {
+func (u *UserRepository) Create(ctx context.Context, user models.User) error {
 	return u.dao.Insert(ctx, dao.User{
 		Email:    user.Email,
 		Password: *user.Password,
 	})
 }
 
-func (u UserRepository) FindByEmail(ctx context.Context, email string) (models.User, error) {
+func (u *UserRepository) FindByEmail(ctx context.Context, email string) (models.User, error) {
 	user, err := u.dao.FindByEmail(ctx, email)
 	return toModelUser(user), err
 }
 
-func (u UserRepository) CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
+func (u *UserRepository) CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
 	return u.cache.HSetTokenPair(ctx, email, pair)
 }
 
-func (u UserRepository) TokenPairExist(ctx context.Context, email string) (bool, error) {
+func (u *UserRepository) TokenPairExist(ctx context.Context, email string) (bool, error) {
 	return u.cache.HExistsTokenPair(ctx, email)
 }
 
-func (u UserRepository) DelTokenPair(ctx context.Context, email string) error {
+func (u *UserRepository) DelTokenPair(ctx context.Context, email string) error {
 	return u.cache.HDelTokenPair(ctx, email)
 }
