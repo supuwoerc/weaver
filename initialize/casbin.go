@@ -10,7 +10,7 @@ import (
 )
 
 func InitCasbin(db *gorm.DB) *casbin.SyncedCachedEnforcer {
-	adapter, err := gormadapter.NewAdapterByDB(db)
+	adapter, err := gormadapter.NewAdapterByDBUseTableName(db, TablePrefix, "casbin")
 	if err != nil {
 		panic(err)
 	}

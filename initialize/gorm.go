@@ -12,13 +12,15 @@ import (
 	"time"
 )
 
+const TablePrefix = "sys_"
+
 func InitGORM() *gorm.DB {
 	dsn := viper.GetString("mysql.dsn")
 	logLevel := viper.Get("gorm.logLevel")
 	level := logLevel.(int)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix:   "sys_",
+			TablePrefix:   TablePrefix,
 			SingularTable: true,
 		},
 		Logger: logger.Default.LogMode(logger.LogLevel(level)),

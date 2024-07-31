@@ -19,4 +19,6 @@ func InitRouter(r *gin.Engine) {
 	group.Use(middleware.LoginRequired())
 	// 用户模块
 	InitUserRouter(group)
+	// 角色模块
+	InitRoleRouter(group)
 }

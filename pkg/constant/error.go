@@ -31,6 +31,9 @@ var userModuleCode = []response.StatusCode{
 var captchaModuleCode = []response.StatusCode{
 	response.CAPTCHA_VERIFY_FAIL,
 }
+var roleModuleCode = []response.StatusCode{
+	response.ROLE_CREATE_DUPLICATE_NAME,
+}
 
 type InitParams struct {
 	CN *i18n.Localizer

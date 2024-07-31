@@ -40,7 +40,7 @@ func NewUserApi() UserApi {
 func (u UserApi) SignUp(ctx *gin.Context) {
 	var params request.SignUpRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
-		response.ParamsValidateFail(ctx)
+		response.ParamsValidateFail(ctx, err)
 		return
 	}
 	passwordValid, err := u.passwordRegexExp.MatchString(params.Password)
@@ -71,7 +71,7 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 func (u UserApi) Login(ctx *gin.Context) {
 	var params request.LoginRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
-		response.ParamsValidateFail(ctx)
+		response.ParamsValidateFail(ctx, err)
 		return
 	}
 	user, pair, err := u.service(ctx).Login(ctx.Request.Context(), params.Email, params.Password)

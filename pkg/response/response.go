@@ -100,6 +100,7 @@ func FailWithError(ctx *gin.Context, err error) {
 }
 
 // ParamsValidateFail 失败响应-参数错误
-func ParamsValidateFail(ctx *gin.Context) {
-	HttpResponse[any](ctx, INVALID_PARAMS, nil, nil, nil)
+func ParamsValidateFail(ctx *gin.Context, err error) {
+	msg := err.Error()
+	HttpResponse[any](ctx, INVALID_PARAMS, nil, nil, &msg)
 }

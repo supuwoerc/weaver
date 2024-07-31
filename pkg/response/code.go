@@ -27,3 +27,7 @@ const (
 const (
 	CAPTCHA_VERIFY_FAIL StatusCode = 30000 // 验证码校验错误
 )
+
+const (
+	ROLE_CREATE_DUPLICATE_NAME StatusCode = 40000 // 角色名已存在
+)
