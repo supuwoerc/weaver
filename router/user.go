@@ -10,5 +10,6 @@ func InitUserRouter(r *gin.RouterGroup) {
 	userAccessGroup := r.Group("user")
 	{
 		userAccessGroup.GET("profile", userApi.Profile)
+		userAccessGroup.POST("set_roles", userApi.SetRoles)
 	}
 }

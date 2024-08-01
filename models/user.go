@@ -16,6 +16,7 @@ type User struct {
 	Gender   UserGender `json:"gender"`
 	About    string     `json:"about"`
 	Birthday string     `json:"birthday"`
+	Roles    []Role     `json:"roles"`
 }
 
 type TokenPair struct {

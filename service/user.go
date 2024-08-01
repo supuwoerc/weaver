@@ -77,3 +77,8 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 		RefreshToken: refreshToken,
 	}, nil
 }
+
+func (u *UserService) SetRoles(ctx context.Context, uid uint, role_ids []uint) error {
+	// TODO:确认有效的用户和角色id
+	return u.repository.AssociateRoles(ctx, uid, role_ids)
+}

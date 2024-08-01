@@ -98,3 +98,17 @@ func (u UserApi) Login(ctx *gin.Context) {
 func (u UserApi) Profile(ctx *gin.Context) {
 	response.Success(ctx)
 }
+
+func (u UserApi) SetRoles(ctx *gin.Context) {
+	var params request.SetRolesRequest
+	if err := ctx.ShouldBindJSON(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	err := u.service(ctx).SetRoles(ctx, params.UserId, params.RoleIds)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.Success(ctx)
+}

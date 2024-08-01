@@ -6,6 +6,7 @@ import (
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -60,4 +61,16 @@ func (u *UserRepository) TokenPairExist(ctx context.Context, email string) (bool
 
 func (u *UserRepository) DelTokenPair(ctx context.Context, email string) error {
 	return u.cache.HDelTokenPair(ctx, email)
+}
+
+func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, role_ids []uint) error {
+	var roles []dao.Role
+	for _, id := range role_ids {
+		roles = append(roles, dao.Role{
+			Model: gorm.Model{
+				ID: id,
+			},
+		})
+	}
+	return u.dao.AssociateRoles(ctx, uid, roles)
 }

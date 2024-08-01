@@ -9,6 +9,7 @@ func InitRoleRouter(r *gin.RouterGroup) {
 	roleApi := v1.NewRoleApi()
 	roleAccessGroup := r.Group("role")
 	{
+		// TODO:添加权限限制
 		roleAccessGroup.POST("create", roleApi.CreateRole)
 	}
 }
