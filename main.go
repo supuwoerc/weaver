@@ -1,8 +1,8 @@
 package main
 
-import "gin-web/cmd"
+import "gin-web/bootstrap"
 
 func main() {
-	defer cmd.Clean()
-	cmd.Start()
+	defer bootstrap.Clean()
+	bootstrap.Start()
 }
