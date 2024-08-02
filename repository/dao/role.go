@@ -14,8 +14,6 @@ type RoleDAO struct {
 	*BasicDAO
 }
 
-var roleDAO *RoleDAO
-
 type Role struct {
 	gorm.Model
 	Name  string `gorm:"unique;not null;;comment:角色名"`
@@ -23,10 +21,7 @@ type Role struct {
 }
 
 func NewRoleDAO(ctx *gin.Context) *RoleDAO {
-	if roleDAO == nil {
-		roleDAO = &RoleDAO{BasicDAO: NewBasicDao(ctx)}
-	}
-	return roleDAO
+	return &RoleDAO{BasicDAO: NewBasicDao(ctx)}
 }
 
 func (r *RoleDAO) Insert(ctx context.Context, role Role) error {
@@ -36,4 +31,10 @@ func (r *RoleDAO) Insert(ctx context.Context, role Role) error {
 		return constant.GetError(r.ctx, response.ROLE_CREATE_DUPLICATE_NAME)
 	}
 	return err
+}
+
+func (r *RoleDAO) GetRolesByIds(ctx context.Context, ids []uint) ([]Role, error) {
+	var roles []Role
+	err := r.db.WithContext(ctx).Where("id in ?", ids).Find(&roles).Error
+	return roles, err
 }

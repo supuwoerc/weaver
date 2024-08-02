@@ -20,13 +20,8 @@ var (
 	tokenPairKey = fmt.Sprintf("%s%s", USER_CACHE_KEY, "_token")
 )
 
-var userCache *UserCache
-
 func NewUserCache(ctx *gin.Context) *UserCache {
-	if userCache == nil {
-		userCache = &UserCache{BasicCache: NewBasicCache(ctx)}
-	}
-	return userCache
+	return &UserCache{BasicCache: NewBasicCache(ctx)}
 }
 
 func (u *UserCache) HSetTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {

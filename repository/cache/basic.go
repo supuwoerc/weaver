@@ -11,14 +11,9 @@ type BasicCache struct {
 	ctx   *gin.Context
 }
 
-var basicCache *BasicCache
-
 func NewBasicCache(ctx *gin.Context) *BasicCache {
-	if basicCache == nil {
-		basicCache = &BasicCache{
-			redis: global.RedisClient,
-			ctx:   ctx,
-		}
+	return &BasicCache{
+		redis: global.RedisClient,
+		ctx:   ctx,
 	}
-	return basicCache
 }

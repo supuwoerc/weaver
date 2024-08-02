@@ -11,14 +11,9 @@ type BasicService struct {
 	ctx    *gin.Context
 }
 
-var basicService *BasicService
-
 func NewBasicService(ctx *gin.Context) *BasicService {
-	if basicService == nil {
-		basicService = &BasicService{
-			Logger: global.Logger,
-			ctx:    ctx,
-		}
+	return &BasicService{
+		Logger: global.Logger,
+		ctx:    ctx,
 	}
-	return basicService
 }

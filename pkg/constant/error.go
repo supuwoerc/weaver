@@ -27,6 +27,7 @@ var userModuleCode = []response.StatusCode{
 	response.USER_LOGIN_EMAIL_NOT_FOUND,
 	response.USER_LOGIN_FAIL,
 	response.USER_LOGIN_TOKEN_PAIR_CACHE_ERR,
+	response.USER_NOT_EXIST,
 }
 var captchaModuleCode = []response.StatusCode{
 	response.CAPTCHA_VERIFY_FAIL,

@@ -48,7 +48,7 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 		response.HttpResponse[any](ctx, response.PASSWORD_VALID_ERR, nil, nil, nil)
 		return
 	}
-	if err = u.service(ctx).SignUp(ctx.Request.Context(), params.ID, params.Code, models.User{
+	if err = u.service(ctx).SignUp(params.ID, params.Code, models.User{
 		Email:    params.Email,
 		Password: &params.Password,
 	}); err != nil {
@@ -74,7 +74,7 @@ func (u UserApi) Login(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	user, pair, err := u.service(ctx).Login(ctx.Request.Context(), params.Email, params.Password)
+	user, pair, err := u.service(ctx).Login(params.Email, params.Password)
 	switch {
 	case pair != nil:
 		user.Password = nil
@@ -105,7 +105,7 @@ func (u UserApi) SetRoles(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	err := u.service(ctx).SetRoles(ctx, params.UserId, params.RoleIds)
+	err := u.service(ctx).SetRoles(params.UserId, params.RoleIds)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

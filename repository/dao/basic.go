@@ -11,11 +11,6 @@ type BasicDAO struct {
 	ctx *gin.Context
 }
 
-var basicDao *BasicDAO
-
 func NewBasicDao(ctx *gin.Context) *BasicDAO {
-	if basicDao == nil {
-		basicDao = &BasicDAO{db: global.DB, ctx: ctx}
-	}
-	return basicDao
+	return &BasicDAO{db: global.DB, ctx: ctx}
 }

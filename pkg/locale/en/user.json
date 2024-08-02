@@ -18,5 +18,9 @@
   {
     "id": "20004",
     "other": "Illegal password format"
+  },
+  {
+    "id": "20005",
+    "other": "The user does not exist"
   }
 ]

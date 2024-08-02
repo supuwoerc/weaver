@@ -9,15 +9,10 @@ type CaptchaService struct {
 	*BasicService
 }
 
-var captchaService *CaptchaService
-
 func NewCaptchaService(ctx *gin.Context) *CaptchaService {
-	if captchaService == nil {
-		captchaService = &CaptchaService{
-			BasicService: NewBasicService(ctx),
-		}
+	return &CaptchaService{
+		BasicService: NewBasicService(ctx),
 	}
-	return captchaService
 }
 
 func (c *CaptchaService) Generate() (*captcha.CaptchaInfo, error) {

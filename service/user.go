@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
@@ -14,23 +13,20 @@ import (
 type UserService struct {
 	*BasicService
 	*CaptchaService
+	*RoleService
 	repository *repository.UserRepository
 }
 
-var userService *UserService
-
 func NewUserService(ctx *gin.Context) *UserService {
-	if userService == nil {
-		userService = &UserService{
-			BasicService:   NewBasicService(ctx),
-			CaptchaService: NewCaptchaService(ctx),
-			repository:     repository.NewUserRepository(ctx),
-		}
+	return &UserService{
+		BasicService:   NewBasicService(ctx),
+		CaptchaService: NewCaptchaService(ctx),
+		RoleService:    NewRoleService(ctx),
+		repository:     repository.NewUserRepository(ctx),
 	}
-	return userService
 }
 
-func (u *UserService) SignUp(context context.Context, id string, code string, user models.User) error {
+func (u *UserService) SignUp(id string, code string, user models.User) error {
 	verify := u.CaptchaService.Verify(id, code)
 	if !verify {
 		return constant.GetError(u.ctx, response.CAPTCHA_VERIFY_FAIL)
@@ -41,11 +37,11 @@ func (u *UserService) SignUp(context context.Context, id string, code string, us
 	}
 	var pwd = string(password)
 	user.Password = &pwd
-	return u.repository.Create(context, user)
+	return u.repository.Create(u.ctx.Request.Context(), user)
 }
 
-func (u *UserService) Login(ctx context.Context, email string, password string) (models.User, *models.TokenPair, error) {
-	user, err := u.repository.FindByEmail(ctx, email)
+func (u *UserService) Login(email string, password string) (models.User, *models.TokenPair, error) {
+	user, err := u.repository.FindByEmail(u.ctx.Request.Context(), email)
 	if err != nil {
 		return models.User{}, nil, err
 	}
@@ -65,7 +61,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	if err != nil {
 		return models.User{}, nil, err
 	}
-	err = u.repository.CacheTokenPair(ctx, user.Email, &models.TokenPair{
+	err = u.repository.CacheTokenPair(u.ctx.Request.Context(), user.Email, &models.TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
@@ -78,7 +74,17 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	}, nil
 }
 
-func (u *UserService) SetRoles(ctx context.Context, uid uint, role_ids []uint) error {
-	// TODO:确认有效的用户和角色id
-	return u.repository.AssociateRoles(ctx, uid, role_ids)
+func (u *UserService) SetRoles(uid uint, roleIds []uint) error {
+	user, err := u.repository.FindByUid(u.ctx.Request.Context(), uid)
+	if err != nil {
+		return err
+	}
+	if user.ID == 0 {
+		return constant.GetError(u.ctx, response.USER_NOT_EXIST)
+	}
+	validIds, err := u.RoleService.FilterValidRoles(roleIds)
+	if err != nil {
+		return err
+	}
+	return u.repository.AssociateRoles(u.ctx.Request.Context(), uid, validIds)
 }

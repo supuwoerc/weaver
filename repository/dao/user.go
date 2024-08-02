@@ -14,8 +14,6 @@ type UserDAO struct {
 	*BasicDAO
 }
 
-var userDAO *UserDAO
-
 type User struct {
 	gorm.Model
 	Email    string `gorm:"unique;not null;;comment:邮箱"`
@@ -28,10 +26,7 @@ type User struct {
 }
 
 func NewUserDAO(ctx *gin.Context) *UserDAO {
-	if userDAO == nil {
-		userDAO = &UserDAO{BasicDAO: NewBasicDao(ctx)}
-	}
-	return userDAO
+	return &UserDAO{BasicDAO: NewBasicDao(ctx)}
 }
 
 func (u *UserDAO) Insert(ctx context.Context, user User) error {
@@ -58,4 +53,13 @@ func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles []Role) er
 			ID: uid,
 		},
 	}).Association("Roles").Replace(roles)
+}
+
+func (u *UserDAO) FindByUid(ctx context.Context, uid uint) (User, error) {
+	var user User
+	err := u.db.WithContext(ctx).Model(&User{}).Where("id = ?", uid).First(&user).Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		return user, constant.GetError(u.ctx, response.USER_NOT_EXIST)
+	}
+	return user, err
 }

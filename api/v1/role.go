@@ -29,7 +29,7 @@ func (r RoleApi) CreateRole(ctx *gin.Context) {
 		return
 	}
 	roleService := service.NewRoleService(ctx)
-	err := roleService.CreateRole(ctx, params.Name)
+	err := roleService.CreateRole(params.Name)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

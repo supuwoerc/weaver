@@ -15,16 +15,11 @@ type UserRepository struct {
 	cache *cache.UserCache
 }
 
-var userRepository *UserRepository
-
 func NewUserRepository(ctx *gin.Context) *UserRepository {
-	if userRepository == nil {
-		userRepository = &UserRepository{
-			dao:   dao.NewUserDAO(ctx),
-			cache: cache.NewUserCache(ctx),
-		}
+	return &UserRepository{
+		dao:   dao.NewUserDAO(ctx),
+		cache: cache.NewUserCache(ctx),
 	}
-	return userRepository
 }
 
 func toModelUser(u dao.User) models.User {
@@ -73,4 +68,9 @@ func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, role_ids 
 		})
 	}
 	return u.dao.AssociateRoles(ctx, uid, roles)
+}
+
+func (u *UserRepository) FindByUid(ctx context.Context, uid uint) (models.User, error) {
+	user, err := u.dao.FindByUid(ctx, uid)
+	return toModelUser(user), err
 }

@@ -22,6 +22,7 @@ const (
 	USER_LOGIN_FAIL                            = 20002 // 用户登录失败
 	USER_LOGIN_TOKEN_PAIR_CACHE_ERR            = 20003 // 用户登录时的redis存储token对失败
 	PASSWORD_VALID_ERR                         = 20004 // 密码格式错误
+	USER_NOT_EXIST                             = 20005 // 用户不存在(管理员设置用户相关内容时)
 )
 
 const (
