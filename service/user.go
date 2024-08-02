@@ -75,6 +75,7 @@ func (u *UserService) Login(email string, password string) (models.User, *models
 }
 
 func (u *UserService) SetRoles(uid uint, roleIds []uint) error {
+	// TODO:配置ADMIN账户，限制ADMIN账户被更改角色
 	user, err := u.repository.FindByUid(u.ctx.Request.Context(), uid)
 	if err != nil {
 		return err

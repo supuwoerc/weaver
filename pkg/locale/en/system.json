@@ -17,7 +17,7 @@
   },
   {
     "id": "10004",
-    "other": "Unknown error"
+    "other": "Request canceled"
   },
   {
     "id": "10005",
@@ -38,5 +38,9 @@
   {
     "id": "10009",
     "other": "Lack of permissions"
+  },
+  {
+    "id": "10010",
+    "other": "Processing time too long, operation canceled"
   }
 ]

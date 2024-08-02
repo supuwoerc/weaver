@@ -17,6 +17,8 @@ var enErrorMap StatusCode2Error
 
 var systemModuleCode = []response.StatusCode{
 	response.INVALID_TOKEN,
+	response.CANCEL_REQUEST,
+	response.TIMEOUT_ERROR,
 	response.INVALID_REFRESH_TOKEN,
 	response.UNNECESSARY_REFRESH_TOKEN,
 	response.CASBIN_ERR,

@@ -8,12 +8,13 @@ const (
 	ERROR                                = 10001 // 通用错误
 	INVALID_PARAMS                       = 10002 // 错误的参数
 	INVALID_TOKEN                        = 10003 // token错误
-	UNKNOWN_ERROR                        = 10004 // 未知错误
+	CANCEL_REQUEST                       = 10004 // 请求取消
 	RECOVERY_ERROR                       = 10005 // 发生recovery
 	INVALID_REFRESH_TOKEN                = 10006 // 长token错误
 	UNNECESSARY_REFRESH_TOKEN            = 10007 // 不必要的刷新token(短token还未过期)
 	CASBIN_ERR                           = 10008 // casbin校验出错
 	CASBIN_INVALID                       = 10009 // casbin校验未通过
+	TIMEOUT_ERROR                        = 10010 // 上下文超时取消(context.WithTimeout)
 )
 
 const (

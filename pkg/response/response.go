@@ -1,6 +1,7 @@
 package response
 
 import (
+	"context"
 	"errors"
 	"gin-web/pkg/global"
 	"github.com/gin-gonic/gin"
@@ -95,6 +96,14 @@ func FailWithError(ctx *gin.Context, err error) {
 			FailWithCode(ctx, code)
 			return
 		}
+	}
+	if errors.Is(err, context.Canceled) {
+		FailWithCode(ctx, CANCEL_REQUEST)
+		return
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		FailWithCode(ctx, TIMEOUT_ERROR)
+		return
 	}
 	FailWithMessage(ctx, err.Error())
 }
