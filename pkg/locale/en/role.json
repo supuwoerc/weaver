@@ -2,5 +2,9 @@
   {
     "id": "40000",
     "other": "Role already exists"
+  },
+  {
+    "id": "40001",
+    "other": "No valid roles"
   }
 ]

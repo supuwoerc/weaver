@@ -31,4 +31,5 @@ const (
 
 const (
 	ROLE_CREATE_DUPLICATE_NAME StatusCode = 40000 // 角色名已存在
+	NO_VALID_ROLES             StatusCode = 40001 // 设置角色时无有效角色(角色ID全部无效)
 )

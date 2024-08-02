@@ -86,5 +86,8 @@ func (u *UserService) SetRoles(uid uint, roleIds []uint) error {
 	if err != nil {
 		return err
 	}
+	if len(validIds) == 0 {
+		return constant.GetError(u.ctx, response.NO_VALID_ROLES)
+	}
 	return u.repository.AssociateRoles(u.ctx.Request.Context(), uid, validIds)
 }

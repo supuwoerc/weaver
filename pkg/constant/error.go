@@ -34,6 +34,7 @@ var captchaModuleCode = []response.StatusCode{
 }
 var roleModuleCode = []response.StatusCode{
 	response.ROLE_CREATE_DUPLICATE_NAME,
+	response.NO_VALID_ROLES,
 }
 
 type InitParams struct {
