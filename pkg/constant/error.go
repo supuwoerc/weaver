@@ -39,6 +39,8 @@ var roleModuleCode = []response.StatusCode{
 	response.NO_VALID_ROLES,
 }
 
+var codeModules = [][]response.StatusCode{systemModuleCode, userModuleCode, captchaModuleCode, roleModuleCode}
+
 type InitParams struct {
 	CN *i18n.Localizer
 	EN *i18n.Localizer
@@ -56,10 +58,9 @@ func initWithLang(localizer *i18n.Localizer, codes []response.StatusCode, source
 func InitErrors(localizer InitParams) map[string]map[int]error {
 	var codes []response.StatusCode
 	if cnErrorMap == nil || enErrorMap == nil {
-		codes = append(codes, systemModuleCode...)
-		codes = append(codes, userModuleCode...)
-		codes = append(codes, captchaModuleCode...)
-		codes = append(codes, roleModuleCode...)
+		for _, module := range codeModules {
+			codes = append(codes, module...)
+		}
 	}
 	if cnErrorMap == nil {
 		cnErrorMap = StatusCode2Error{}
