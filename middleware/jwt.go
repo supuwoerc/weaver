@@ -33,7 +33,8 @@ func LoginRequired() gin.HandlerFunc {
 			tokenInvalidResponse(ctx)
 			return
 		}
-		claims, err := jwtBuilder.ParseToken(token[len(prefix):])
+		token = strings.TrimPrefix(token, prefix)
+		claims, err := jwtBuilder.ParseToken(token)
 		userRepository := repository.NewUserRepository(ctx)
 		if err == nil {
 			// token解析正常,判断是不是在不redis中
