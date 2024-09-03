@@ -94,11 +94,12 @@ func (u UserApi) Login(ctx *gin.Context) {
 	}
 }
 
-// 获取个人信息
+// TODO:获取个人信息
 func (u UserApi) Profile(ctx *gin.Context) {
 	response.Success(ctx)
 }
 
+// TODO:补充文档
 func (u UserApi) SetRoles(ctx *gin.Context) {
 	var params request.SetRolesRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
@@ -111,4 +112,19 @@ func (u UserApi) SetRoles(ctx *gin.Context) {
 		return
 	}
 	response.Success(ctx)
+}
+
+// TODO:补充文档
+func (u UserApi) GetRoles(ctx *gin.Context) {
+	var params request.GetRolesRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	roles, err := u.service(ctx).GetRoles(params.UserId)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.SuccessWithData(ctx, roles)
 }

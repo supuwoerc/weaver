@@ -63,3 +63,9 @@ func (u *UserDAO) FindByUid(ctx context.Context, uid uint) (User, error) {
 	}
 	return user, err
 }
+
+func (u *UserDAO) FindRolesByUid(ctx context.Context, uid uint) ([]PureRole, error) {
+	var result []PureRole
+	err := u.db.WithContext(ctx).Table("sys_role as r").Select("r.id", "r.name").Joins("join sys_user_role as ur on r.id = ur.role_id and ur.user_id = ?", uid).Scan(&result).Error
+	return result, err
+}

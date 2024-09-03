@@ -10,6 +10,9 @@ func InitUserRouter(r *gin.RouterGroup) {
 	userAccessGroup := r.Group("user")
 	{
 		userAccessGroup.GET("profile", userApi.Profile)
+		// TODO:限制管理员权限
 		userAccessGroup.POST("set_roles", userApi.SetRoles)
+		// TODO:限制管理员权限
+		userAccessGroup.GET("get_roles", userApi.GetRoles)
 	}
 }

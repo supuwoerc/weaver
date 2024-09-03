@@ -17,8 +17,8 @@ func NewRoleRepository(ctx *gin.Context) *RoleRepository {
 	}
 }
 
-func toModelRole(r dao.Role) models.Role {
-	return models.Role{
+func toModelRole(r dao.PureRole) models.RoleWithoutUsers {
+	return models.RoleWithoutUsers{
 		ID:   r.ID,
 		Name: r.Name,
 	}

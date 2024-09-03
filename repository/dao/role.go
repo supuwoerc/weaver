@@ -20,6 +20,11 @@ type Role struct {
 	Users []User `gorm:"many2many:user_role"`
 }
 
+type PureRole struct {
+	ID   uint   `gorm:"primarykey"`
+	Name string `gorm:"unique;not null;;comment:角色名"`
+}
+
 func NewRoleDAO(ctx *gin.Context) *RoleDAO {
 	return &RoleDAO{BasicDAO: NewBasicDao(ctx)}
 }

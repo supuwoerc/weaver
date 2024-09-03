@@ -5,3 +5,8 @@ type Role struct {
 	Name  string `json:"name"`
 	Users []User `json:"users"`
 }
+
+type RoleWithoutUsers struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}

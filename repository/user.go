@@ -6,6 +6,7 @@ import (
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
 	"github.com/gin-gonic/gin"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 	"time"
 )
@@ -73,4 +74,15 @@ func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, role_ids 
 func (u *UserRepository) FindByUid(ctx context.Context, uid uint) (models.User, error) {
 	user, err := u.dao.FindByUid(ctx, uid)
 	return toModelUser(user), err
+}
+
+func (u *UserRepository) FindRolesByUid(ctx context.Context, uid uint) ([]models.RoleWithoutUsers, error) {
+	roles, err := u.dao.FindRolesByUid(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	result := lo.Map[dao.PureRole, models.RoleWithoutUsers](roles, func(item dao.PureRole, _ int) models.RoleWithoutUsers {
+		return toModelRole(item)
+	})
+	return result, nil
 }

@@ -16,3 +16,7 @@ type SetRolesRequest struct {
 	UserId  uint   `json:"user_id" binding:"required"`
 	RoleIds []uint `json:"role_ids" binding:"required"`
 }
+
+type GetRolesRequest struct {
+	UserId uint `form:"user_id" binding:"required"`
+}
