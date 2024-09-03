@@ -3,7 +3,6 @@ package initialize
 import (
 	"fmt"
 	"gin-web/pkg/global"
-	"gin-web/repository/dao"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -40,10 +39,5 @@ func InitGORM() *gorm.DB {
 	link.SetMaxIdleConns(maxIdleConn)
 	link.SetMaxOpenConns(maxOpenConn)
 	link.SetConnMaxLifetime(time.Minute * maxLifetime)
-	autoMigrate(db)
 	return db
-}
-
-func autoMigrate(db *gorm.DB) {
-	_ = db.AutoMigrate(&dao.User{})
 }
