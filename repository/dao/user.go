@@ -29,8 +29,8 @@ func NewUserDAO(ctx *gin.Context) *UserDAO {
 	return &UserDAO{BasicDAO: NewBasicDao(ctx)}
 }
 
-func (u *UserDAO) Insert(ctx context.Context, user User) error {
-	err := u.db.WithContext(ctx).Create(&user).Error
+func (u *UserDAO) Insert(ctx context.Context, user *User) error {
+	err := u.db.WithContext(ctx).Create(user).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 		return constant.GetError(u.ctx, response.USER_CREATE_DUPLICATE_EMAIL)
@@ -38,16 +38,16 @@ func (u *UserDAO) Insert(ctx context.Context, user User) error {
 	return err
 }
 
-func (u *UserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
+func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
 	err := u.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return user, constant.GetError(u.ctx, response.USER_LOGIN_EMAIL_NOT_FOUND)
+		return &user, constant.GetError(u.ctx, response.USER_LOGIN_EMAIL_NOT_FOUND)
 	}
-	return user, err
+	return &user, err
 }
 
-func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles []Role) error {
+func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles *[]Role) error {
 	return u.db.WithContext(ctx).Model(&User{
 		Model: gorm.Model{
 			ID: uid,
@@ -55,17 +55,17 @@ func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles []Role) er
 	}).Association("Roles").Replace(roles)
 }
 
-func (u *UserDAO) FindByUid(ctx context.Context, uid uint) (User, error) {
+func (u *UserDAO) FindByUid(ctx context.Context, uid uint) (*User, error) {
 	var user User
 	err := u.db.WithContext(ctx).Model(&User{}).Where("id = ?", uid).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return user, constant.GetError(u.ctx, response.USER_NOT_EXIST)
+		return &user, constant.GetError(u.ctx, response.USER_NOT_EXIST)
 	}
-	return user, err
+	return &user, err
 }
 
-func (u *UserDAO) FindRolesByUid(ctx context.Context, uid uint) ([]PureRole, error) {
-	var result []PureRole
+func (u *UserDAO) FindRolesByUid(ctx context.Context, uid uint) ([]*PureRole, error) {
+	var result []*PureRole
 	err := u.db.WithContext(ctx).Table("sys_role as r").Select("r.id", "r.name").Joins("join sys_user_role as ur on r.id = ur.role_id and ur.user_id = ?", uid).Scan(&result).Error
 	return result, err
 }

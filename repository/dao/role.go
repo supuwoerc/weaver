@@ -29,8 +29,8 @@ func NewRoleDAO(ctx *gin.Context) *RoleDAO {
 	return &RoleDAO{BasicDAO: NewBasicDao(ctx)}
 }
 
-func (r *RoleDAO) Insert(ctx context.Context, role Role) error {
-	err := r.db.WithContext(ctx).Create(&role).Error
+func (r *RoleDAO) Insert(ctx context.Context, role *Role) error {
+	err := r.db.WithContext(ctx).Create(role).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 		return constant.GetError(r.ctx, response.ROLE_CREATE_DUPLICATE_NAME)
@@ -38,8 +38,8 @@ func (r *RoleDAO) Insert(ctx context.Context, role Role) error {
 	return err
 }
 
-func (r *RoleDAO) GetRolesByIds(ctx context.Context, ids []uint) ([]Role, error) {
-	var roles []Role
+func (r *RoleDAO) GetRolesByIds(ctx context.Context, ids []uint) ([]*Role, error) {
+	var roles []*Role
 	err := r.db.WithContext(ctx).Where("id in ?", ids).Find(&roles).Error
 	return roles, err
 }

@@ -23,8 +23,8 @@ func NewUserRepository(ctx *gin.Context) *UserRepository {
 	}
 }
 
-func toModelUser(u dao.User) models.User {
-	return models.User{
+func toModelUser(u *dao.User) *models.User {
+	return &models.User{
 		ID:       u.ID,
 		Email:    u.Email,
 		Password: &u.Password,
@@ -36,13 +36,13 @@ func toModelUser(u dao.User) models.User {
 }
 
 func (u *UserRepository) Create(ctx context.Context, user models.User) error {
-	return u.dao.Insert(ctx, dao.User{
+	return u.dao.Insert(ctx, &dao.User{
 		Email:    user.Email,
 		Password: *user.Password,
 	})
 }
 
-func (u *UserRepository) FindByEmail(ctx context.Context, email string) (models.User, error) {
+func (u *UserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	user, err := u.dao.FindByEmail(ctx, email)
 	return toModelUser(user), err
 }
@@ -68,20 +68,20 @@ func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, role_ids 
 			},
 		})
 	}
-	return u.dao.AssociateRoles(ctx, uid, roles)
+	return u.dao.AssociateRoles(ctx, uid, &roles)
 }
 
-func (u *UserRepository) FindByUid(ctx context.Context, uid uint) (models.User, error) {
+func (u *UserRepository) FindByUid(ctx context.Context, uid uint) (*models.User, error) {
 	user, err := u.dao.FindByUid(ctx, uid)
 	return toModelUser(user), err
 }
 
-func (u *UserRepository) FindRolesByUid(ctx context.Context, uid uint) ([]models.RoleWithoutUsers, error) {
+func (u *UserRepository) FindRolesByUid(ctx context.Context, uid uint) ([]*models.RoleWithoutUsers, error) {
 	roles, err := u.dao.FindRolesByUid(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	result := lo.Map[dao.PureRole, models.RoleWithoutUsers](roles, func(item dao.PureRole, _ int) models.RoleWithoutUsers {
+	result := lo.Map[*dao.PureRole, *models.RoleWithoutUsers](roles, func(item *dao.PureRole, _ int) *models.RoleWithoutUsers {
 		return toModelRole(item)
 	})
 	return result, nil

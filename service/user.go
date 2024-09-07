@@ -40,14 +40,14 @@ func (u *UserService) SignUp(id string, code string, user models.User) error {
 	return u.repository.Create(u.ctx.Request.Context(), user)
 }
 
-func (u *UserService) Login(email string, password string) (models.User, *models.TokenPair, error) {
+func (u *UserService) Login(email string, password string) (*models.User, *models.TokenPair, error) {
 	user, err := u.repository.FindByEmail(u.ctx.Request.Context(), email)
 	if err != nil {
-		return models.User{}, nil, err
+		return nil, nil, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
 	if err != nil {
-		return models.User{}, nil, constant.GetError(u.ctx, response.USER_LOGIN_FAIL)
+		return nil, nil, constant.GetError(u.ctx, response.USER_LOGIN_FAIL)
 	}
 	builder := jwt.NewJwtBuilder(u.ctx)
 	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
@@ -59,14 +59,14 @@ func (u *UserService) Login(email string, password string) (models.User, *models
 		Birthday: user.Birthday,
 	})
 	if err != nil {
-		return models.User{}, nil, err
+		return nil, nil, err
 	}
 	err = u.repository.CacheTokenPair(u.ctx.Request.Context(), user.Email, &models.TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
 	if err != nil {
-		return models.User{}, nil, err
+		return nil, nil, err
 	}
 	return user, &models.TokenPair{
 		AccessToken:  accessToken,
@@ -93,6 +93,6 @@ func (u *UserService) SetRoles(uid uint, roleIds []uint) error {
 	return u.repository.AssociateRoles(u.ctx.Request.Context(), uid, validIds)
 }
 
-func (u *UserService) GetRoles(uid uint) ([]models.RoleWithoutUsers, error) {
+func (u *UserService) GetRoles(uid uint) ([]*models.RoleWithoutUsers, error) {
 	return u.repository.FindRolesByUid(u.ctx.Request.Context(), uid)
 }

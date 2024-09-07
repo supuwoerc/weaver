@@ -28,7 +28,7 @@ func (r *RoleService) FilterValidRoles(roleIds []uint) ([]uint, error) {
 	if err != nil {
 		return []uint{}, err
 	}
-	validIds := lo.Map[dao.Role, uint](roles, func(item dao.Role, _ int) uint {
+	validIds := lo.Map[*dao.Role, uint](roles, func(item *dao.Role, _ int) uint {
 		return item.ID
 	})
 	result := lo.Filter(roleIds, func(item uint, _ int) bool {
