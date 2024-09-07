@@ -93,6 +93,6 @@ func (u *UserService) SetRoles(uid uint, roleIds []uint) error {
 	return u.repository.AssociateRoles(u.ctx.Request.Context(), uid, validIds)
 }
 
-func (u *UserService) GetRoles(uid uint) ([]*models.RoleWithoutUsers, error) {
+func (u *UserService) GetRoles(uid uint) ([]*models.Role, error) {
 	return u.repository.FindRolesByUid(u.ctx.Request.Context(), uid)
 }

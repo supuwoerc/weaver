@@ -16,13 +16,13 @@ type UserDAO struct {
 
 type User struct {
 	gorm.Model
-	Email    string `gorm:"unique;not null;;comment:邮箱"`
-	Password string `gorm:"type:varchar(60);not null;comment:密码"`
-	NickName string `gorm:"type:varchar(10);comment:昵称"`
-	Gender   int    `gorm:"type:integer;comment:性别;default:0"`
-	About    string `gorm:"type:varchar(60);comment:关于我"`
-	Birthday int64  `gorm:"comment:生日"` // 生日
-	Roles    []Role `gorm:"many2many:user_role"`
+	Email    string  `gorm:"unique;not null;;comment:邮箱"`
+	Password string  `gorm:"type:varchar(60);not null;comment:密码"`
+	NickName string  `gorm:"type:varchar(10);comment:昵称"`
+	Gender   int     `gorm:"type:integer;comment:性别;default:0"`
+	About    string  `gorm:"type:varchar(60);comment:关于我"`
+	Birthday int64   `gorm:"comment:生日"` // 生日
+	Roles    []*Role `gorm:"many2many:user_role;"`
 }
 
 func NewUserDAO(ctx *gin.Context) *UserDAO {
@@ -40,7 +40,7 @@ func (u *UserDAO) Insert(ctx context.Context, user *User) error {
 
 func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
-	err := u.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
+	err := u.db.WithContext(ctx).Preload("Roles").Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return &user, constant.GetError(u.ctx, response.USER_LOGIN_EMAIL_NOT_FOUND)
 	}
@@ -55,17 +55,21 @@ func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles *[]Role) e
 	}).Association("Roles").Replace(roles)
 }
 
-func (u *UserDAO) FindByUid(ctx context.Context, uid uint) (*User, error) {
+func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles bool) (*User, error) {
 	var user User
-	err := u.db.WithContext(ctx).Model(&User{}).Where("id = ?", uid).First(&user).Error
+	query := u.db.WithContext(ctx)
+	if needRoles {
+		query.Preload("Roles")
+	}
+	err := query.Where("id = ?", uid).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return &user, constant.GetError(u.ctx, response.USER_NOT_EXIST)
 	}
 	return &user, err
 }
 
-func (u *UserDAO) FindRolesByUid(ctx context.Context, uid uint) ([]*PureRole, error) {
-	var result []*PureRole
+func (u *UserDAO) FindRolesByUid(ctx context.Context, uid uint) ([]*Role, error) {
+	var result []*Role
 	err := u.db.WithContext(ctx).Table("sys_role as r").Select("r.id", "r.name").Joins("join sys_user_role as ur on r.id = ur.role_id and ur.user_id = ?", uid).Scan(&result).Error
 	return result, err
 }

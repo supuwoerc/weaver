@@ -5,6 +5,7 @@ import (
 	"gin-web/models"
 	"gin-web/repository/dao"
 	"github.com/gin-gonic/gin"
+	"github.com/samber/lo"
 )
 
 type RoleRepository struct {
@@ -17,11 +18,17 @@ func NewRoleRepository(ctx *gin.Context) *RoleRepository {
 	}
 }
 
-func toModelRole(r *dao.PureRole) *models.RoleWithoutUsers {
-	return &models.RoleWithoutUsers{
-		ID:   r.ID,
-		Name: r.Name,
+func toModelRole(role *dao.Role) *models.Role {
+	return &models.Role{
+		ID:   role.ID,
+		Name: role.Name,
 	}
+}
+
+func toModelRoles(roles []*dao.Role) []*models.Role {
+	return lo.Map(roles, func(item *dao.Role, index int) *models.Role {
+		return toModelRole(item)
+	})
 }
 
 func (r *RoleRepository) Create(ctx context.Context, name string) error {

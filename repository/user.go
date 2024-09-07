@@ -32,6 +32,7 @@ func toModelUser(u *dao.User) *models.User {
 		Gender:   models.UserGender(u.Gender),
 		About:    u.About,
 		Birthday: time.UnixMilli(u.Birthday).Format(time.DateTime),
+		Roles:    toModelRoles(u.Roles),
 	}
 }
 
@@ -72,16 +73,16 @@ func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, role_ids 
 }
 
 func (u *UserRepository) FindByUid(ctx context.Context, uid uint) (*models.User, error) {
-	user, err := u.dao.FindByUid(ctx, uid)
+	user, err := u.dao.FindByUid(ctx, uid, false)
 	return toModelUser(user), err
 }
 
-func (u *UserRepository) FindRolesByUid(ctx context.Context, uid uint) ([]*models.RoleWithoutUsers, error) {
+func (u *UserRepository) FindRolesByUid(ctx context.Context, uid uint) ([]*models.Role, error) {
 	roles, err := u.dao.FindRolesByUid(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	result := lo.Map[*dao.PureRole, *models.RoleWithoutUsers](roles, func(item *dao.PureRole, _ int) *models.RoleWithoutUsers {
+	result := lo.Map[*dao.Role, *models.Role](roles, func(item *dao.Role, _ int) *models.Role {
 		return toModelRole(item)
 	})
 	return result, nil
