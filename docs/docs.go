@@ -26,7 +26,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户管理模块"
+                    "用户模块"
                 ],
                 "summary": "用户登录",
                 "parameters": [
@@ -72,7 +72,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户管理模块"
+                    "用户模块"
                 ],
                 "summary": "用户注册",
                 "parameters": [
@@ -96,13 +96,13 @@ const docTemplate = `{
                     "10001": {
                         "description": "操作失败",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "$ref": "#/definitions/response.BasicResponse-string"
                         }
                     },
                     "10002": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "$ref": "#/definitions/response.BasicResponse-string"
                         }
                     }
                 }
@@ -128,11 +128,19 @@ const docTemplate = `{
         "request.SignUpRequest": {
             "type": "object",
             "required": [
+                "code",
                 "email",
+                "id",
                 "password"
             ],
             "properties": {
+                "code": {
+                    "type": "string"
+                },
                 "email": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "password": {
@@ -147,6 +155,20 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "data": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-string": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "string"
+                },
                 "message": {
                     "type": "string"
                 }

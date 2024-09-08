@@ -27,15 +27,15 @@ func NewUserApi() UserApi {
 	}
 }
 
-// @Tags 用户管理模块
+// @Tags 用户模块
 // @Summary 用户注册
 // @Description 用于用户注册帐号
 // @Accept json
 // @Produce json
 // @Param body body request.SignUpRequest true "注册参数"
 // @Success 10000 {object} response.BasicResponse[any] "操作成功"
-// @Failure 10001 {object} response.BasicResponse[any] "操作失败"
-// @Failure 10002 {object} response.BasicResponse[any] "参数错误"
+// @Failure 10001 {object} response.BasicResponse[string] "操作失败"
+// @Failure 10002 {object} response.BasicResponse[string] "参数错误"
 // @Router /api/v1/public/user/signup [post]
 func (u UserApi) SignUp(ctx *gin.Context) {
 	var params request.SignUpRequest
@@ -58,7 +58,7 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 	response.Success(ctx)
 }
 
-// @Tags 用户管理模块
+// @Tags 用户模块
 // @Summary 用户登录
 // @Description 用于用户登录
 // @Accept json

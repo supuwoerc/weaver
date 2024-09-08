@@ -3,13 +3,14 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"log"
 	"os"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "learn_gin_web_cli",
-	Short: "learn_gin_web_cli",
-	Long:  `learn_gin_web_cli`,
+	Run: func(cmd *cobra.Command, args []string) {
+		log.Println("CLI is called!\n")
+	},
 }
 
 func Execute() {

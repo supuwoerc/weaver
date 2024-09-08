@@ -1,8 +1,17 @@
 package main
 
-import "gin-web/bootstrap"
+import (
+	"gin-web/bootstrap"
+	"gin-web/cmd"
+)
+
+var isCli = false
 
 func main() {
-	defer bootstrap.Clean()
-	bootstrap.Start()
+	if !isCli {
+		defer bootstrap.Clean()
+		bootstrap.Start()
+	} else {
+		cmd.Execute()
+	}
 }

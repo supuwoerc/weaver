@@ -11,12 +11,18 @@ definitions:
     type: object
   request.SignUpRequest:
     properties:
+      code:
+        type: string
       email:
+        type: string
+      id:
         type: string
       password:
         type: string
     required:
+    - code
     - email
+    - id
     - password
     type: object
   response.BasicResponse-any:
@@ -24,6 +30,15 @@ definitions:
       code:
         type: integer
       data: {}
+      message:
+        type: string
+    type: object
+  response.BasicResponse-string:
+    properties:
+      code:
+        type: integer
+      data:
+        type: string
       message:
         type: string
     type: object
@@ -59,7 +74,7 @@ paths:
             $ref: '#/definitions/response.BasicResponse-any'
       summary: 用户登录
       tags:
-      - 用户管理模块
+      - 用户模块
   /api/v1/public/user/signup:
     post:
       consumes:
@@ -82,12 +97,12 @@ paths:
         "10001":
           description: 操作失败
           schema:
-            $ref: '#/definitions/response.BasicResponse-any'
+            $ref: '#/definitions/response.BasicResponse-string'
         "10002":
           description: 参数错误
           schema:
-            $ref: '#/definitions/response.BasicResponse-any'
+            $ref: '#/definitions/response.BasicResponse-string'
       summary: 用户注册
       tags:
-      - 用户管理模块
+      - 用户模块
 swagger: "2.0"
