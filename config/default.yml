@@ -13,7 +13,7 @@ logger:
   maxBackups: 10 # 保留文件对最大个数
   maxAge: 90     # 保留文件对最大天数
   level: -1
-  dir: log
+  dir: "./log"   # 日志文件存放的目录,为空时默认在项目目录下创建log目录存放日志文件
 cors:
   originPrefix:
     - http://localhost

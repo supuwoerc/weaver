@@ -39,8 +39,10 @@ func getWriterSyncer() (zapcore.WriteSyncer, *lumberjack.Logger) {
 	if err != nil {
 		panic(err)
 	}
-	separator := filepath.Separator
-	logFileNameWithoutSuffix := strings.Join([]string{projectDir, targetDir, time.Now().Format(time.DateOnly)}, string(separator))
+	logFileNameWithoutSuffix := filepath.Join(targetDir, time.Now().Format(time.DateOnly))
+	if strings.TrimSpace(targetDir) == "" {
+		logFileNameWithoutSuffix = filepath.Join(projectDir, "log", time.Now().Format(time.DateOnly))
+	}
 	logFileName := fmt.Sprintf("%s.txt", logFileNameWithoutSuffix)
 	lumberjackLogger := &lumberjack.Logger{
 		Filename:   logFileName,
