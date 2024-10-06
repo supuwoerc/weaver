@@ -57,7 +57,7 @@ func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles *[]Role) e
 
 func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles bool) (*User, error) {
 	var user User
-	query := u.db.WithContext(ctx)
+	query := u.db.WithContext(ctx).Model(&User{})
 	if needRoles {
 		query.Preload("Roles")
 	}

@@ -1,12 +1,14 @@
 package middleware
 
 import (
+	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
 	"gin-web/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"net/http"
 	"strings"
 )
 
@@ -20,6 +22,10 @@ func tokenInvalidResponse(ctx *gin.Context) {
 
 func refreshTokenInvalidResponse(ctx *gin.Context) {
 	response.FailWithError(ctx, constant.GetError(ctx, response.InvalidRefreshToken))
+}
+
+func unnecessaryRefreshResponse(ctx *gin.Context) {
+	response.FailWithError(ctx, constant.GetError(ctx, response.UnnecessaryRefreshToken))
 }
 
 func LoginRequired() gin.HandlerFunc {
@@ -43,27 +49,40 @@ func LoginRequired() gin.HandlerFunc {
 				tokenInvalidResponse(ctx)
 				return
 			}
+			if ctx.Request.URL.Path == refreshUrl && existErr == nil && exist {
+				unnecessaryRefreshResponse(ctx)
+				return
+			}
 			ctx.Set(constant.ClaimKeyContext, claims)
-			return
-		} else if ctx.Request.URL.Path == refreshUrl {
+		} else if ctx.Request.URL.Path == refreshUrl && ctx.Request.Method == http.MethodGet {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
-			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateAccessAndRefreshToken(token, refreshToken, func(claims *jwt.TokenClaims) error {
-				return userRepository.DelTokenPair(ctx, claims.User.Email)
+			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateAccessAndRefreshToken(token, refreshToken, func(claims *jwt.TokenClaims, newToken, newRefreshToken string) error {
+				return userRepository.CacheTokenPair(ctx, claims.User.Email, &models.TokenPair{
+					AccessToken:  newToken,
+					RefreshToken: newRefreshToken,
+				})
 			})
-			if refreshErr != nil {
+			if refreshErr == constant.GetError(ctx, response.InvalidToken) {
+				tokenInvalidResponse(ctx)
+				return
+			}
+			if refreshErr == constant.GetError(ctx, response.InvalidRefreshToken) {
 				refreshTokenInvalidResponse(ctx)
+				return
+			}
+			if refreshErr != nil {
+				response.FailWithError(ctx, err)
 				return
 			}
 			response.SuccessWithData[response.RefreshTokenResponse](ctx, response.RefreshTokenResponse{
 				Token:        newToken,
 				RefreshToken: newRefreshToken,
 			})
-			return
+			ctx.Abort()
 		} else {
 			// 其他情况直接返回错误信息
 			tokenInvalidResponse(ctx)
-			return
 		}
 	}
 }

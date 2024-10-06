@@ -24,7 +24,7 @@ func NewUserRepository(ctx *gin.Context) *UserRepository {
 }
 
 func toModelUser(u *dao.User) *models.User {
-	return &models.User{
+	user := models.User{
 		ID:       u.ID,
 		Email:    u.Email,
 		Password: &u.Password,
@@ -34,6 +34,10 @@ func toModelUser(u *dao.User) *models.User {
 		Birthday: time.UnixMilli(u.Birthday).Format(time.DateTime),
 		Roles:    toModelRoles(u.Roles),
 	}
+	if u.Birthday == 0 {
+		user.Birthday = ""
+	}
+	return &user
 }
 
 func (u *UserRepository) Create(ctx context.Context, user models.User) error {
@@ -56,10 +60,6 @@ func (u *UserRepository) TokenPairExist(ctx context.Context, email string) (bool
 	return u.cache.HExistsTokenPair(ctx, email)
 }
 
-func (u *UserRepository) DelTokenPair(ctx context.Context, email string) error {
-	return u.cache.HDelTokenPair(ctx, email)
-}
-
 func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, role_ids []uint) error {
 	var roles []dao.Role
 	for _, id := range role_ids {
@@ -72,8 +72,8 @@ func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, role_ids 
 	return u.dao.AssociateRoles(ctx, uid, &roles)
 }
 
-func (u *UserRepository) FindByUid(ctx context.Context, uid uint) (*models.User, error) {
-	user, err := u.dao.FindByUid(ctx, uid, false)
+func (u *UserRepository) FindByUid(ctx context.Context, uid uint, needRoles bool) (*models.User, error) {
+	user, err := u.dao.FindByUid(ctx, uid, needRoles)
 	return toModelUser(user), err
 }
 

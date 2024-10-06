@@ -60,10 +60,10 @@ func (j *JwtBuilder) generateAccessToken(user *TokenClaimsBasic, createAt time.T
 
 // 生成长token
 func (j *JwtBuilder) generateRefreshToken(createAt time.Time) (string, error) {
-	return j.generateToken(nil, createAt, viper.GetDuration("jwt.refreshTokenExpires")*time.Minute)
+	return j.generateToken(&TokenClaimsBasic{}, createAt, viper.GetDuration("jwt.refreshTokenExpires")*time.Minute)
 }
 
-type RefreshTokenCallback func(claims *TokenClaims) error
+type RefreshTokenCallback func(claims *TokenClaims, accessToken, refreshToken string) error
 
 // 校验并生成长短token
 func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string, callback RefreshTokenCallback) (string, string, error) {
@@ -94,7 +94,7 @@ func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken s
 		return "", "", err
 	}
 	if callback != nil {
-		callbackErr := callback(claims)
+		callbackErr := callback(claims, newAccessToken, newRefreshToken)
 		if callbackErr != nil {
 			return "", "", callbackErr
 		}
@@ -122,11 +122,8 @@ func (j *JwtBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(viper.GetString("jwt.secret")), nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	if !token.Valid {
-		return nil, constant.GetError(j.ctx, response.InvalidToken)
+	if err != nil || !token.Valid {
+		return &claims, constant.GetError(j.ctx, response.InvalidToken)
 	}
 	return &claims, nil
 }
