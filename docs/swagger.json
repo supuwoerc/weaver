@@ -1,8 +1,16 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "This is a sample server celler server.",
+        "title": "Learn-Gin-Web API",
+        "contact": {
+            "name": "Idris",
+            "url": "https://github.com/supuwoerc",
+            "email": "zhangzhouou@gmail.com"
+        },
+        "version": "1.0"
     },
+    "basePath": "/api/v1",
     "paths": {
         "/api/v1/public/user/login": {
             "post": {
@@ -91,6 +99,41 @@
                         "description": "参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.BasicResponse-string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/profile": {
+            "get": {
+                "description": "获取用户账户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户模块"
+                ],
+                "summary": "用户信息",
+                "responses": {
+                    "10000": {
+                        "description": "操作成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "操作失败",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
                         }
                     }
                 }

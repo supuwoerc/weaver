@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
@@ -64,18 +63,18 @@ func (j *JwtBuilder) generateRefreshToken(createAt time.Time) (string, error) {
 	return j.generateToken(nil, createAt, viper.GetDuration("jwt.refreshTokenExpires")*time.Minute)
 }
 
-type RefreshTokenCallback func(claims TokenClaims) error
+type RefreshTokenCallback func(claims *TokenClaims) error
 
 // 校验并生成长短token
 func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string, callback RefreshTokenCallback) (string, string, error) {
 	if _, err := j.ParseToken(refreshToken); err != nil {
-		return "", "", constant.GetError(j.ctx, response.INVALID_REFRESH_TOKEN)
+		return "", "", constant.GetError(j.ctx, response.InvalidRefreshToken)
 	}
 	claims, err := j.ParseToken(accessToken)
 	if err == nil {
-		return "", "", constant.GetError(j.ctx, response.UNNECESSARY_REFRESH_TOKEN)
+		return "", "", constant.GetError(j.ctx, response.UnnecessaryRefreshToken)
 	}
-	if err != constant.GetError(j.ctx, response.INVALID_TOKEN) {
+	if err != constant.GetError(j.ctx, response.InvalidToken) {
 		return "", "", err
 	}
 	createAt := time.Now()
@@ -118,17 +117,25 @@ func (j *JwtBuilder) GenerateAccessAndRefreshToken(user *TokenClaimsBasic) (stri
 }
 
 // 解析token
-func (j *JwtBuilder) ParseToken(tokenString string) (TokenClaims, error) {
+func (j *JwtBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 	claims := TokenClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(viper.GetString("jwt.secret")), nil
 	})
 	if err != nil {
-		fmt.Println(err)
-		return claims, err
+		return nil, err
 	}
 	if !token.Valid {
-		return TokenClaims{}, constant.GetError(j.ctx, response.INVALID_TOKEN)
+		return nil, constant.GetError(j.ctx, response.InvalidToken)
 	}
-	return claims, nil
+	return &claims, nil
+}
+
+// 获取上下文的claims
+func GetUserClaims(ctx *gin.Context) *TokenClaims {
+	value, exists := ctx.Get(constant.ClaimKeyContext)
+	if exists {
+		return value.(*TokenClaims)
+	}
+	return nil
 }

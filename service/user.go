@@ -29,7 +29,7 @@ func NewUserService(ctx *gin.Context) *UserService {
 func (u *UserService) SignUp(id string, code string, user models.User) error {
 	verify := u.CaptchaService.Verify(id, code)
 	if !verify {
-		return constant.GetError(u.ctx, response.CAPTCHA_VERIFY_FAIL)
+		return constant.GetError(u.ctx, response.CaptchaVerifyFail)
 	}
 	password, err := bcrypt.GenerateFromPassword([]byte(*user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -47,7 +47,7 @@ func (u *UserService) Login(email string, password string) (*models.User, *model
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
 	if err != nil {
-		return nil, nil, constant.GetError(u.ctx, response.USER_LOGIN_FAIL)
+		return nil, nil, constant.GetError(u.ctx, response.UserLoginFail)
 	}
 	builder := jwt.NewJwtBuilder(u.ctx)
 	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
@@ -81,18 +81,22 @@ func (u *UserService) SetRoles(uid uint, roleIds []uint) error {
 		return err
 	}
 	if user.ID == 0 {
-		return constant.GetError(u.ctx, response.USER_NOT_EXIST)
+		return constant.GetError(u.ctx, response.UserNotExist)
 	}
 	validIds, err := u.RoleService.FilterValidRoles(roleIds)
 	if err != nil {
 		return err
 	}
 	if len(validIds) == 0 {
-		return constant.GetError(u.ctx, response.NO_VALID_ROLES)
+		return constant.GetError(u.ctx, response.NoValidRoles)
 	}
 	return u.repository.AssociateRoles(u.ctx.Request.Context(), uid, validIds)
 }
 
 func (u *UserService) GetRoles(uid uint) ([]*models.Role, error) {
 	return u.repository.FindRolesByUid(u.ctx.Request.Context(), uid)
+}
+
+func (u *UserService) Profile(uid uint) (*models.User, error) {
+	return u.repository.FindByUid(u.ctx.Request.Context(), uid)
 }

@@ -26,7 +26,7 @@ func NewUserCache(ctx *gin.Context) *UserCache {
 
 func (u *UserCache) HSetTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
 	if pair == nil {
-		return constant.GetError(u.ctx, response.USER_LOGIN_TOKEN_PAIR_CACHE_ERR)
+		return constant.GetError(u.ctx, response.UserLoginTokenPairCacheErr)
 	}
 	result, err := json.Marshal(pair)
 	if err != nil {

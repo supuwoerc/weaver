@@ -52,22 +52,22 @@ func HttpResponse[T any](ctx *gin.Context, code StatusCode, data T, config *i18n
 
 // Success 成功响应-不携带数据
 func Success(ctx *gin.Context) {
-	HttpResponse[any](ctx, SUCCESS, nil, nil, nil)
+	HttpResponse[any](ctx, Ok, nil, nil, nil)
 }
 
 // SuccessWithData 成功响应-携带数据
 func SuccessWithData[T any](ctx *gin.Context, data T) {
-	HttpResponse[T](ctx, SUCCESS, data, nil, nil)
+	HttpResponse[T](ctx, Ok, data, nil, nil)
 }
 
 // SuccessWithMessage 成功响应-携带消息
 func SuccessWithMessage(ctx *gin.Context, message string) {
-	HttpResponse[any](ctx, SUCCESS, nil, nil, &message)
+	HttpResponse[any](ctx, Ok, nil, nil, &message)
 }
 
 // SuccessWithPageData 成功响应-携带分页数据
 func SuccessWithPageData[T any](ctx *gin.Context, total int64, list []T) {
-	HttpResponse[DataList[T]](ctx, SUCCESS, DataList[T]{
+	HttpResponse[DataList[T]](ctx, Ok, DataList[T]{
 		Total: total,
 		List:  list,
 	}, nil, nil)
@@ -75,7 +75,7 @@ func SuccessWithPageData[T any](ctx *gin.Context, total int64, list []T) {
 
 // FailWithMessage 失败响应-携带消息
 func FailWithMessage(ctx *gin.Context, message string) {
-	HttpResponse[any](ctx, ERROR, nil, nil, &message)
+	HttpResponse[any](ctx, Error, nil, nil, &message)
 }
 
 // FailWithCode 失败响应
@@ -98,11 +98,11 @@ func FailWithError(ctx *gin.Context, err error) {
 		}
 	}
 	if errors.Is(err, context.Canceled) {
-		FailWithCode(ctx, CANCEL_REQUEST)
+		FailWithCode(ctx, CancelRequest)
 		return
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
-		FailWithCode(ctx, TIMEOUT_ERROR)
+		FailWithCode(ctx, TimeoutErr)
 		return
 	}
 	FailWithMessage(ctx, err.Error())
@@ -111,5 +111,5 @@ func FailWithError(ctx *gin.Context, err error) {
 // ParamsValidateFail 失败响应-参数错误
 func ParamsValidateFail(ctx *gin.Context, err error) {
 	msg := err.Error()
-	HttpResponse[any](ctx, INVALID_PARAMS, nil, nil, &msg)
+	HttpResponse[any](ctx, InvalidParams, nil, nil, &msg)
 }

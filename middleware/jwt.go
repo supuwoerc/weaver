@@ -11,15 +11,15 @@ import (
 )
 
 const (
-	REFRESH_URL = "/api/v1/user/refresh_token"
+	refreshUrl = "/api/v1/user/refresh_token"
 )
 
 func tokenInvalidResponse(ctx *gin.Context) {
-	response.FailWithError(ctx, constant.GetError(ctx, response.INVALID_TOKEN))
+	response.FailWithError(ctx, constant.GetError(ctx, response.InvalidToken))
 }
 
 func refreshTokenInvalidResponse(ctx *gin.Context) {
-	response.FailWithError(ctx, constant.GetError(ctx, response.INVALID_REFRESH_TOKEN))
+	response.FailWithError(ctx, constant.GetError(ctx, response.InvalidRefreshToken))
 }
 
 func LoginRequired() gin.HandlerFunc {
@@ -43,12 +43,12 @@ func LoginRequired() gin.HandlerFunc {
 				tokenInvalidResponse(ctx)
 				return
 			}
-			ctx.Set("user", claims)
+			ctx.Set(constant.ClaimKeyContext, claims)
 			return
-		} else if ctx.Request.URL.Path == REFRESH_URL {
+		} else if ctx.Request.URL.Path == refreshUrl {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
-			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateAccessAndRefreshToken(token, refreshToken, func(claims jwt.TokenClaims) error {
+			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateAccessAndRefreshToken(token, refreshToken, func(claims *jwt.TokenClaims) error {
 				return userRepository.DelTokenPair(ctx, claims.User.Email)
 			})
 			if refreshErr != nil {

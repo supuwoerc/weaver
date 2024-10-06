@@ -1,3 +1,4 @@
+basePath: /api/v1
 definitions:
   request.LoginRequest:
     properties:
@@ -43,7 +44,13 @@ definitions:
         type: string
     type: object
 info:
-  contact: {}
+  contact:
+    email: zhangzhouou@gmail.com
+    name: Idris
+    url: https://github.com/supuwoerc
+  description: This is a sample server celler server.
+  title: Learn-Gin-Web API
+  version: "1.0"
 paths:
   /api/v1/public/user/login:
     post:
@@ -103,6 +110,29 @@ paths:
           schema:
             $ref: '#/definitions/response.BasicResponse-string'
       summary: 用户注册
+      tags:
+      - 用户模块
+  /api/v1/user/profile:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户账户信息
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 操作成功
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 操作失败
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数错误
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      summary: 用户信息
       tags:
       - 用户模块
 swagger: "2.0"

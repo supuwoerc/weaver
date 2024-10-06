@@ -16,27 +16,27 @@ var cnErrorMap StatusCode2Error
 var enErrorMap StatusCode2Error
 
 var systemModuleCode = []response.StatusCode{
-	response.INVALID_TOKEN,
-	response.CANCEL_REQUEST,
-	response.TIMEOUT_ERROR,
-	response.INVALID_REFRESH_TOKEN,
-	response.UNNECESSARY_REFRESH_TOKEN,
-	response.CASBIN_ERR,
-	response.CASBIN_INVALID,
+	response.InvalidToken,
+	response.CancelRequest,
+	response.TimeoutErr,
+	response.InvalidRefreshToken,
+	response.UnnecessaryRefreshToken,
+	response.CasbinErr,
+	response.CasbinInvalid,
 }
 var userModuleCode = []response.StatusCode{
-	response.USER_CREATE_DUPLICATE_EMAIL,
-	response.USER_LOGIN_EMAIL_NOT_FOUND,
-	response.USER_LOGIN_FAIL,
-	response.USER_LOGIN_TOKEN_PAIR_CACHE_ERR,
-	response.USER_NOT_EXIST,
+	response.UserCreateDuplicateEmail,
+	response.UserLoginEmailNotFound,
+	response.UserLoginFail,
+	response.UserLoginTokenPairCacheErr,
+	response.UserNotExist,
 }
 var captchaModuleCode = []response.StatusCode{
-	response.CAPTCHA_VERIFY_FAIL,
+	response.CaptchaVerifyFail,
 }
 var roleModuleCode = []response.StatusCode{
-	response.ROLE_CREATE_DUPLICATE_NAME,
-	response.NO_VALID_ROLES,
+	response.RoleCreateDuplicateName,
+	response.NoValidRoles,
 }
 
 var codeModules = [][]response.StatusCode{systemModuleCode, userModuleCode, captchaModuleCode, roleModuleCode}

@@ -3,6 +3,7 @@ package v1
 import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/jwt"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/service"
@@ -45,7 +46,7 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 	}
 	passwordValid, err := u.passwordRegexExp.MatchString(params.Password)
 	if err != nil || !passwordValid {
-		response.HttpResponse[any](ctx, response.PASSWORD_VALID_ERR, nil, nil, nil)
+		response.HttpResponse[any](ctx, response.PasswordValidErr, nil, nil, nil)
 		return
 	}
 	if err = u.service(ctx).SignUp(params.ID, params.Code, models.User{
@@ -87,16 +88,31 @@ func (u UserApi) Login(ctx *gin.Context) {
 			Token:        pair.AccessToken,
 			RefreshToken: pair.RefreshToken,
 		})
-	case err == constant.GetError(ctx, response.USER_LOGIN_FAIL) || err == constant.GetError(ctx, response.USER_LOGIN_EMAIL_NOT_FOUND):
-		response.FailWithCode(ctx, response.USER_LOGIN_FAIL)
+	case err == constant.GetError(ctx, response.UserLoginFail) || err == constant.GetError(ctx, response.UserLoginEmailNotFound):
+		response.FailWithCode(ctx, response.UserLoginFail)
 	default:
 		response.FailWithMessage(ctx, err.Error())
 	}
 }
 
-// TODO:获取个人信息
+// @Tags 用户模块
+// @Summary 用户信息
+// @Description 获取用户账户信息
+// @Accept json
+// @Produce json
+// @Success 10000 {object} response.BasicResponse[any] "操作成功"
+// @Failure 10001 {object} response.BasicResponse[any] "操作失败"
+// @Failure 10002 {object} response.BasicResponse[any] "参数错误"
+// @Router /api/v1/user/profile [get]
 func (u UserApi) Profile(ctx *gin.Context) {
-	response.Success(ctx)
+	claims := jwt.GetUserClaims(ctx)
+	profile, err := u.service(ctx).Profile(claims.User.UID)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	profile.Password = nil
+	response.SuccessWithData(ctx, profile)
 }
 
 // TODO:补充文档

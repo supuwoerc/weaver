@@ -33,7 +33,7 @@ func (u *UserDAO) Insert(ctx context.Context, user *User) error {
 	err := u.db.WithContext(ctx).Create(user).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-		return constant.GetError(u.ctx, response.USER_CREATE_DUPLICATE_EMAIL)
+		return constant.GetError(u.ctx, response.UserCreateDuplicateEmail)
 	}
 	return err
 }
@@ -42,7 +42,7 @@ func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*User, error) 
 	var user User
 	err := u.db.WithContext(ctx).Preload("Roles").Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return &user, constant.GetError(u.ctx, response.USER_LOGIN_EMAIL_NOT_FOUND)
+		return &user, constant.GetError(u.ctx, response.UserLoginEmailNotFound)
 	}
 	return &user, err
 }
@@ -63,7 +63,7 @@ func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles bool) (*Use
 	}
 	err := query.Where("id = ?", uid).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return &user, constant.GetError(u.ctx, response.USER_NOT_EXIST)
+		return &user, constant.GetError(u.ctx, response.UserNotExist)
 	}
 	return &user, err
 }

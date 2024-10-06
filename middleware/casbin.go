@@ -17,13 +17,13 @@ func PermissionRequired() gin.HandlerFunc {
 		sub := "admin"
 		ok, err := global.CasbinEnforcer.Enforce(sub, obj, act)
 		if err != nil {
-			response.FailWithError(c, constant.GetError(c, response.CASBIN_ERR))
+			response.FailWithError(c, constant.GetError(c, response.CasbinErr))
 			return
 		}
 		if ok {
 			c.Next()
 		} else {
-			response.FailWithError(c, constant.GetError(c, response.CASBIN_INVALID))
+			response.FailWithError(c, constant.GetError(c, response.CasbinInvalid))
 		}
 	}
 }
