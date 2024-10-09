@@ -34,3 +34,7 @@ const (
 	RoleCreateDuplicateName StatusCode = 40000 // 角色名已存在
 	NoValidRoles            StatusCode = 40001 // 设置角色时无有效角色(角色ID全部无效)
 )
+
+const (
+	InvalidAttachmentLength StatusCode = 50000 // 文件上传数量不合法
+)

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	refreshUrl = "/api/v1/user/refresh_token"
+	refreshUrl = "/api/v1/user/refresh-token"
 )
 
 func tokenInvalidResponse(ctx *gin.Context) {

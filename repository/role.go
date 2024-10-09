@@ -37,6 +37,7 @@ func (r *RoleRepository) Create(ctx context.Context, name string) error {
 	})
 }
 
-func (r *RoleRepository) GetRolesByIds(ctx context.Context, ids []uint) ([]*dao.Role, error) {
-	return r.dao.GetRolesByIds(ctx, ids)
+func (r *RoleRepository) GetRolesByIds(ctx context.Context, ids []uint) ([]*models.Role, error) {
+	ret, err := r.dao.GetRolesByIds(ctx, ids)
+	return toModelRoles(ret), err
 }

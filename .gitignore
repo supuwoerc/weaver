@@ -2,6 +2,7 @@
 .vscode
 temp/
 log/
+upload/
 /docker/data/
 /docker/redis/
 /config/dev.yml

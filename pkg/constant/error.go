@@ -38,8 +38,11 @@ var roleModuleCode = []response.StatusCode{
 	response.RoleCreateDuplicateName,
 	response.NoValidRoles,
 }
+var attachmentModuleCode = []response.StatusCode{
+	response.InvalidAttachmentLength,
+}
 
-var codeModules = [][]response.StatusCode{systemModuleCode, userModuleCode, captchaModuleCode, roleModuleCode}
+var codeModules = [][]response.StatusCode{systemModuleCode, userModuleCode, captchaModuleCode, roleModuleCode, attachmentModuleCode}
 
 type InitParams struct {
 	CN *i18n.Localizer
