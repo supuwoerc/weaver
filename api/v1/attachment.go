@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
+	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -43,8 +43,12 @@ func (a AttachmentApi) MultipleUpload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.InvalidAttachmentLength)
 		return
 	}
-	claims := jwt.GetUserClaims(ctx)
-	result, err := a.service(ctx).SaveFiles(files, claims.User.UID)
+	user, err := utils.GetContextUser(ctx)
+	if err != nil || user == nil {
+		response.FailWithCode(ctx, response.UserNotExist)
+		return
+	}
+	result, err := a.service(ctx).SaveFiles(files, user.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

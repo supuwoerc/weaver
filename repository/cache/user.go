@@ -42,3 +42,13 @@ func (u *UserCache) HExistsTokenPair(ctx context.Context, email string) (bool, e
 func (u *UserCache) HDelTokenPair(ctx context.Context, email string) error {
 	return u.redis.Client.HDel(ctx, tokenPairKey, email).Err()
 }
+
+func (u *UserCache) HGetTokenPair(ctx context.Context, email string) (*models.TokenPair, error) {
+	result, err := u.redis.Client.HGet(ctx, tokenPairKey, email).Result()
+	if err != nil {
+		return nil, err
+	}
+	var ret models.TokenPair
+	err = json.Unmarshal([]byte(result), &ret)
+	return &ret, err
+}

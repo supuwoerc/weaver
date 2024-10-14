@@ -3,9 +3,9 @@ package v1
 import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/jwt"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
+	"gin-web/pkg/utils"
 	"gin-web/service"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
@@ -91,7 +91,10 @@ func (u UserApi) Login(ctx *gin.Context) {
 	case err == constant.GetError(ctx, response.UserLoginFail) || err == constant.GetError(ctx, response.UserLoginEmailNotFound):
 		response.FailWithCode(ctx, response.UserLoginFail)
 	default:
-		response.FailWithMessage(ctx, err.Error())
+		if err != nil {
+			response.FailWithMessage(ctx, err.Error())
+		}
+		response.FailWithError(ctx, err)
 	}
 }
 
@@ -105,8 +108,12 @@ func (u UserApi) Login(ctx *gin.Context) {
 // @Failure 10002 {object} response.BasicResponse[any] "参数错误"
 // @Router /api/v1/user/profile [get]
 func (u UserApi) Profile(ctx *gin.Context) {
-	claims := jwt.GetUserClaims(ctx)
-	profile, err := u.service(ctx).Profile(claims.User.UID)
+	user, err := utils.GetContextUser(ctx)
+	if err != nil || user == nil {
+		response.FailWithCode(ctx, response.UserNotExist)
+		return
+	}
+	profile, err := u.service(ctx).Profile(user.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

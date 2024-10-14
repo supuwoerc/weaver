@@ -87,3 +87,7 @@ func (u *UserRepository) FindRolesByUid(ctx context.Context, uid uint) ([]*model
 	})
 	return result, nil
 }
+
+func (u *UserRepository) GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error) {
+	return u.cache.HGetTokenPair(ctx, email)
+}

@@ -5,6 +5,7 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
+	"gin-web/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
@@ -132,11 +133,8 @@ func (j *TokenBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 	return &claims, nil
 }
 
-// GetUserClaims 获取上下文的claims
-func GetUserClaims(ctx *gin.Context) *TokenClaims {
-	value, exists := ctx.Get(constant.ClaimKeyContext)
-	if exists {
-		return value.(*TokenClaims)
-	}
-	return nil
+// GetCacheToken 获取缓存的Token对
+func (j *TokenBuilder) GetCacheToken(email string) (*models.TokenPair, error) {
+	userRepository := repository.NewUserRepository(j.ctx)
+	return userRepository.GetTokenPair(j.ctx, email)
 }

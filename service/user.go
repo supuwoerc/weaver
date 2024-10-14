@@ -49,6 +49,10 @@ func (u *UserService) Login(email string, password string) (*models.User, *model
 	if err != nil {
 		return nil, nil, constant.GetError(u.ctx, response.UserLoginFail)
 	}
+	pair, err := u.repository.GetTokenPair(u.ctx.Request.Context(), email)
+	if err == nil && pair != nil {
+		return user, pair, nil
+	}
 	builder := jwt.NewJwtBuilder(u.ctx)
 	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
 		UID:      user.ID,

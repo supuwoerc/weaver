@@ -44,19 +44,28 @@ func LoginRequired() gin.HandlerFunc {
 		userRepository := repository.NewUserRepository(ctx)
 		if err == nil {
 			// token解析正常,判断是不是在不redis中
-			exist, existErr := userRepository.TokenPairExist(ctx, claims.User.Email)
-			if existErr != nil || !exist {
+			pair, tempErr := jwtBuilder.GetCacheToken(claims.User.Email)
+			if pair == nil || tempErr != nil || pair.AccessToken != token {
 				tokenInvalidResponse(ctx)
 				return
 			}
-			if ctx.Request.URL.Path == refreshUrl && existErr == nil && exist {
+			if ctx.Request.URL.Path == refreshUrl && pair != nil && pair.AccessToken == token {
 				unnecessaryRefreshResponse(ctx)
 				return
 			}
-			ctx.Set(constant.ClaimKeyContext, claims)
+			ctx.Set(constant.UserKeyContext, claims)
 		} else if ctx.Request.URL.Path == refreshUrl && ctx.Request.Method == http.MethodGet {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
+			if strings.TrimSpace(refreshToken) == "" {
+				refreshTokenInvalidResponse(ctx)
+				return
+			}
+			pair, tempErr := jwtBuilder.GetCacheToken(claims.User.Email)
+			if pair == nil || tempErr != nil || pair.RefreshToken != refreshToken {
+				refreshTokenInvalidResponse(ctx)
+				return
+			}
 			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateAccessAndRefreshToken(token, refreshToken, func(claims *jwt.TokenClaims, newToken, newRefreshToken string) error {
 				return userRepository.CacheTokenPair(ctx, claims.User.Email, &models.TokenPair{
 					AccessToken:  newToken,
