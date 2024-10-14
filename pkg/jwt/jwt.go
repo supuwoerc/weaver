@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"errors"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
@@ -24,15 +25,15 @@ type TokenClaims struct {
 	User *TokenClaimsBasic
 }
 
-type JwtBuilder struct {
+type TokenBuilder struct {
 	ctx *gin.Context
 }
 
-var jwtBuilder *JwtBuilder
+var jwtBuilder *TokenBuilder
 
-func NewJwtBuilder(ctx *gin.Context) *JwtBuilder {
+func NewJwtBuilder(ctx *gin.Context) *TokenBuilder {
 	if jwtBuilder == nil {
-		jwtBuilder = &JwtBuilder{
+		jwtBuilder = &TokenBuilder{
 			ctx: ctx,
 		}
 	}
@@ -40,7 +41,7 @@ func NewJwtBuilder(ctx *gin.Context) *JwtBuilder {
 }
 
 // 生成token
-func (j *JwtBuilder) generateToken(user *TokenClaimsBasic, createAt time.Time, duration time.Duration) (string, error) {
+func (j *TokenBuilder) generateToken(user *TokenClaimsBasic, createAt time.Time, duration time.Duration) (string, error) {
 	claims := TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    viper.GetString("jwt.issuer"),
@@ -54,19 +55,19 @@ func (j *JwtBuilder) generateToken(user *TokenClaimsBasic, createAt time.Time, d
 }
 
 // 生成短token
-func (j *JwtBuilder) generateAccessToken(user *TokenClaimsBasic, createAt time.Time) (string, error) {
+func (j *TokenBuilder) generateAccessToken(user *TokenClaimsBasic, createAt time.Time) (string, error) {
 	return j.generateToken(user, createAt, viper.GetDuration("jwt.expires")*time.Minute)
 }
 
-// 生成长token
-func (j *JwtBuilder) generateRefreshToken(createAt time.Time) (string, error) {
+// generateRefreshToken 生成长token
+func (j *TokenBuilder) generateRefreshToken(createAt time.Time) (string, error) {
 	return j.generateToken(&TokenClaimsBasic{}, createAt, viper.GetDuration("jwt.refreshTokenExpires")*time.Minute)
 }
 
 type RefreshTokenCallback func(claims *TokenClaims, accessToken, refreshToken string) error
 
-// 校验并生成长短token
-func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string, callback RefreshTokenCallback) (string, string, error) {
+// ReGenerateAccessAndRefreshToken 校验并生成长短token
+func (j *TokenBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string, callback RefreshTokenCallback) (string, string, error) {
 	if _, err := j.ParseToken(refreshToken); err != nil {
 		return "", "", constant.GetError(j.ctx, response.InvalidRefreshToken)
 	}
@@ -74,8 +75,11 @@ func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken s
 	if err == nil {
 		return "", "", constant.GetError(j.ctx, response.UnnecessaryRefreshToken)
 	}
-	if err != constant.GetError(j.ctx, response.InvalidToken) {
+	if !errors.Is(constant.GetError(j.ctx, response.InvalidToken), err) {
 		return "", "", err
+	}
+	if claims == nil || claims.User.UID == 0 {
+		return "", "", constant.GetError(j.ctx, response.InvalidToken)
 	}
 	createAt := time.Now()
 	newAccessToken, err := j.generateAccessToken(&TokenClaimsBasic{
@@ -102,8 +106,8 @@ func (j *JwtBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken s
 	return newAccessToken, newRefreshToken, nil
 }
 
-// 生成长短token
-func (j *JwtBuilder) GenerateAccessAndRefreshToken(user *TokenClaimsBasic) (string, string, error) {
+// GenerateAccessAndRefreshToken 生成长短token
+func (j *TokenBuilder) GenerateAccessAndRefreshToken(user *TokenClaimsBasic) (string, string, error) {
 	createAt := time.Now()
 	newAccessToken, err := j.generateAccessToken(user, createAt)
 	if err != nil {
@@ -116,8 +120,8 @@ func (j *JwtBuilder) GenerateAccessAndRefreshToken(user *TokenClaimsBasic) (stri
 	return newAccessToken, newRefreshToken, nil
 }
 
-// 解析token
-func (j *JwtBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
+// ParseToken 解析token
+func (j *TokenBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 	claims := TokenClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(viper.GetString("jwt.secret")), nil
@@ -128,7 +132,7 @@ func (j *JwtBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 	return &claims, nil
 }
 
-// 获取上下文的claims
+// GetUserClaims 获取上下文的claims
 func GetUserClaims(ctx *gin.Context) *TokenClaims {
 	value, exists := ctx.Get(constant.ClaimKeyContext)
 	if exists {
