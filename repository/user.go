@@ -28,7 +28,7 @@ func toModelUser(u *dao.User) *models.User {
 		ID:       u.ID,
 		Email:    u.Email,
 		Password: &u.Password,
-		NickName: u.NickName,
+		Nickname: u.Nickname,
 		Gender:   models.UserGender(u.Gender),
 		About:    u.About,
 		Birthday: time.UnixMilli(u.Birthday).Format(time.DateTime),

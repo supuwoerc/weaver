@@ -57,7 +57,7 @@ func (u *UserService) Login(email string, password string) (*models.User, *model
 	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
 		UID:      user.ID,
 		Email:    user.Email,
-		NickName: user.NickName,
+		Nickname: user.Nickname,
 		Gender:   user.Gender,
 		About:    user.About,
 		Birthday: user.Birthday,

@@ -15,7 +15,7 @@ import (
 type TokenClaimsBasic struct {
 	UID      uint
 	Email    string
-	NickName string
+	Nickname string
 	Gender   models.UserGender
 	About    string
 	Birthday string
@@ -86,7 +86,7 @@ func (j *TokenBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken
 	newAccessToken, err := j.generateAccessToken(&TokenClaimsBasic{
 		UID:      claims.User.UID,
 		Email:    claims.User.Email,
-		NickName: claims.User.NickName,
+		Nickname: claims.User.Nickname,
 		Gender:   claims.User.Gender,
 		About:    claims.User.About,
 		Birthday: claims.User.Birthday,
