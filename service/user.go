@@ -7,6 +7,7 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/repository"
 	"github.com/gin-gonic/gin"
+	"github.com/samber/lo"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -50,17 +51,22 @@ func (u *UserService) Login(email string, password string) (*models.User, *model
 		return nil, nil, constant.GetError(u.ctx, response.UserLoginFail)
 	}
 	pair, err := u.repository.GetTokenPair(u.ctx.Request.Context(), email)
-	if err == nil && pair != nil {
-		return user, pair, nil
-	}
 	builder := jwt.NewJwtBuilder(u.ctx)
+	if err == nil && pair != nil {
+		claims, parseErr := builder.ParseToken(pair.AccessToken)
+		if parseErr == nil && claims != nil {
+			// 如果缓存的token还未过期,直接返回缓存中的记录
+			return user, pair, nil
+		}
+	}
+	roleIds := lo.Map[*models.Role, uint](user.Roles, func(item *models.Role, _ int) uint {
+		return item.ID
+	})
 	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
 		UID:      user.ID,
 		Email:    user.Email,
 		Nickname: user.Nickname,
-		Gender:   user.Gender,
-		About:    user.About,
-		Birthday: user.Birthday,
+		Roles:    roleIds,
 	})
 	if err != nil {
 		return nil, nil, err

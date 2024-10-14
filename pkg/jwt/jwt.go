@@ -16,9 +16,7 @@ type TokenClaimsBasic struct {
 	UID      uint
 	Email    string
 	Nickname string
-	Gender   models.UserGender
-	About    string
-	Birthday string
+	Roles    []uint // token中仅存储角色ID
 }
 
 type TokenClaims struct {
@@ -87,9 +85,7 @@ func (j *TokenBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken
 		UID:      claims.User.UID,
 		Email:    claims.User.Email,
 		Nickname: claims.User.Nickname,
-		Gender:   claims.User.Gender,
-		About:    claims.User.About,
-		Birthday: claims.User.Birthday,
+		Roles:    claims.User.Roles,
 	}, createAt)
 	if err != nil {
 		return "", "", err
