@@ -43,12 +43,12 @@ func (a AttachmentApi) MultipleUpload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.InvalidAttachmentLength)
 		return
 	}
-	user, err := utils.GetContextUser(ctx)
-	if err != nil || user == nil {
+	claims, err := utils.GetContextClaims(ctx)
+	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	result, err := a.service(ctx).SaveFiles(files, user.ID)
+	result, err := a.service(ctx).SaveFiles(files, claims.User.UID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

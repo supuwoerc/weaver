@@ -108,12 +108,12 @@ func (u UserApi) Login(ctx *gin.Context) {
 // @Failure 10002 {object} response.BasicResponse[any] "参数错误"
 // @Router /api/v1/user/profile [get]
 func (u UserApi) Profile(ctx *gin.Context) {
-	user, err := utils.GetContextUser(ctx)
-	if err != nil || user == nil {
+	claims, err := utils.GetContextClaims(ctx)
+	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	profile, err := u.service(ctx).Profile(user.ID)
+	profile, err := u.service(ctx).Profile(claims.User.UID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

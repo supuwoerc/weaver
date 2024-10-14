@@ -5,7 +5,9 @@ import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
+	"gin-web/pkg/utils"
 	"gin-web/repository"
+	"gin-web/service"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"net/http"
@@ -28,6 +30,7 @@ func unnecessaryRefreshResponse(ctx *gin.Context) {
 	response.FailWithError(ctx, constant.GetError(ctx, response.UnnecessaryRefreshToken))
 }
 
+// LoginRequired 检查token和refresh_token的有效性
 func LoginRequired() gin.HandlerFunc {
 	tokenKey := viper.GetString("jwt.tokenKey")
 	refreshTokenKey := viper.GetString("jwt.refreshTokenKey")
@@ -53,7 +56,7 @@ func LoginRequired() gin.HandlerFunc {
 				unnecessaryRefreshResponse(ctx)
 				return
 			}
-			ctx.Set(constant.UserKeyContext, claims)
+			ctx.Set(constant.ClaimsKeyContext, claims)
 		} else if ctx.Request.URL.Path == refreshUrl && ctx.Request.Method == http.MethodGet {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
@@ -93,5 +96,23 @@ func LoginRequired() gin.HandlerFunc {
 			// 其他情况直接返回错误信息
 			tokenInvalidResponse(ctx)
 		}
+	}
+}
+
+// UserProvider 将当前用户信息设置到上下文中
+func UserProvider() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		claims, err := utils.GetContextClaims(ctx)
+		if err != nil {
+			response.FailWithError(ctx, err)
+			return
+		}
+		userService := service.NewUserService(ctx)
+		profile, err := userService.Profile(claims.User.UID)
+		if err != nil {
+			response.FailWithError(ctx, err)
+			return
+		}
+		ctx.Set(constant.UserKeyContext, profile)
 	}
 }
