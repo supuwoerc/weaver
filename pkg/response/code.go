@@ -12,8 +12,8 @@ const (
 	RecoveryError                      = 10005 // 发生recovery
 	InvalidRefreshToken                = 10006 // 长token错误
 	UnnecessaryRefreshToken            = 10007 // 不必要的刷新token(短token还未过期)
-	CasbinErr                          = 10008 // casbin校验出错
-	CasbinInvalid                      = 10009 // casbin校验未通过
+	AuthErr                            = 10008 // 权限校验出错
+	NoAuthority                        = 10009 // 权限校验未通过
 	TimeoutErr                         = 10010 // 上下文超时取消(context.WithTimeout)
 )
 

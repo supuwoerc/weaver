@@ -10,5 +10,6 @@ func InitAttachmentRouter(r *gin.RouterGroup) {
 	attachmentAccessGroup := r.Group("attachment")
 	{
 		attachmentAccessGroup.POST("multiple-upload", attachmentApi.MultipleUpload)
+		attachmentAccessGroup.POST("upload", attachmentApi.Upload)
 	}
 }

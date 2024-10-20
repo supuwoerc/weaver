@@ -17,6 +17,7 @@ type Attachment struct {
 	Type int8   // 文件类型
 	Size int64  // 文件大小
 	Hash string // 文件摘要
+	Path string // 文件路径
 }
 
 func NewAttachmentDAO(ctx *gin.Context) *AttachmentDAO {

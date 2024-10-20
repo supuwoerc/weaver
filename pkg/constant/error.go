@@ -21,8 +21,8 @@ var systemModuleCode = []response.StatusCode{
 	response.TimeoutErr,
 	response.InvalidRefreshToken,
 	response.UnnecessaryRefreshToken,
-	response.CasbinErr,
-	response.CasbinInvalid,
+	response.AuthErr,
+	response.NoAuthority,
 }
 var userModuleCode = []response.StatusCode{
 	response.UserCreateDuplicateEmail,

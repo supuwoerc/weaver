@@ -26,6 +26,7 @@ func toModelAttachment(record *dao.Attachment) *models.Attachment {
 		Type: record.Type,
 		Size: record.Size,
 		Hash: record.Hash,
+		Path: record.Path,
 	}
 }
 
@@ -43,6 +44,7 @@ func (r *AttachmentRepository) Create(ctx context.Context, records []*models.Att
 			Type: item.Type,
 			Size: item.Size,
 			Hash: item.Hash,
+			Path: item.Path,
 		}
 	})
 	ret, err := r.dao.Insert(ctx, attachments)

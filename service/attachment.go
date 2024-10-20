@@ -49,6 +49,7 @@ const (
 type AttachmentInfo struct {
 	uniqueName string
 	classify   int8
+	path       string
 }
 
 func getFileType(header []byte) int8 {
@@ -72,8 +73,7 @@ func getFileType(header []byte) int8 {
 	}
 }
 
-// 批量保存多个文件
-func (a *AttachmentService) SaveFiles(files []*multipart.FileHeader, uid uint) ([]*models.Attachment, error) {
+func (a *AttachmentService) SaveFiles(files []*multipart.FileHeader, uid uint, users []uint) ([]*models.Attachment, error) {
 	var info = make([]*AttachmentInfo, 0, len(files))
 	projectDir, temp := os.Getwd()
 	if temp != nil {
@@ -84,14 +84,22 @@ func (a *AttachmentService) SaveFiles(files []*multipart.FileHeader, uid uint) (
 	if strings.TrimSpace(targetDir) == "" {
 		uploadAttachmentDir = filepath.Join(projectDir, "upload", time.Now().Format(time.DateOnly))
 	}
+	var openFiles = make([]multipart.File, 0)
+	var createFiles = make([]*os.File, 0)
+	defer func() {
+		for _, f := range openFiles {
+			_ = f.Close()
+		}
+		for _, f := range createFiles {
+			_ = f.Close()
+		}
+	}()
 	for _, file := range files {
 		f, err := file.Open()
 		if err != nil {
 			return nil, err
 		}
-		defer func(f multipart.File) {
-			_ = f.Close()
-		}(f)
+		openFiles = append(openFiles, f)
 		ext := filepath.Ext(file.Filename)
 		// 同时将文件内容写入hash和上传文件夹中的临时文件
 		tempFileName := fmt.Sprintf("temp_%s", uuid.New().String())
@@ -103,9 +111,7 @@ func (a *AttachmentService) SaveFiles(files []*multipart.FileHeader, uid uint) (
 		if err != nil {
 			return nil, err
 		}
-		defer func(t *os.File) {
-			_ = t.Close()
-		}(tempFile)
+		createFiles = append(createFiles, tempFile)
 		// 获取前262个字节用于判断文件类型
 		buffer := bytes.NewBuffer(make([]byte, 0, 262))
 		_, err = io.CopyN(buffer, f, 262)
@@ -123,11 +129,12 @@ func (a *AttachmentService) SaveFiles(files []*multipart.FileHeader, uid uint) (
 		}
 		fileHash := hex.EncodeToString(hash.Sum(nil))
 		fileMd5 := hex.EncodeToString(md.Sum(nil))
+		targetFilePath := filepath.Join(uploadAttachmentDir, fmt.Sprintf("%s%s%s", fileHash, fileMd5, ext))
 		info = append(info, &AttachmentInfo{
 			uniqueName: fmt.Sprintf("%s%s", fileHash, fileMd5),
 			classify:   getFileType(buffer.Bytes()),
+			path:       targetFilePath,
 		})
-		targetFilePath := filepath.Join(uploadAttachmentDir, fmt.Sprintf("%s%s%s", fileHash, fileMd5, ext))
 		// 文件如果不存在才创建,避免重复创建多个内容一样的文件
 		exists, err := utils.PathExists(targetFilePath)
 		if err != nil {
@@ -153,7 +160,17 @@ func (a *AttachmentService) SaveFiles(files []*multipart.FileHeader, uid uint) (
 			Type: info[index].classify,
 			Size: item.Size,
 			Hash: info[index].uniqueName,
+			Path: info[index].path,
 		}
 	})
+	// TODO:创建一个事务，创建文件记录的同时为文件授权
 	return a.repository.Create(a.ctx.Request.Context(), attachments)
+}
+
+func (a *AttachmentService) SaveFile(file *multipart.FileHeader, uid uint, users []uint) (*models.Attachment, error) {
+	files, err := a.SaveFiles([]*multipart.FileHeader{file}, uid, users)
+	if err != nil || files == nil || len(files) == 0 {
+		return nil, err
+	}
+	return files[0], err
 }

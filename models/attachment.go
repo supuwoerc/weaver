@@ -7,4 +7,5 @@ type Attachment struct {
 	Type int8   `json:"type"`
 	Size int64  `json:"size"`
 	Hash string `json:"hash"` // 文件内容hash,作为文件的存储名称
+	Path string `json:"path"`
 }
