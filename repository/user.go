@@ -12,15 +12,26 @@ import (
 )
 
 type UserRepository struct {
+	ctx   *gin.Context
 	dao   *dao.UserDAO
 	cache *cache.UserCache
 }
 
-func NewUserRepository(ctx *gin.Context) *UserRepository {
+func NewUserRepository(ctx *gin.Context, userDao *dao.UserDAO) *UserRepository {
+	if userDao == nil {
+		userDao = dao.NewUserDAO(ctx, nil)
+	}
 	return &UserRepository{
-		dao:   dao.NewUserDAO(ctx),
+		dao:   userDao,
 		cache: cache.NewUserCache(ctx),
 	}
+}
+
+func (u *UserRepository) Transaction(fn func(repo *UserRepository, tx *gorm.DB) error) error {
+	return u.dao.Transaction(func(basicDao *dao.BasicDAO, tx *gorm.DB) error {
+		repository := NewUserRepository(u.ctx, dao.NewUserDAO(u.ctx, dao.NewBasicDao(u.ctx, tx)))
+		return fn(repository, tx)
+	})
 }
 
 func toModelUser(u *dao.User) *models.User {

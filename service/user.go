@@ -18,12 +18,13 @@ type UserService struct {
 	repository *repository.UserRepository
 }
 
+// TODO:将事务扩展到service层
 func NewUserService(ctx *gin.Context) *UserService {
 	return &UserService{
 		BasicService:   NewBasicService(ctx),
 		CaptchaService: NewCaptchaService(ctx),
 		RoleService:    NewRoleService(ctx),
-		repository:     repository.NewUserRepository(ctx),
+		repository:     repository.NewUserRepository(ctx, nil),
 	}
 }
 

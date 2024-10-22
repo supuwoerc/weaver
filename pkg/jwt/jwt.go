@@ -131,6 +131,6 @@ func (j *TokenBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 
 // GetCacheToken 获取缓存的Token对
 func (j *TokenBuilder) GetCacheToken(email string) (*models.TokenPair, error) {
-	userRepository := repository.NewUserRepository(j.ctx)
+	userRepository := repository.NewUserRepository(j.ctx, nil)
 	return userRepository.GetTokenPair(j.ctx, email)
 }

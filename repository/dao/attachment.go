@@ -21,7 +21,7 @@ type Attachment struct {
 }
 
 func NewAttachmentDAO(ctx *gin.Context) *AttachmentDAO {
-	return &AttachmentDAO{BasicDAO: NewBasicDao(ctx)}
+	return &AttachmentDAO{BasicDAO: NewBasicDao(ctx, nil)}
 }
 
 func (a *AttachmentDAO) Insert(ctx context.Context, records []*Attachment) ([]*Attachment, error) {

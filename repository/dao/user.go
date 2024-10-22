@@ -25,8 +25,11 @@ type User struct {
 	Roles    []*Role `gorm:"many2many:user_role;"`
 }
 
-func NewUserDAO(ctx *gin.Context) *UserDAO {
-	return &UserDAO{BasicDAO: NewBasicDao(ctx)}
+func NewUserDAO(ctx *gin.Context, basic *BasicDAO) *UserDAO {
+	if basic == nil {
+		basic = NewBasicDao(ctx, nil)
+	}
+	return &UserDAO{BasicDAO: basic}
 }
 
 func (u *UserDAO) Insert(ctx context.Context, user *User) error {

@@ -21,7 +21,7 @@ type Role struct {
 }
 
 func NewRoleDAO(ctx *gin.Context) *RoleDAO {
-	return &RoleDAO{BasicDAO: NewBasicDao(ctx)}
+	return &RoleDAO{BasicDAO: NewBasicDao(ctx, nil)}
 }
 
 func (r *RoleDAO) Insert(ctx context.Context, role *Role) error {
