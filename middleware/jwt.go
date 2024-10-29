@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
@@ -19,15 +20,15 @@ const (
 )
 
 func tokenInvalidResponse(ctx *gin.Context) {
-	response.FailWithError(ctx, constant.GetError(ctx, response.InvalidToken))
+	response.FailWithError(ctx, response.InvalidToken)
 }
 
 func refreshTokenInvalidResponse(ctx *gin.Context) {
-	response.FailWithError(ctx, constant.GetError(ctx, response.InvalidRefreshToken))
+	response.FailWithError(ctx, response.InvalidRefreshToken)
 }
 
 func unnecessaryRefreshResponse(ctx *gin.Context) {
-	response.FailWithError(ctx, constant.GetError(ctx, response.UnnecessaryRefreshToken))
+	response.FailWithError(ctx, response.UnnecessaryRefreshToken)
 }
 
 // LoginRequired 检查token和refresh_token的有效性
@@ -75,11 +76,11 @@ func LoginRequired() gin.HandlerFunc {
 					RefreshToken: newRefreshToken,
 				})
 			})
-			if refreshErr == constant.GetError(ctx, response.InvalidToken) {
+			if errors.Is(refreshErr, response.InvalidToken) {
 				tokenInvalidResponse(ctx)
 				return
 			}
-			if refreshErr == constant.GetError(ctx, response.InvalidRefreshToken) {
+			if errors.Is(refreshErr, response.InvalidRefreshToken) {
 				refreshTokenInvalidResponse(ctx)
 				return
 			}

@@ -14,11 +14,11 @@ func GetContextUser(ctx *gin.Context) (*models.User, error) {
 	if exists {
 		user, ok := value.(*models.User)
 		if !ok || user.ID == 0 {
-			return nil, constant.GetError(ctx, response.UserNotExist)
+			return nil, response.UserNotExist
 		}
 		return user, nil
 	}
-	return nil, constant.GetError(ctx, response.UserNotExist)
+	return nil, response.UserNotExist
 }
 
 // GetContextClaims 从上下文中获取当前请求接口的Claims
@@ -27,9 +27,9 @@ func GetContextClaims(ctx *gin.Context) (*jwt.TokenClaims, error) {
 	if exists {
 		claims, ok := value.(*jwt.TokenClaims)
 		if !ok || claims == nil || claims.User.UID == 0 {
-			return nil, constant.GetError(ctx, response.UserNotExist)
+			return nil, response.UserNotExist
 		}
 		return claims, nil
 	}
-	return nil, constant.GetError(ctx, response.UserNotExist)
+	return nil, response.UserNotExist
 }

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/request"
@@ -88,7 +89,7 @@ func (u UserApi) Login(ctx *gin.Context) {
 			Token:        pair.AccessToken,
 			RefreshToken: pair.RefreshToken,
 		})
-	case err == constant.GetError(ctx, response.UserLoginFail) || err == constant.GetError(ctx, response.UserLoginEmailNotFound):
+	case errors.Is(err, response.UserLoginFail) || errors.Is(err, response.UserLoginEmailNotFound):
 		response.FailWithCode(ctx, response.UserLoginFail)
 	default:
 		if err != nil {

@@ -1,10 +1,10 @@
 [
   {
-    "id": "40000",
+    "id": "roleCreateDuplicateName",
     "other": "Role already exists"
   },
   {
-    "id": "40001",
+    "id": "noValidRoles",
     "other": "No valid roles"
   }
 ]

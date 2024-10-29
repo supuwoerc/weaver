@@ -1,46 +1,46 @@
 [
   {
-    "id": "10000",
+    "id": "ok",
     "other": "操作成功"
   },
   {
-    "id": "10001",
+    "id": "error",
     "other": "操作失败"
   },
   {
-    "id": "10002",
+    "id": "invalidParams",
     "other": "参数错误"
   },
   {
-    "id": "10003",
+    "id": "invalidToken",
     "other": "鉴权失败"
   },
   {
-    "id": "10004",
+    "id": "cancelRequest",
     "other": "请求被取消"
   },
   {
-    "id": "10005",
+    "id": "recoveryError",
     "other": "严重错误，请联系管理员"
   },
   {
-    "id": "10006",
+    "id": "invalidRefreshToken",
     "other": "错误的RefreshToken"
   },
   {
-    "id": "10007",
+    "id": "unnecessaryRefreshToken",
     "other": "不必要的刷新"
   },
   {
-    "id": "10008",
+    "id": "authErr",
     "other": "权限校验出错"
   },
   {
-    "id": "10009",
+    "id": "noAuthority",
     "other": "权限不足"
   },
   {
-    "id": "10010",
+    "id": "timeoutErr",
     "other": "处理时间过长，操作取消"
   }
 ]

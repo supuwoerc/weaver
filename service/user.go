@@ -2,7 +2,6 @@ package service
 
 import (
 	"gin-web/models"
-	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
 	"gin-web/repository"
@@ -31,7 +30,7 @@ func NewUserService(ctx *gin.Context) *UserService {
 func (u *UserService) SignUp(id string, code string, user models.User) error {
 	verify := u.CaptchaService.Verify(id, code)
 	if !verify {
-		return constant.GetError(u.ctx, response.CaptchaVerifyFail)
+		return response.CaptchaVerifyFail
 	}
 	password, err := bcrypt.GenerateFromPassword([]byte(*user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -49,7 +48,7 @@ func (u *UserService) Login(email string, password string) (*models.User, *model
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
 	if err != nil {
-		return nil, nil, constant.GetError(u.ctx, response.UserLoginFail)
+		return nil, nil, response.UserLoginFail
 	}
 	pair, err := u.repository.GetTokenPair(u.ctx.Request.Context(), email)
 	builder := jwt.NewJwtBuilder(u.ctx)
@@ -92,14 +91,14 @@ func (u *UserService) SetRoles(uid uint, roleIds []uint) error {
 		return err
 	}
 	if user.ID == 0 {
-		return constant.GetError(u.ctx, response.UserNotExist)
+		return response.UserNotExist
 	}
 	validIds, err := u.RoleService.FilterValidRoles(roleIds)
 	if err != nil {
 		return err
 	}
 	if len(validIds) == 0 {
-		return constant.GetError(u.ctx, response.NoValidRoles)
+		return response.NoValidRoles
 	}
 	return u.repository.AssociateRoles(u.ctx.Request.Context(), uid, validIds)
 }

@@ -1,26 +1,26 @@
 [
   {
-    "id": "20000",
+    "id": "userCreateDuplicateEmail",
     "other": "Email registered"
   },
   {
-    "id": "20001",
+    "id": "userLoginEmailNotFound",
     "other": "The user does not exist"
   },
   {
-    "id": "20002",
+    "id": "userLoginFail",
     "other": "Incorrect user name or password"
   },
   {
-    "id": "20003",
+    "id": "userLoginTokenPairCacheErr",
     "other": "TokenPair record failure"
   },
   {
-    "id": "20004",
+    "id": "passwordValidErr",
     "other": "Illegal password format"
   },
   {
-    "id": "20005",
+    "id": "userNotExist",
     "other": "The user does not exist"
   }
 ]

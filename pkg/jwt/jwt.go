@@ -3,7 +3,6 @@ package jwt
 import (
 	"errors"
 	"gin-web/models"
-	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"gin-web/repository"
 	"github.com/gin-gonic/gin"
@@ -68,17 +67,17 @@ type RefreshTokenCallback func(claims *TokenClaims, accessToken, refreshToken st
 // ReGenerateAccessAndRefreshToken 校验并生成长短token
 func (j *TokenBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string, callback RefreshTokenCallback) (string, string, error) {
 	if _, err := j.ParseToken(refreshToken); err != nil {
-		return "", "", constant.GetError(j.ctx, response.InvalidRefreshToken)
+		return "", "", response.InvalidRefreshToken
 	}
 	claims, err := j.ParseToken(accessToken)
 	if err == nil {
-		return "", "", constant.GetError(j.ctx, response.UnnecessaryRefreshToken)
+		return "", "", response.UnnecessaryRefreshToken
 	}
-	if !errors.Is(constant.GetError(j.ctx, response.InvalidToken), err) {
+	if !errors.Is(response.InvalidToken, err) {
 		return "", "", err
 	}
 	if claims == nil || claims.User.UID == 0 {
-		return "", "", constant.GetError(j.ctx, response.InvalidToken)
+		return "", "", response.InvalidToken
 	}
 	createAt := time.Now()
 	newAccessToken, err := j.generateAccessToken(&TokenClaimsBasic{
@@ -124,7 +123,7 @@ func (j *TokenBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 		return []byte(viper.GetString("jwt.secret")), nil
 	})
 	if err != nil || !token.Valid {
-		return &claims, constant.GetError(j.ctx, response.InvalidToken)
+		return &claims, response.InvalidToken
 	}
 	return &claims, nil
 }

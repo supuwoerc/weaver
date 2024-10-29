@@ -3,11 +3,9 @@ package response
 import (
 	"context"
 	"errors"
-	"gin-web/pkg/global"
 	"github.com/gin-gonic/gin"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"net/http"
-	"strconv"
 )
 
 const TranslatorKey = "translator"
@@ -39,12 +37,12 @@ func HttpResponse[T any](ctx *gin.Context, code StatusCode, data T, config *i18n
 			msg = loc.MustLocalize(config)
 		} else {
 			msg = loc.MustLocalize(&i18n.LocalizeConfig{
-				MessageID: strconv.Itoa(code),
+				MessageID: code.String(),
 			})
 		}
 	}
 	ctx.AbortWithStatusJSON(http.StatusOK, BasicResponse[T]{
-		Code:    code,
+		Code:    int(code),
 		Data:    data,
 		Message: msg,
 	})
@@ -85,17 +83,9 @@ func FailWithCode(ctx *gin.Context, code StatusCode) {
 
 // FailWithError 失败响应
 func FailWithError(ctx *gin.Context, err error) {
-	for code, e := range global.LocaleErrors[global.CN] {
-		if errors.Is(e, err) {
-			FailWithCode(ctx, code)
-			return
-		}
-	}
-	for code, e := range global.LocaleErrors[global.EN] {
-		if errors.Is(e, err) {
-			FailWithCode(ctx, code)
-			return
-		}
+	if code, ok := err.(StatusCode); ok {
+		FailWithCode(ctx, code)
+		return
 	}
 	if errors.Is(err, context.Canceled) {
 		FailWithCode(ctx, CancelRequest)

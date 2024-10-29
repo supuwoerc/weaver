@@ -3,7 +3,6 @@ package dao
 import (
 	"context"
 	"errors"
-	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
@@ -28,7 +27,7 @@ func (r *RoleDAO) Insert(ctx context.Context, role *Role) error {
 	err := r.db.WithContext(ctx).Create(role).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-		return constant.GetError(r.ctx, response.RoleCreateDuplicateName)
+		return response.RoleCreateDuplicateName
 	}
 	return err
 }

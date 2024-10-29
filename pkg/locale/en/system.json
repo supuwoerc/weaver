@@ -1,46 +1,46 @@
 [
   {
-    "id": "10000",
+    "id": "ok",
     "other": "Implementation success"
   },
   {
-    "id": "10001",
+    "id": "error",
     "other": "Failure of execution"
   },
   {
-    "id": "10002",
+    "id": "invalidParams",
     "other": "Parameter error"
   },
   {
-    "id": "10003",
+    "id": "invalidToken",
     "other": "Authentication failure"
   },
   {
-    "id": "10004",
+    "id": "cancelRequest",
     "other": "Request canceled"
   },
   {
-    "id": "10005",
+    "id": "recoveryError",
     "other": "Serious error, please contact the administrator"
   },
   {
-    "id": "10006",
+    "id": "invalidRefreshToken",
     "other": "Wrong RefreshToken"
   },
   {
-    "id": "10007",
+    "id": "unnecessaryRefreshToken",
     "other": "Unnecessary refreshing"
   },
   {
-    "id": "10008",
+    "id": "authErr",
     "other": "Failed to check permissions"
   },
   {
-    "id": "10009",
+    "id": "noAuthority",
     "other": "Lack of permissions"
   },
   {
-    "id": "10010",
+    "id": "timeoutErr",
     "other": "Processing time too long, operation canceled"
   }
 ]

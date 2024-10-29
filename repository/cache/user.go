@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"gin-web/models"
-	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +25,7 @@ func NewUserCache(ctx *gin.Context) *UserCache {
 
 func (u *UserCache) HSetTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
 	if pair == nil {
-		return constant.GetError(u.ctx, response.UserLoginTokenPairCacheErr)
+		return response.UserLoginTokenPairCacheErr
 	}
 	result, err := json.Marshal(pair)
 	if err != nil {

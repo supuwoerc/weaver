@@ -3,7 +3,6 @@ package dao
 import (
 	"context"
 	"errors"
-	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
@@ -36,7 +35,7 @@ func (u *UserDAO) Insert(ctx context.Context, user *User) error {
 	err := u.db.WithContext(ctx).Create(user).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-		return constant.GetError(u.ctx, response.UserCreateDuplicateEmail)
+		return response.UserCreateDuplicateEmail
 	}
 	return err
 }
@@ -45,7 +44,7 @@ func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*User, error) 
 	var user User
 	err := u.db.WithContext(ctx).Preload("Roles").Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return &user, constant.GetError(u.ctx, response.UserLoginEmailNotFound)
+		return &user, response.UserLoginEmailNotFound
 	}
 	return &user, err
 }
@@ -66,7 +65,7 @@ func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles bool) (*Use
 	}
 	err := query.Where("id = ?", uid).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return &user, constant.GetError(u.ctx, response.UserNotExist)
+		return &user, response.UserNotExist
 	}
 	return &user, err
 }
