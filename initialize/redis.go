@@ -17,5 +17,5 @@ func InitRedis() *wrapRedis.RedisClient {
 	if err != nil {
 		panic(err)
 	}
-	return &wrapRedis.RedisClient{client}
+	return &wrapRedis.RedisClient{Client: client}
 }

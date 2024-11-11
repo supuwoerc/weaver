@@ -51,8 +51,5 @@ func getWriterSyncer() (zapcore.WriteSyncer, *lumberjack.Logger) {
 		MaxAge:     maxAge,     // 保留文件最大天数
 		Compress:   true,
 	}
-	defer func() {
-		_ = lumberjackLogger.Close()
-	}()
 	return zapcore.NewMultiWriteSyncer(zapcore.AddSync(lumberjackLogger), zapcore.AddSync(os.Stdout)), lumberjackLogger
 }
