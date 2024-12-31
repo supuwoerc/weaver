@@ -8,3 +8,5 @@ upload/
 /config/dev.yml
 /config/prod.yml
 /config/test.yml
+/learn_gin_web
+/learn_gin_web.pid
