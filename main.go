@@ -15,10 +15,9 @@ var isCli = false
 // @contact.email  zhangzhouou@gmail.com
 // @BasePath       /api/v1
 func main() {
-	if !isCli {
-		defer bootstrap.Clean()
-		bootstrap.Start()
-	} else {
+	if isCli {
 		cmd.Execute()
+	} else {
+		bootstrap.Start()
 	}
 }

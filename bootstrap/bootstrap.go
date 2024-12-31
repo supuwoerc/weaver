@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"fmt"
 	"gin-web/initialize"
 	"gin-web/pkg/global"
 	"github.com/spf13/viper"
@@ -18,10 +17,6 @@ func Start() {
 	global.Localizer = initialize.InitI18N()
 	writePid()
 	initialize.InitServer(initialize.InitEngine(initialize.LoggerSyncer))
-}
-
-func Clean() {
-	fmt.Println("关闭服务后的清理...")
 }
 
 func writePid() {
