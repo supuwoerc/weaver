@@ -12,12 +12,14 @@ import (
 	"time"
 )
 
-func InitZapLogger() (*zap.SugaredLogger, *lumberjack.Logger) {
+var LoggerSyncer zapcore.WriteSyncer
+
+func InitZapLogger() *zap.SugaredLogger {
 	level := viper.Get("logger.level")
 	logMode := level.(int)
-	syncer, logger := getWriterSyncer()
-	core := zapcore.NewCore(getEncoder(), syncer, zapcore.Level(logMode))
-	return zap.New(core).Sugar(), logger
+	LoggerSyncer = getWriterSyncer()
+	core := zapcore.NewCore(getEncoder(), LoggerSyncer, zapcore.Level(logMode))
+	return zap.New(core).Sugar()
 }
 
 func getEncoder() zapcore.Encoder {
@@ -30,12 +32,13 @@ func getEncoder() zapcore.Encoder {
 	return zapcore.NewJSONEncoder(config)
 }
 
-func getWriterSyncer() (zapcore.WriteSyncer, *lumberjack.Logger) {
+func getWriterSyncer() zapcore.WriteSyncer {
 	projectDir, err := os.Getwd()
 	targetDir := viper.GetString("logger.dir")
 	maxSize := viper.GetInt("logger.maxSize")
 	maxBackups := viper.GetInt("logger.maxBackups")
 	maxAge := viper.GetInt("logger.maxAge")
+	write2Stdout := viper.GetBool("logger.stdout")
 	if err != nil {
 		panic(err)
 	}
@@ -51,5 +54,9 @@ func getWriterSyncer() (zapcore.WriteSyncer, *lumberjack.Logger) {
 		MaxAge:     maxAge,     // 保留文件最大天数
 		Compress:   true,
 	}
-	return zapcore.NewMultiWriteSyncer(zapcore.AddSync(lumberjackLogger), zapcore.AddSync(os.Stdout)), lumberjackLogger
+	var ws = []zapcore.WriteSyncer{zapcore.AddSync(lumberjackLogger)}
+	if write2Stdout {
+		ws = append(ws, zapcore.AddSync(os.Stdout))
+	}
+	return zapcore.NewMultiWriteSyncer(ws...)
 }

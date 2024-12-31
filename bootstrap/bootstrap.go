@@ -8,13 +8,11 @@ import (
 
 func Start() {
 	initialize.InitConfig()
-	logger, writer := initialize.InitZapLogger()
-	global.Logger = logger
+	global.Logger = initialize.InitZapLogger()
 	global.DB = initialize.InitGORM()
 	global.RedisClient = initialize.InitRedis()
 	global.Localizer = initialize.InitI18N()
-	handle := initialize.InitEngine(writer)
-	initialize.InitServer(handle)
+	initialize.InitServer(initialize.InitEngine(initialize.LoggerSyncer))
 }
 
 func Clean() {

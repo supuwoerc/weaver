@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"io"
-	"os"
 )
 
 func InitEngine(writer io.Writer) *gin.Engine {
@@ -19,7 +18,7 @@ func InitEngine(writer io.Writer) *gin.Engine {
 	}
 	// logger中间件,输出到控制台和zap的日志文件中
 	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		Output: io.MultiWriter(writer, os.Stdout),
+		Output: writer,
 	}))
 	// recovery中间件
 	r.Use(middleware.Recovery())
