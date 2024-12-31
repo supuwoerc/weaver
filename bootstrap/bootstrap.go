@@ -29,7 +29,7 @@ func writePid() {
 	if strings.TrimSpace(path) == "" {
 		panic("system.pid is empty!")
 	}
-	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.Create(path)
 	if err != nil {
 		panic(err)
 	}
