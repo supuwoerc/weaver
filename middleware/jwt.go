@@ -6,9 +6,7 @@ import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
-	"gin-web/pkg/utils"
 	"gin-web/repository"
-	"gin-web/service"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"net/http"
@@ -97,23 +95,5 @@ func LoginRequired() gin.HandlerFunc {
 			// 其他情况直接返回错误信息
 			tokenInvalidResponse(ctx)
 		}
-	}
-}
-
-// UserProvider 将当前用户信息设置到上下文中
-func UserProvider() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		claims, err := utils.GetContextClaims(ctx)
-		if err != nil {
-			response.FailWithError(ctx, err)
-			return
-		}
-		userService := service.NewUserService(ctx)
-		profile, err := userService.Profile(claims.User.UID)
-		if err != nil {
-			response.FailWithError(ctx, err)
-			return
-		}
-		ctx.Set(constant.UserKeyContext, profile)
 	}
 }

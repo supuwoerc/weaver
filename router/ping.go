@@ -12,5 +12,6 @@ func InitPingRouter(r *gin.RouterGroup) {
 		group.GET("", api.Ping)
 		group.GET("exception", api.Exception)
 		group.GET("check-permission", middleware.PermissionRequired(), api.CheckPermission)
+		group.GET("slow", api.SlowResponse)
 	}
 }

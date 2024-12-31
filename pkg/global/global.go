@@ -8,11 +8,10 @@ import (
 )
 
 var (
-	Logger       *zap.SugaredLogger
-	DB           *gorm.DB
-	RedisClient  *redis.RedisClient
-	Localizer    map[string]*i18n.Localizer
-	LocaleErrors map[string]map[int]error
+	Logger      *zap.SugaredLogger
+	DB          *gorm.DB
+	RedisClient *redis.RedisClient
+	Localizer   map[string]*i18n.Localizer
 )
 
 const (

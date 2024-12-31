@@ -1,9 +1,12 @@
 package api
 
 import (
+	"fmt"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 func Ping(ctx *gin.Context) {
@@ -17,4 +20,14 @@ func Exception(ctx *gin.Context) {
 
 func CheckPermission(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "ok")
+}
+
+func SlowResponse(ctx *gin.Context) {
+	value := ctx.Query("t")
+	second, err := strconv.Atoi(value)
+	if err != nil {
+		ctx.String(http.StatusOK, err.Error())
+	}
+	time.Sleep(time.Duration(second) * time.Second)
+	ctx.String(http.StatusOK, fmt.Sprintf("sleep %ds", second))
 }
