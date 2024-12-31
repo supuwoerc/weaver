@@ -30,5 +30,5 @@ func SlowResponse(ctx *gin.Context) {
 		ctx.String(http.StatusOK, err.Error())
 	}
 	time.Sleep(time.Duration(second) * time.Second)
-	ctx.String(http.StatusOK, fmt.Sprintf("sleep %ds,PID %s", second, os.Getpid()))
+	ctx.String(http.StatusOK, fmt.Sprintf("sleep %ds,PID %d", second, os.Getpid()))
 }
