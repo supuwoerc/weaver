@@ -21,7 +21,7 @@ if [ -f $PID_FILE ]; then
   OLD_PID=$(cat $PID_FILE)
   if [ -n "$OLD_PID" ] && kill -0 $OLD_PID 2>/dev/null; then
     echo "Stopping the old process with PID $OLD_PID..."
-    kill -9 $OLD_PID
+    kill -USR2 $OLD_PID
     echo "Old process stopped."
   else
     echo "No old process found or process already stopped."
