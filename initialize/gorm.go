@@ -1,7 +1,6 @@
 package initialize
 
 import (
-	"fmt"
 	"gin-web/pkg/global"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
@@ -25,12 +24,12 @@ func InitGORM() *gorm.DB {
 		Logger: logger.Default.LogMode(logger.LogLevel(level)),
 	})
 	if err != nil {
-		global.Logger.Error(fmt.Sprintf("GORM初始化失败：%s\n", err.Error()))
+		global.Logger.Errorf("GORM初始化失败：%s\n", err.Error())
 		panic(err)
 	}
 	link, err := db.DB()
 	if err != nil {
-		global.Logger.Error(fmt.Sprintf("DB初始化失败：%s\n", err.Error()))
+		global.Logger.Errorf("DB初始化失败：%s\n", err.Error())
 		panic(err)
 	}
 	maxIdleConn := viper.GetInt("mysql.maxIdleConn")

@@ -9,7 +9,7 @@ import (
 
 func Recovery() gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, err any) {
-		global.Logger.Error(err, ":", string(debug.Stack()))
+		global.Logger.Errorf("Recovery panic,堆栈信息:", string(debug.Stack()))
 		response.HttpResponse[any](c, response.RecoveryError, nil, nil, nil)
 	})
 }
