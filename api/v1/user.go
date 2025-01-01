@@ -11,7 +11,6 @@ import (
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
 	"sync"
-	"time"
 )
 
 type UserApi struct {
@@ -128,15 +127,7 @@ func (u *UserApi) Profile(ctx *gin.Context) {
 		return
 	}
 	profile.Password = ""
-	var birthday *string = nil
-	if !profile.Birthday.IsZero() {
-		t := profile.Birthday.Format(time.DateOnly)
-		birthday = &t
-	}
-	response.SuccessWithData[response.ProfileResponse](ctx, response.ProfileResponse{
-		User:     profile,
-		Birthday: birthday,
-	})
+	response.SuccessWithData(ctx, profile)
 }
 
 // TODO:补充文档

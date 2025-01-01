@@ -14,8 +14,3 @@ type RefreshTokenResponse struct {
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
 }
-
-type ProfileResponse struct {
-	*models.User
-	Birthday *string `json:"birthday"`
-}

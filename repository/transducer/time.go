@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-func NullTime(t sql.NullTime) time.Time {
+func NullTime(t sql.NullTime) *time.Time {
 	if !t.Valid {
-		return time.Time{}
+		return nil
 	}
-	return t.Time
+	return &t.Time
 }
 
 func SqlNullTime(t time.Time) sql.NullTime {
