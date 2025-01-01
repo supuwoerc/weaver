@@ -2,18 +2,17 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"gin-web/pkg/constant"
+	"gin-web/pkg/database"
 	"gin-web/pkg/global"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"runtime/debug"
 	"sync"
 )
 
 type BasicService struct {
 	logger *zap.SugaredLogger
-	db     *gorm.DB
 }
 
 var (
@@ -25,50 +24,62 @@ func NewBasicService() *BasicService {
 	basicOnce.Do(func() {
 		basic = &BasicService{
 			logger: global.Logger,
-			db:     global.DB,
 		}
 	})
 	return basic
 }
 
-type action func(ctx context.Context) error
-
-// Start 开启一个新的事务
-func (s *BasicService) Start(ctx context.Context, fn action) error {
-	tx := s.db.Begin().WithContext(ctx)
-	defer func() {
-		if err := recover(); err != nil {
-			s.logger.Errorf("Transaction panic,堆栈信息:", string(debug.Stack()))
-			tx.Rollback()
+// Transaction 开启事务,join为true则加入上下文中的事务,如果上下文中没有事务则开启新事务,join为false时直接开启新事务
+func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.Action, options ...*sql.TxOptions) error {
+	isStarter := false // 是否是事务开启者
+	manager := &database.TransactionManager{
+		DB:                           global.DB,
+		AlreadyCommittedOrRolledBack: false,
+	}
+	if join {
+		if m := database.LoadManager(ctx); m != nil {
+			// 从上下文中查找到已经存在的事务
+			manager = m
+		} else {
+			// 未找到已经存在的事务则开启新事务
+			isStarter = true
+			manager.DB = manager.DB.Begin(options...).WithContext(ctx)
 		}
-	}()
-	wrapContext := context.WithValue(ctx, constant.TransactionKey, tx)
-	if err := fn(wrapContext); err != nil {
-		tx.Rollback()
-		return err
+	} else {
+		// 开启新事务
+		isStarter = true
+		manager.DB = manager.DB.Begin(options...).WithContext(ctx)
 	}
-	return tx.Commit().Error
-}
-
-// Join 加入到上下文中的事务
-func (s *BasicService) Join(ctx context.Context, fn action) error {
-	value := ctx.Value(constant.TransactionKey)
-	if value == nil {
-		return s.Start(ctx, fn)
+	if manager.DB.Error != nil {
+		return manager.DB.Error
 	}
-	tx, ok := value.(*gorm.DB)
-	if !ok {
-		return errors.New("获取到上下文中的事务类型不属于gorm.DB")
+	// 将TransactionManager放入上下文
+	wrapContext := database.InjectManager(ctx, manager)
+	var execErr error
+	wrapFunc := func() {
+		defer func() {
+			if err := recover(); err != nil {
+				stackInfo := string(debug.Stack())
+				s.logger.Errorf("Transaction panic,堆栈信息:", stackInfo)
+				execErr = errors.New(stackInfo)
+			}
+		}()
+		execErr = fn(wrapContext)
 	}
-	defer func() {
-		if err := recover(); err != nil {
-			s.logger.Errorf("Transaction Join panic,堆栈信息:", string(debug.Stack()))
-			tx.Rollback()
+	wrapFunc()
+	if execErr != nil {
+		if !manager.AlreadyCommittedOrRolledBack {
+			manager.AlreadyCommittedOrRolledBack = true
+			if rollback := manager.DB.Rollback(); rollback.Error != nil {
+				return rollback.Error
+			}
 		}
-	}()
-	if err := fn(ctx); err != nil {
-		tx.Rollback()
-		return err
+		return execErr
 	}
-	return tx.Commit().Error
+	if isStarter {
+		if commit := manager.DB.Commit(); commit.Error != nil {
+			return commit.Error
+		}
+	}
+	return nil
 }
