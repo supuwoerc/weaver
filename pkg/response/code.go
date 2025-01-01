@@ -22,6 +22,7 @@ const (
 	AuthErr                 StatusCode = 10008 // authErr
 	NoAuthority             StatusCode = 10009 // noAuthority
 	TimeoutErr              StatusCode = 10010 // timeoutErr
+	Busy                    StatusCode = 10011 // busy
 )
 
 const (

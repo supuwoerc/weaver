@@ -2,20 +2,23 @@ package initialize
 
 import (
 	"context"
-	wrapRedis "gin-web/pkg/redis"
-	"github.com/redis/go-redis/v9"
+	local "gin-web/pkg/redis"
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
+	goredislib "github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 )
 
-func InitRedis() *wrapRedis.RedisClient {
-	client := redis.NewClient(&redis.Options{
+func InitRedis() *local.RedisClient {
+	client := goredislib.NewClient(&goredislib.Options{
 		Addr:     viper.GetString("redis.addr"),
-		Password: viper.GetString("redis.password"), // no password set
-		DB:       viper.GetInt("redis.db"),          // use default DB
+		Password: viper.GetString("redis.password"),
+		DB:       viper.GetInt("redis.db"),
 	})
 	_, err := client.Ping(context.Background()).Result()
 	if err != nil {
 		panic(err)
 	}
-	return &wrapRedis.RedisClient{Client: client}
+	pool := goredis.NewPool(client)
+	return &local.RedisClient{Client: client, Redsync: redsync.New(pool)}
 }

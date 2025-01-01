@@ -42,5 +42,9 @@
   {
     "id": "timeoutErr",
     "other": "Processing time too long, operation canceled"
+  },
+  {
+    "id": "busy",
+    "other": "System is busy, please try again later"
   }
 ]

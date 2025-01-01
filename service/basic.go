@@ -6,6 +6,7 @@ import (
 	"errors"
 	"gin-web/pkg/database"
 	"gin-web/pkg/global"
+	"gin-web/pkg/redis"
 	"go.uber.org/zap"
 	"runtime/debug"
 	"sync"
@@ -13,6 +14,7 @@ import (
 
 type BasicService struct {
 	logger *zap.SugaredLogger
+	redis  *redis.RedisClient
 }
 
 var (
@@ -24,6 +26,7 @@ func NewBasicService() *BasicService {
 	basicOnce.Do(func() {
 		basic = &BasicService{
 			logger: global.Logger,
+			redis:  global.RedisClient,
 		}
 	})
 	return basic
