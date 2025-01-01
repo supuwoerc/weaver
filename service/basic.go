@@ -60,7 +60,7 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		defer func() {
 			if err := recover(); err != nil {
 				stackInfo := string(debug.Stack())
-				s.logger.Errorf("Transaction panic,堆栈信息:", stackInfo)
+				s.logger.Errorf("Transaction panic,堆栈信息:%s\n", stackInfo)
 				execErr = errors.New(stackInfo)
 			}
 		}()

@@ -57,9 +57,9 @@ func (u *UserRepository) TokenPairExist(ctx context.Context, email string) (bool
 	return u.cache.HExistsTokenPair(ctx, email)
 }
 
-func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, role_ids []uint) error {
+func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, roleIds []uint) error {
 	var roles []dao.Role
-	for _, id := range role_ids {
+	for _, id := range roleIds {
 		roles = append(roles, dao.Role{
 			Model: gorm.Model{
 				ID: id,

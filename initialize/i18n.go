@@ -11,7 +11,7 @@ import (
 )
 
 func loadJsonFiles(dir string) ([]*i18n.Message, error) {
-	m := []*i18n.Message{}
+	var m []*i18n.Message
 	err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -21,7 +21,7 @@ func loadJsonFiles(dir string) ([]*i18n.Message, error) {
 			if readErr != nil {
 				return readErr
 			}
-			var temp = []*i18n.Message{}
+			var temp []*i18n.Message
 			if readErr = json.Unmarshal(fileBytes, &temp); readErr != nil {
 				return readErr
 			}

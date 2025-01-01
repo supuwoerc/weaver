@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"gin-web/pkg/global"
 	"github.com/facebookgo/grace/gracehttp"
@@ -22,7 +23,7 @@ var (
 	isLinux = false
 )
 
-// 创建http服务器
+// InitServer 创建http服务器
 func InitServer(handle http.Handler) {
 	port := viper.GetInt("server.port")
 	if port == 0 {
@@ -45,7 +46,7 @@ func httpServer(srv *http.Server) {
 	defer stop()
 	go func() {
 		global.Logger.Infof("服务启动，地址:%s\n", fmt.Sprintf("%s", srv.Addr))
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			global.Logger.Error(fmt.Sprintf("服务启动失败：%s\n", err.Error()))
 			os.Exit(1)
 		}
