@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
@@ -9,7 +10,6 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/h2non/filetype"
 	"github.com/samber/lo"
@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -27,11 +28,19 @@ type AttachmentService struct {
 	repository *repository.AttachmentRepository
 }
 
-func NewAttachmentService(ctx *gin.Context) *AttachmentService {
-	return &AttachmentService{
-		BasicService: NewBasicService(ctx),
-		repository:   repository.NewAttachmentRepository(),
-	}
+var (
+	attachmentOnce    sync.Once
+	attachmentService *AttachmentService
+)
+
+func NewAttachmentService() *AttachmentService {
+	attachmentOnce.Do(func() {
+		attachmentService = &AttachmentService{
+			BasicService: NewBasicService(),
+			repository:   repository.NewAttachmentRepository(),
+		}
+	})
+	return attachmentService
 }
 
 // https://github.com/h2non/filetype
@@ -73,7 +82,7 @@ func getFileType(header []byte) int8 {
 	}
 }
 
-func (a *AttachmentService) SaveFiles(files []*multipart.FileHeader, uid uint, users []uint) ([]*models.Attachment, error) {
+func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.FileHeader, uid uint) ([]*models.Attachment, error) {
 	var info = make([]*AttachmentInfo, 0, len(files))
 	projectDir, temp := os.Getwd()
 	if temp != nil {
@@ -164,11 +173,11 @@ func (a *AttachmentService) SaveFiles(files []*multipart.FileHeader, uid uint, u
 		}
 	})
 	// TODO:创建一个事务，创建文件记录的同时为文件授权
-	return a.repository.Create(a.ctx.Request.Context(), attachments)
+	return a.repository.Create(ctx, attachments)
 }
 
-func (a *AttachmentService) SaveFile(file *multipart.FileHeader, uid uint, users []uint) (*models.Attachment, error) {
-	files, err := a.SaveFiles([]*multipart.FileHeader{file}, uid, users)
+func (a *AttachmentService) SaveFile(ctx context.Context, file *multipart.FileHeader, uid uint) (*models.Attachment, error) {
+	files, err := a.SaveFiles(ctx, []*multipart.FileHeader{file}, uid)
 	if err != nil || files == nil || len(files) == 0 {
 		return nil, err
 	}

@@ -10,23 +10,30 @@ import (
 	"gin-web/service"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
+	"sync"
 )
 
 type UserApi struct {
 	*BasicApi
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
-	service          func(ctx *gin.Context) *service.UserService
+	service          *service.UserService
 }
 
-func NewUserApi() UserApi {
-	return UserApi{
-		BasicApi:         NewBasicApi(),
-		passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
-		service: func(ctx *gin.Context) *service.UserService {
-			return service.NewUserService(ctx)
-		},
-	}
+var (
+	userOnce sync.Once
+	userApi  *UserApi
+)
+
+func NewUserApi() *UserApi {
+	userOnce.Do(func() {
+		userApi = &UserApi{
+			BasicApi:         NewBasicApi(),
+			passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
+			service:          service.NewUserService(),
+		}
+	})
+	return userApi
 }
 
 // @Tags 用户模块
@@ -39,7 +46,7 @@ func NewUserApi() UserApi {
 // @Failure 10001 {object} response.BasicResponse[string] "操作失败"
 // @Failure 10002 {object} response.BasicResponse[string] "参数错误"
 // @Router /api/v1/public/user/signup [post]
-func (u UserApi) SignUp(ctx *gin.Context) {
+func (u *UserApi) SignUp(ctx *gin.Context) {
 	var params request.SignUpRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -50,7 +57,7 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 		response.HttpResponse[any](ctx, response.PasswordValidErr, nil, nil, nil)
 		return
 	}
-	if err = u.service(ctx).SignUp(params.ID, params.Code, models.User{
+	if err = u.service.SignUp(ctx, params.ID, params.Code, models.User{
 		Email:    params.Email,
 		Password: &params.Password,
 	}); err != nil {
@@ -70,13 +77,13 @@ func (u UserApi) SignUp(ctx *gin.Context) {
 // @Failure 10001 {object} response.BasicResponse[any] "操作失败"
 // @Failure 10002 {object} response.BasicResponse[any] "参数错误"
 // @Router /api/v1/public/user/login [post]
-func (u UserApi) Login(ctx *gin.Context) {
+func (u *UserApi) Login(ctx *gin.Context) {
 	var params request.LoginRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	user, pair, err := u.service(ctx).Login(params.Email, params.Password)
+	user, pair, err := u.service.Login(ctx, params.Email, params.Password)
 	switch {
 	case pair != nil:
 		user.Password = nil
@@ -108,13 +115,13 @@ func (u UserApi) Login(ctx *gin.Context) {
 // @Failure 10001 {object} response.BasicResponse[any] "操作失败"
 // @Failure 10002 {object} response.BasicResponse[any] "参数错误"
 // @Router /api/v1/user/profile [get]
-func (u UserApi) Profile(ctx *gin.Context) {
+func (u *UserApi) Profile(ctx *gin.Context) {
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	profile, err := u.service(ctx).Profile(claims.User.UID)
+	profile, err := u.service.Profile(ctx, claims.User.UID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
@@ -124,13 +131,13 @@ func (u UserApi) Profile(ctx *gin.Context) {
 }
 
 // TODO:补充文档
-func (u UserApi) SetRoles(ctx *gin.Context) {
+func (u *UserApi) SetRoles(ctx *gin.Context) {
 	var params request.SetRolesRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	err := u.service(ctx).SetRoles(params.UserId, params.RoleIds)
+	err := u.service.SetRoles(ctx, params.UserId, params.RoleIds)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
@@ -139,13 +146,13 @@ func (u UserApi) SetRoles(ctx *gin.Context) {
 }
 
 // TODO:补充文档
-func (u UserApi) GetRoles(ctx *gin.Context) {
+func (u *UserApi) GetRoles(ctx *gin.Context) {
 	var params request.GetRolesRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	roles, err := u.service(ctx).GetRoles(params.UserId)
+	roles, err := u.service.GetRoles(ctx, params.UserId)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

@@ -5,31 +5,37 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
+	"sync"
 )
 
 type RoleApi struct {
 	*BasicApi
-	service func(ctx *gin.Context) *service.RoleService
+	service *service.RoleService
 }
 
-func NewRoleApi() RoleApi {
-	return RoleApi{
-		BasicApi: NewBasicApi(),
-		service: func(ctx *gin.Context) *service.RoleService {
-			return service.NewRoleService(ctx)
-		},
-	}
+var (
+	roleOnce sync.Once
+	roleApi  *RoleApi
+)
+
+func NewRoleApi() *RoleApi {
+	roleOnce.Do(func() {
+		roleApi = &RoleApi{
+			BasicApi: NewBasicApi(),
+			service:  service.NewRoleService(),
+		}
+	})
+	return roleApi
 }
 
 // TODO:添加swagger文档注释
-func (r RoleApi) CreateRole(ctx *gin.Context) {
+func (r *RoleApi) CreateRole(ctx *gin.Context) {
 	var params request.CreateRoleRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	roleService := service.NewRoleService(ctx)
-	err := roleService.CreateRole(params.Name)
+	err := r.service.CreateRole(ctx, params.Name)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

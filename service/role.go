@@ -1,10 +1,11 @@
 package service
 
 import (
+	"context"
 	"gin-web/models"
 	"gin-web/repository"
-	"github.com/gin-gonic/gin"
 	"github.com/samber/lo"
+	"sync"
 )
 
 type RoleService struct {
@@ -12,19 +13,27 @@ type RoleService struct {
 	repository *repository.RoleRepository
 }
 
-func NewRoleService(ctx *gin.Context) *RoleService {
-	return &RoleService{
-		BasicService: NewBasicService(ctx),
-		repository:   repository.NewRoleRepository(),
-	}
+var (
+	roleOnce    sync.Once
+	roleService *RoleService
+)
+
+func NewRoleService() *RoleService {
+	roleOnce.Do(func() {
+		roleService = &RoleService{
+			BasicService: NewBasicService(),
+			repository:   repository.NewRoleRepository(),
+		}
+	})
+	return roleService
 }
 
-func (r *RoleService) CreateRole(name string) error {
-	return r.repository.Create(r.ctx.Request.Context(), name)
+func (r *RoleService) CreateRole(ctx context.Context, name string) error {
+	return r.repository.Create(ctx, name)
 }
 
-func (r *RoleService) FilterValidRoles(roleIds []uint) ([]uint, error) {
-	roles, err := r.repository.GetRolesByIds(r.ctx.Request.Context(), roleIds)
+func (r *RoleService) FilterValidRoles(ctx context.Context, roleIds []uint) ([]uint, error) {
+	roles, err := r.repository.GetRolesByIds(ctx, roleIds)
 	if err != nil {
 		return []uint{}, err
 	}

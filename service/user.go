@@ -1,13 +1,14 @@
 package service
 
 import (
+	"context"
 	"gin-web/models"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
 	"gin-web/repository"
-	"github.com/gin-gonic/gin"
 	"github.com/samber/lo"
 	"golang.org/x/crypto/bcrypt"
+	"sync"
 )
 
 type UserService struct {
@@ -17,17 +18,24 @@ type UserService struct {
 	repository *repository.UserRepository
 }
 
-// TODO:将事务扩展到service层
-func NewUserService(ctx *gin.Context) *UserService {
-	return &UserService{
-		BasicService:   NewBasicService(ctx),
-		CaptchaService: NewCaptchaService(ctx),
-		RoleService:    NewRoleService(ctx),
-		repository:     repository.NewUserRepository(),
-	}
+var (
+	userOnce    sync.Once
+	userService *UserService
+)
+
+func NewUserService() *UserService {
+	userOnce.Do(func() {
+		userService = &UserService{
+			BasicService:   NewBasicService(),
+			CaptchaService: NewCaptchaService(),
+			RoleService:    NewRoleService(),
+			repository:     repository.NewUserRepository(),
+		}
+	})
+	return userService
 }
 
-func (u *UserService) SignUp(id string, code string, user models.User) error {
+func (u *UserService) SignUp(ctx context.Context, id string, code string, user models.User) error {
 	verify := u.CaptchaService.Verify(id, code)
 	if !verify {
 		return response.CaptchaVerifyFail
@@ -38,11 +46,11 @@ func (u *UserService) SignUp(id string, code string, user models.User) error {
 	}
 	var pwd = string(password)
 	user.Password = &pwd
-	return u.repository.Create(u.ctx.Request.Context(), user)
+	return u.repository.Create(ctx, user)
 }
 
-func (u *UserService) Login(email string, password string) (*models.User, *models.TokenPair, error) {
-	user, err := u.repository.FindByEmail(u.ctx.Request.Context(), email)
+func (u *UserService) Login(ctx context.Context, email string, password string) (*models.User, *models.TokenPair, error) {
+	user, err := u.repository.FindByEmail(ctx, email)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -50,8 +58,8 @@ func (u *UserService) Login(email string, password string) (*models.User, *model
 	if err != nil {
 		return nil, nil, response.UserLoginFail
 	}
-	pair, err := u.repository.GetTokenPair(u.ctx.Request.Context(), email)
-	builder := jwt.NewJwtBuilder(u.ctx)
+	pair, err := u.repository.GetTokenPair(ctx, email)
+	builder := jwt.NewJwtBuilder()
 	if err == nil && pair != nil {
 		claims, parseErr := builder.ParseToken(pair.AccessToken)
 		if parseErr == nil && claims != nil {
@@ -71,7 +79,7 @@ func (u *UserService) Login(email string, password string) (*models.User, *model
 	if err != nil {
 		return nil, nil, err
 	}
-	err = u.repository.CacheTokenPair(u.ctx.Request.Context(), user.Email, &models.TokenPair{
+	err = u.repository.CacheTokenPair(ctx, user.Email, &models.TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
@@ -84,29 +92,29 @@ func (u *UserService) Login(email string, password string) (*models.User, *model
 	}, nil
 }
 
-func (u *UserService) SetRoles(uid uint, roleIds []uint) error {
+func (u *UserService) SetRoles(ctx context.Context, uid uint, roleIds []uint) error {
 	// TODO:配置ADMIN账户，限制ADMIN账户被更改角色
-	user, err := u.repository.FindByUid(u.ctx.Request.Context(), uid, false)
+	user, err := u.repository.FindByUid(ctx, uid, false)
 	if err != nil {
 		return err
 	}
 	if user.ID == 0 {
 		return response.UserNotExist
 	}
-	validIds, err := u.RoleService.FilterValidRoles(roleIds)
+	validIds, err := u.RoleService.FilterValidRoles(ctx, roleIds)
 	if err != nil {
 		return err
 	}
 	if len(validIds) == 0 {
 		return response.NoValidRoles
 	}
-	return u.repository.AssociateRoles(u.ctx.Request.Context(), uid, validIds)
+	return u.repository.AssociateRoles(ctx, uid, validIds)
 }
 
-func (u *UserService) GetRoles(uid uint) ([]*models.Role, error) {
-	return u.repository.FindRolesByUid(u.ctx.Request.Context(), uid)
+func (u *UserService) GetRoles(ctx context.Context, uid uint) ([]*models.Role, error) {
+	return u.repository.FindRolesByUid(ctx, uid)
 }
 
-func (u *UserService) Profile(uid uint) (*models.User, error) {
-	return u.repository.FindByUid(u.ctx.Request.Context(), uid, true)
+func (u *UserService) Profile(ctx context.Context, uid uint) (*models.User, error) {
+	return u.repository.FindByUid(ctx, uid, true)
 }

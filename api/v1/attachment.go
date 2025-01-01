@@ -9,28 +9,35 @@ import (
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 	"path/filepath"
+	"sync"
 )
 
 type AttachmentApi struct {
 	*BasicApi
-	service func(ctx *gin.Context) *service.AttachmentService
+	service *service.AttachmentService
 }
 
 const (
 	defaultMaxLength = 50
 )
 
-func NewAttachmentApi() AttachmentApi {
-	return AttachmentApi{
-		BasicApi: NewBasicApi(),
-		service: func(ctx *gin.Context) *service.AttachmentService {
-			return service.NewAttachmentService(ctx)
-		},
-	}
+var (
+	attachmentOnce sync.Once
+	attachmentApi  *AttachmentApi
+)
+
+func NewAttachmentApi() *AttachmentApi {
+	attachmentOnce.Do(func() {
+		attachmentApi = &AttachmentApi{
+			BasicApi: NewBasicApi(),
+			service:  service.NewAttachmentService(),
+		}
+	})
+	return attachmentApi
 }
 
 // MultipleUpload TODO：补充文档
-func (a AttachmentApi) MultipleUpload(ctx *gin.Context) {
+func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 	form, err := ctx.MultipartForm()
 	if err != nil {
 		response.FailWithError(ctx, err)
@@ -51,7 +58,7 @@ func (a AttachmentApi) MultipleUpload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	result, err := a.service(ctx).SaveFiles(files, claims.User.UID, nil)
+	result, err := a.service.SaveFiles(ctx, files, claims.User.UID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
@@ -72,7 +79,7 @@ func (a AttachmentApi) MultipleUpload(ctx *gin.Context) {
 }
 
 // Upload TODO：补充文档
-func (a AttachmentApi) Upload(ctx *gin.Context) {
+func (a *AttachmentApi) Upload(ctx *gin.Context) {
 	file, err := ctx.FormFile("file")
 	if err != nil {
 		response.FailWithError(ctx, err)
@@ -83,7 +90,7 @@ func (a AttachmentApi) Upload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	result, err := a.service(ctx).SaveFile(file, claims.User.UID, nil)
+	result, err := a.service.SaveFile(ctx, file, claims.User.UID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

@@ -1,11 +1,11 @@
 package jwt
 
 import (
+	"context"
 	"errors"
 	"gin-web/models"
 	"gin-web/pkg/response"
 	"gin-web/repository"
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
 	"time"
@@ -24,18 +24,10 @@ type TokenClaims struct {
 }
 
 type TokenBuilder struct {
-	ctx *gin.Context
 }
 
-var jwtBuilder *TokenBuilder
-
-func NewJwtBuilder(ctx *gin.Context) *TokenBuilder {
-	if jwtBuilder == nil {
-		jwtBuilder = &TokenBuilder{
-			ctx: ctx,
-		}
-	}
-	return jwtBuilder
+func NewJwtBuilder() *TokenBuilder {
+	return &TokenBuilder{}
 }
 
 // 生成token
@@ -129,7 +121,7 @@ func (j *TokenBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 }
 
 // GetCacheToken 获取缓存的Token对
-func (j *TokenBuilder) GetCacheToken(email string) (*models.TokenPair, error) {
+func (j *TokenBuilder) GetCacheToken(ctx context.Context, email string) (*models.TokenPair, error) {
 	userRepository := repository.NewUserRepository()
-	return userRepository.GetTokenPair(j.ctx, email)
+	return userRepository.GetTokenPair(ctx, email)
 }

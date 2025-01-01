@@ -2,18 +2,24 @@ package service
 
 import (
 	"gin-web/pkg/global"
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"sync"
 )
 
 type BasicService struct {
-	Logger *zap.SugaredLogger
-	ctx    *gin.Context
+	logger *zap.SugaredLogger
 }
 
-func NewBasicService(ctx *gin.Context) *BasicService {
-	return &BasicService{
-		Logger: global.Logger,
-		ctx:    ctx,
-	}
+var (
+	basicOnce sync.Once
+	basic     *BasicService
+)
+
+func NewBasicService() *BasicService {
+	basicOnce.Do(func() {
+		basic = &BasicService{
+			logger: global.Logger,
+		}
+	})
+	return basic
 }

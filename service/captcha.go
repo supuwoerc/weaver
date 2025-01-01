@@ -2,17 +2,25 @@ package service
 
 import (
 	"gin-web/pkg/captcha"
-	"github.com/gin-gonic/gin"
+	"sync"
 )
 
 type CaptchaService struct {
 	*BasicService
 }
 
-func NewCaptchaService(ctx *gin.Context) *CaptchaService {
-	return &CaptchaService{
-		BasicService: NewBasicService(ctx),
-	}
+var (
+	captchaOnce    sync.Once
+	captchaService *CaptchaService
+)
+
+func NewCaptchaService() *CaptchaService {
+	captchaOnce.Do(func() {
+		captchaService = &CaptchaService{
+			BasicService: NewBasicService(),
+		}
+	})
+	return captchaService
 }
 
 func (c *CaptchaService) Generate() (*captcha.CaptchaInfo, error) {

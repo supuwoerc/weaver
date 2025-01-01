@@ -35,7 +35,7 @@ func LoginRequired() gin.HandlerFunc {
 	refreshTokenKey := viper.GetString("jwt.refreshTokenKey")
 	prefix := viper.GetString("jwt.tokenPrefix")
 	return func(ctx *gin.Context) {
-		jwtBuilder := jwt.NewJwtBuilder(ctx)
+		jwtBuilder := jwt.NewJwtBuilder()
 		token := ctx.GetHeader(tokenKey)
 		if token == "" || !strings.HasPrefix(token, prefix) {
 			tokenInvalidResponse(ctx)
@@ -46,7 +46,7 @@ func LoginRequired() gin.HandlerFunc {
 		userRepository := repository.NewUserRepository()
 		if err == nil {
 			// token解析正常,判断是不是在不redis中
-			pair, tempErr := jwtBuilder.GetCacheToken(claims.User.Email)
+			pair, tempErr := jwtBuilder.GetCacheToken(ctx, claims.User.Email)
 			if pair == nil || tempErr != nil || pair.AccessToken != token {
 				tokenInvalidResponse(ctx)
 				return
@@ -63,7 +63,7 @@ func LoginRequired() gin.HandlerFunc {
 				refreshTokenInvalidResponse(ctx)
 				return
 			}
-			pair, tempErr := jwtBuilder.GetCacheToken(claims.User.Email)
+			pair, tempErr := jwtBuilder.GetCacheToken(ctx, claims.User.Email)
 			if pair == nil || tempErr != nil || pair.RefreshToken != refreshToken {
 				refreshTokenInvalidResponse(ctx)
 				return

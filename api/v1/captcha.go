@@ -4,24 +4,31 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
+	"sync"
 )
 
 type CaptchaApi struct {
 	*BasicApi
-	service func(ctx *gin.Context) *service.CaptchaService
+	service *service.CaptchaService
 }
 
-func NewCaptchaApi() CaptchaApi {
-	return CaptchaApi{
-		BasicApi: NewBasicApi(),
-		service: func(ctx *gin.Context) *service.CaptchaService {
-			return service.NewCaptchaService(ctx)
-		},
-	}
+var (
+	captchaOnce sync.Once
+	captchaApi  *CaptchaApi
+)
+
+func NewCaptchaApi() *CaptchaApi {
+	captchaOnce.Do(func() {
+		captchaApi = &CaptchaApi{
+			BasicApi: NewBasicApi(),
+			service:  service.NewCaptchaService(),
+		}
+	})
+	return captchaApi
 }
 
-func (c CaptchaApi) GenerateCaptcha(ctx *gin.Context) {
-	captchaInfo, err := c.service(ctx).Generate()
+func (c *CaptchaApi) GenerateCaptcha(ctx *gin.Context) {
+	captchaInfo, err := c.service.Generate()
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
