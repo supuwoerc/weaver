@@ -11,6 +11,7 @@ import (
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
 	"sync"
+	"time"
 )
 
 type UserApi struct {
@@ -86,12 +87,11 @@ func (u *UserApi) Login(ctx *gin.Context) {
 	user, pair, err := u.service.Login(ctx, params.Email, params.Password)
 	switch {
 	case pair != nil:
-		// FIXME:password
-		//user.Password = nil
 		if err != nil {
 			response.FailWithError(ctx, err)
 			return
 		}
+		user.Password = ""
 		response.SuccessWithData[response.LoginResponse](ctx, response.LoginResponse{
 			User:         user,
 			Token:        pair.AccessToken,
@@ -127,9 +127,16 @@ func (u *UserApi) Profile(ctx *gin.Context) {
 		response.FailWithError(ctx, err)
 		return
 	}
-	// FIXME:password
-	//profile.Password = nil
-	response.SuccessWithData(ctx, profile)
+	profile.Password = ""
+	var birthday *string = nil
+	if !profile.Birthday.IsZero() {
+		t := profile.Birthday.Format(time.DateOnly)
+		birthday = &t
+	}
+	response.SuccessWithData[response.ProfileResponse](ctx, response.ProfileResponse{
+		User:     profile,
+		Birthday: birthday,
+	})
 }
 
 // TODO:补充文档

@@ -8,7 +8,7 @@ func NullValue[T any](val sql.Null[T]) *T {
 		*result = val.V
 		return result
 	}
-	return new(T)
+	return nil
 }
 
 func SqlNullValue[T any](val *T) sql.Null[T] {
