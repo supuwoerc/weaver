@@ -15,7 +15,7 @@ type RoleService struct {
 func NewRoleService(ctx *gin.Context) *RoleService {
 	return &RoleService{
 		BasicService: NewBasicService(ctx),
-		repository:   repository.NewRoleRepository(ctx),
+		repository:   repository.NewRoleRepository(),
 	}
 }
 

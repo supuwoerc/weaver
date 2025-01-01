@@ -5,33 +5,22 @@ import (
 	"gin-web/models"
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
-	"github.com/gin-gonic/gin"
+	"gin-web/repository/formatter"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
 	"time"
 )
 
 type UserRepository struct {
-	ctx   *gin.Context
 	dao   *dao.UserDAO
 	cache *cache.UserCache
 }
 
-func NewUserRepository(ctx *gin.Context, userDao *dao.UserDAO) *UserRepository {
-	if userDao == nil {
-		userDao = dao.NewUserDAO(ctx, nil)
-	}
+func NewUserRepository() *UserRepository {
 	return &UserRepository{
-		dao:   userDao,
-		cache: cache.NewUserCache(ctx),
+		dao:   dao.NewUserDAO(),
+		cache: cache.NewUserCache(),
 	}
-}
-
-func (u *UserRepository) Transaction(fn func(repo *UserRepository, tx *gorm.DB) error) error {
-	return u.dao.Transaction(func(basicDao *dao.BasicDAO, tx *gorm.DB) error {
-		repository := NewUserRepository(u.ctx, dao.NewUserDAO(u.ctx, dao.NewBasicDao(u.ctx, tx)))
-		return fn(repository, tx)
-	})
 }
 
 func toModelUser(u *dao.User) *models.User {
@@ -39,14 +28,11 @@ func toModelUser(u *dao.User) *models.User {
 		ID:       u.ID,
 		Email:    u.Email,
 		Password: &u.Password,
-		Nickname: u.Nickname,
-		Gender:   models.UserGender(u.Gender),
-		About:    u.About,
-		Birthday: time.UnixMilli(u.Birthday).Format(time.DateTime),
+		Nickname: *u.Nickname,
+		Gender:   models.UserGender(*u.Gender),
+		About:    *u.About,
+		Birthday: formatter.SqlNullTimeFormat(u.Birthday, time.DateOnly),
 		Roles:    toModelRoles(u.Roles),
-	}
-	if u.Birthday == 0 {
-		user.Birthday = ""
 	}
 	return &user
 }

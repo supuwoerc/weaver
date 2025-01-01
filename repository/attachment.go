@@ -4,7 +4,6 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/repository/dao"
-	"github.com/gin-gonic/gin"
 	"github.com/samber/lo"
 )
 
@@ -12,9 +11,9 @@ type AttachmentRepository struct {
 	dao *dao.AttachmentDAO
 }
 
-func NewAttachmentRepository(ctx *gin.Context) *AttachmentRepository {
+func NewAttachmentRepository() *AttachmentRepository {
 	return &AttachmentRepository{
-		dao: dao.NewAttachmentDAO(ctx),
+		dao: dao.NewAttachmentDAO(),
 	}
 }
 

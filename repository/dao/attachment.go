@@ -2,7 +2,6 @@ package dao
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
@@ -20,17 +19,17 @@ type Attachment struct {
 	Path string // 文件路径
 }
 
-func NewAttachmentDAO(ctx *gin.Context) *AttachmentDAO {
-	return &AttachmentDAO{BasicDAO: NewBasicDao(ctx, nil)}
+func NewAttachmentDAO() *AttachmentDAO {
+	return &AttachmentDAO{BasicDAO: NewBasicDao()}
 }
 
 func (a *AttachmentDAO) Insert(ctx context.Context, records []*Attachment) ([]*Attachment, error) {
-	err := a.db.WithContext(ctx).Create(records).Error
+	err := a.Datasource(ctx).Create(records).Error
 	return records, err
 }
 
 func (a *AttachmentDAO) IsExistByHash(ctx context.Context, hash string) (bool, error) {
 	var count int64
-	err := a.db.WithContext(ctx).Where("hash = ?", hash).Count(&count).Error
+	err := a.Datasource(ctx).Where("hash = ?", hash).Count(&count).Error
 	return count > 0, err
 }

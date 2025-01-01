@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/response"
-	"github.com/gin-gonic/gin"
 )
 
 type UserCache struct {
@@ -19,8 +18,8 @@ var (
 	tokenPairKey = fmt.Sprintf("%s%s", USER_CACHE_KEY, "_token")
 )
 
-func NewUserCache(ctx *gin.Context) *UserCache {
-	return &UserCache{BasicCache: NewBasicCache(ctx)}
+func NewUserCache() *UserCache {
+	return &UserCache{BasicCache: NewBasicCache()}
 }
 
 func (u *UserCache) HSetTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {

@@ -23,7 +23,7 @@ func NewUserService(ctx *gin.Context) *UserService {
 		BasicService:   NewBasicService(ctx),
 		CaptchaService: NewCaptchaService(ctx),
 		RoleService:    NewRoleService(ctx),
-		repository:     repository.NewUserRepository(ctx, nil),
+		repository:     repository.NewUserRepository(),
 	}
 }
 

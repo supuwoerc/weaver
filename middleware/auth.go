@@ -43,7 +43,7 @@ func LoginRequired() gin.HandlerFunc {
 		}
 		token = strings.TrimPrefix(token, prefix)
 		claims, err := jwtBuilder.ParseToken(token)
-		userRepository := repository.NewUserRepository(ctx, nil)
+		userRepository := repository.NewUserRepository()
 		if err == nil {
 			// token解析正常,判断是不是在不redis中
 			pair, tempErr := jwtBuilder.GetCacheToken(claims.User.Email)

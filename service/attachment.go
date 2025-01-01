@@ -30,7 +30,7 @@ type AttachmentService struct {
 func NewAttachmentService(ctx *gin.Context) *AttachmentService {
 	return &AttachmentService{
 		BasicService: NewBasicService(ctx),
-		repository:   repository.NewAttachmentRepository(ctx),
+		repository:   repository.NewAttachmentRepository(),
 	}
 }
 

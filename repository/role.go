@@ -4,7 +4,6 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/repository/dao"
-	"github.com/gin-gonic/gin"
 	"github.com/samber/lo"
 )
 
@@ -12,9 +11,9 @@ type RoleRepository struct {
 	dao *dao.RoleDAO
 }
 
-func NewRoleRepository(ctx *gin.Context) *RoleRepository {
+func NewRoleRepository() *RoleRepository {
 	return &RoleRepository{
-		dao: dao.NewRoleDAO(ctx),
+		dao: dao.NewRoleDAO(),
 	}
 }
 

@@ -1,10 +1,9 @@
 package models
 
-type UserGender int
+type UserGender int8
 
 const (
-	GenderUnknown UserGender = iota
-	GenderMale
+	GenderMale UserGender = iota + 1
 	GenderFemale
 )
 

@@ -2,9 +2,9 @@ package dao
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"gin-web/pkg/response"
-	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
@@ -15,24 +15,21 @@ type UserDAO struct {
 
 type User struct {
 	gorm.Model
-	Email    string  `gorm:"unique;not null;;comment:邮箱"`
-	Password string  `gorm:"type:varchar(60);not null;comment:密码"`
-	Nickname string  `gorm:"type:varchar(10);comment:昵称"`
-	Gender   int     `gorm:"type:integer;comment:性别;default:0"`
-	About    string  `gorm:"type:varchar(60);comment:关于我"`
-	Birthday int64   `gorm:"comment:生日"` // 生日
-	Roles    []*Role `gorm:"many2many:user_role;"`
+	Email    string       `gorm:"unique;not null;;comment:邮箱"`
+	Password string       `gorm:"type:varchar(60);not null;comment:密码"`
+	Nickname *string      `gorm:"type:varchar(10);comment:昵称"`
+	Gender   *int8        `gorm:"type:integer;comment:性别"`
+	About    *string      `gorm:"type:varchar(60);comment:关于我"`
+	Birthday sql.NullTime `gorm:"comment:生日"`
+	Roles    []*Role      `gorm:"many2many:user_role;"`
 }
 
-func NewUserDAO(ctx *gin.Context, basic *BasicDAO) *UserDAO {
-	if basic == nil {
-		basic = NewBasicDao(ctx, nil)
-	}
-	return &UserDAO{BasicDAO: basic}
+func NewUserDAO() *UserDAO {
+	return &UserDAO{BasicDAO: NewBasicDao()}
 }
 
 func (u *UserDAO) Insert(ctx context.Context, user *User) error {
-	err := u.db.WithContext(ctx).Create(user).Error
+	err := u.Datasource(ctx).Create(user).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 		return response.UserCreateDuplicateEmail
@@ -42,7 +39,7 @@ func (u *UserDAO) Insert(ctx context.Context, user *User) error {
 
 func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
-	err := u.db.WithContext(ctx).Preload("Roles").Where("email = ?", email).First(&user).Error
+	err := u.Datasource(ctx).Preload("Roles").Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return &user, response.UserLoginEmailNotFound
 	}
@@ -50,7 +47,7 @@ func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*User, error) 
 }
 
 func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles *[]Role) error {
-	return u.db.WithContext(ctx).Model(&User{
+	return u.Datasource(ctx).Model(&User{
 		Model: gorm.Model{
 			ID: uid,
 		},
@@ -59,7 +56,7 @@ func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles *[]Role) e
 
 func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles bool) (*User, error) {
 	var user User
-	query := u.db.WithContext(ctx).Model(&User{})
+	query := u.Datasource(ctx).Model(&User{})
 	if needRoles {
 		query.Preload("Roles")
 	}
@@ -72,6 +69,6 @@ func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles bool) (*Use
 
 func (u *UserDAO) FindRolesByUid(ctx context.Context, uid uint) ([]*Role, error) {
 	var result []*Role
-	err := u.db.WithContext(ctx).Table("sys_role as r").Select("r.id", "r.name").Joins("join sys_user_role as ur on r.id = ur.role_id and ur.user_id = ?", uid).Scan(&result).Error
+	err := u.Datasource(ctx).Table("sys_role as r").Select("r.id", "r.name").Joins("join sys_user_role as ur on r.id = ur.role_id and ur.user_id = ?", uid).Scan(&result).Error
 	return result, err
 }
