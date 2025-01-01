@@ -1,21 +1,16 @@
 package models
 
-type UserGender int8
-
-const (
-	GenderMale UserGender = iota + 1
-	GenderFemale
-)
+import "time"
 
 type User struct {
-	ID       uint       `json:"id"`
-	Email    string     `json:"email"`
-	Password *string    `json:"password,omitempty"`
-	Nickname string     `json:"nickname"`
-	Gender   UserGender `json:"gender"`
-	About    string     `json:"about"`
-	Birthday string     `json:"birthday"`
-	Roles    []*Role    `json:"roles"`
+	ID       uint      `json:"id"`
+	Email    string    `json:"email"`
+	Password string    `json:"password,omitempty"`
+	Nickname *string   `json:"nickname"`
+	Gender   *uint8    `json:"gender"`
+	About    *string   `json:"about"`
+	Birthday time.Time `json:"birthday"`
+	Roles    []*Role   `json:"roles"`
 }
 
 type TokenPair struct {

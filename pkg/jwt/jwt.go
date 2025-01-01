@@ -14,7 +14,7 @@ import (
 type TokenClaimsBasic struct {
 	UID      uint
 	Email    string
-	Nickname string
+	Nickname *string
 	Roles    []uint // token中仅存储角色ID
 }
 

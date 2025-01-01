@@ -5,10 +5,9 @@ import (
 	"gin-web/models"
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
-	"gin-web/repository/formatter"
+	"gin-web/repository/transducer"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
-	"time"
 )
 
 type UserRepository struct {
@@ -27,11 +26,11 @@ func toModelUser(u *dao.User) *models.User {
 	user := models.User{
 		ID:       u.ID,
 		Email:    u.Email,
-		Password: &u.Password,
-		Nickname: *u.Nickname,
-		Gender:   models.UserGender(*u.Gender),
-		About:    *u.About,
-		Birthday: formatter.SqlNullTimeFormat(u.Birthday, time.DateOnly),
+		Password: u.Password,
+		Nickname: transducer.NullString(u.Nickname),
+		Gender:   transducer.NullValue(u.Gender),
+		About:    transducer.NullString(u.About),
+		Birthday: transducer.NullTime(u.Birthday),
 		Roles:    toModelRoles(u.Roles),
 	}
 	return &user
@@ -40,7 +39,7 @@ func toModelUser(u *dao.User) *models.User {
 func (u *UserRepository) Create(ctx context.Context, user models.User) error {
 	return u.dao.Insert(ctx, &dao.User{
 		Email:    user.Email,
-		Password: *user.Password,
+		Password: user.Password,
 	})
 }
 

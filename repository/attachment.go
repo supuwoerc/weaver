@@ -4,6 +4,7 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/repository/dao"
+	"gin-web/repository/transducer"
 	"github.com/samber/lo"
 )
 
@@ -21,7 +22,7 @@ func toModelAttachment(record *dao.Attachment) *models.Attachment {
 	return &models.Attachment{
 		ID:   record.ID,
 		Name: record.Name,
-		Uid:  record.Uid,
+		Uid:  transducer.NullValue(record.Uid),
 		Type: record.Type,
 		Size: record.Size,
 		Hash: record.Hash,
@@ -39,7 +40,7 @@ func (r *AttachmentRepository) Create(ctx context.Context, records []*models.Att
 	attachments := lo.Map[*models.Attachment, *dao.Attachment](records, func(item *models.Attachment, _ int) *dao.Attachment {
 		return &dao.Attachment{
 			Name: item.Name,
-			Uid:  item.Uid,
+			Uid:  transducer.SqlNullValue(item.Uid),
 			Type: item.Type,
 			Size: item.Size,
 			Hash: item.Hash,

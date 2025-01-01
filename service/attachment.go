@@ -165,7 +165,7 @@ func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.Fi
 	attachments := lo.Map(files, func(item *multipart.FileHeader, index int) *models.Attachment {
 		return &models.Attachment{
 			Name: item.Filename,
-			Uid:  uid,
+			Uid:  &uid,
 			Type: info[index].classify,
 			Size: item.Size,
 			Hash: info[index].uniqueName,

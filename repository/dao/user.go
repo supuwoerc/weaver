@@ -15,13 +15,13 @@ type UserDAO struct {
 
 type User struct {
 	gorm.Model
-	Email    string       `gorm:"unique;not null;;comment:邮箱"`
-	Password string       `gorm:"type:varchar(60);not null;comment:密码"`
-	Nickname *string      `gorm:"type:varchar(10);comment:昵称"`
-	Gender   *int8        `gorm:"type:integer;comment:性别"`
-	About    *string      `gorm:"type:varchar(60);comment:关于我"`
-	Birthday sql.NullTime `gorm:"comment:生日"`
-	Roles    []*Role      `gorm:"many2many:user_role;"`
+	Email    string          `gorm:"unique;not null;;comment:邮箱"`
+	Password string          `gorm:"type:varchar(60);not null;comment:密码"`
+	Nickname sql.NullString  `gorm:"type:varchar(10);comment:昵称"`
+	Gender   sql.Null[uint8] `gorm:"type:integer;comment:性别"`
+	About    sql.NullString  `gorm:"type:varchar(60);comment:关于我"`
+	Birthday sql.NullTime    `gorm:"comment:生日"`
+	Roles    []*Role         `gorm:"many2many:user_role;"`
 }
 
 func NewUserDAO() *UserDAO {

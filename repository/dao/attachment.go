@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"database/sql"
 	"gorm.io/gorm"
 )
 
@@ -11,12 +12,12 @@ type AttachmentDAO struct {
 
 type Attachment struct {
 	gorm.Model
-	Name string // 上传的文件名
-	Uid  uint   // 上传的用户
-	Type int8   // 文件类型
-	Size int64  // 文件大小
-	Hash string // 文件摘要
-	Path string // 文件路径
+	Name string         // 上传的文件名
+	Uid  sql.Null[uint] // 上传的用户
+	Type int8           // 文件类型
+	Size int64          // 文件大小
+	Hash string         // 文件摘要
+	Path string         // 文件路径
 }
 
 func NewAttachmentDAO() *AttachmentDAO {

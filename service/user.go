@@ -40,12 +40,12 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user m
 	if !verify {
 		return response.CaptchaVerifyFail
 	}
-	password, err := bcrypt.GenerateFromPassword([]byte(*user.Password), bcrypt.DefaultCost)
+	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 	var pwd = string(password)
-	user.Password = &pwd
+	user.Password = pwd
 	return u.repository.Create(ctx, user)
 }
 
@@ -54,7 +54,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	if err != nil {
 		return nil, nil, err
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return nil, nil, response.UserLoginFail
 	}

@@ -59,7 +59,7 @@ func (u *UserApi) SignUp(ctx *gin.Context) {
 	}
 	if err = u.service.SignUp(ctx, params.ID, params.Code, models.User{
 		Email:    params.Email,
-		Password: &params.Password,
+		Password: params.Password,
 	}); err != nil {
 		response.FailWithError(ctx, err)
 		return
@@ -86,7 +86,8 @@ func (u *UserApi) Login(ctx *gin.Context) {
 	user, pair, err := u.service.Login(ctx, params.Email, params.Password)
 	switch {
 	case pair != nil:
-		user.Password = nil
+		// FIXME:password
+		//user.Password = nil
 		if err != nil {
 			response.FailWithError(ctx, err)
 			return
@@ -126,7 +127,8 @@ func (u *UserApi) Profile(ctx *gin.Context) {
 		response.FailWithError(ctx, err)
 		return
 	}
-	profile.Password = nil
+	// FIXME:password
+	//profile.Password = nil
 	response.SuccessWithData(ctx, profile)
 }
 
