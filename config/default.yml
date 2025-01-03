@@ -3,7 +3,6 @@ system:
   maxMultipartMemory: 104857600 # 上传文件最大字节数
   maxUploadLength: 30           # 批量上传时每次最多上传多少个文件
   uploadAttachmentDir: "./upload"      # 前端上传文件的目录
-  pid: "./learn_gin_web.pid"
 jwt:
   expires: 1440              # token过期时长(分钟)
   refreshTokenExpires: 10080 # refresh_token的过期时长(分钟)
