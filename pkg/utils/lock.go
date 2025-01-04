@@ -63,7 +63,8 @@ func TryLock(ctx context.Context, lock *RedisLock, extend bool) error {
 }
 
 func Unlock(lock *RedisLock) error {
-	if lock.dog.stopChan == nil {
+	until := lock.Until()
+	if until.IsZero() || until.Before(time.Now()) {
 		return nil
 	}
 	ok, err := lock.Unlock()
@@ -96,7 +97,10 @@ func autoExtend(ctx context.Context, lock *RedisLock) {
 		go func() {
 			select {
 			case <-ctx.Done():
-				lock.dog.Stop()
+				err := Unlock(lock)
+				if err != nil {
+					global.Logger.Errorf("%s unlock fail: %v", lock.Name(), err)
+				}
 			}
 		}()
 		lock.dog.Start()

@@ -36,7 +36,7 @@ func SlowResponse(ctx *gin.Context) {
 }
 
 func LockResponse(ctx *gin.Context) {
-	lock := utils.NewRedisLock("test", time.Second*3)
+	lock := utils.NewRedisLock("test", time.Second*10)
 	if err := utils.TryLock(ctx, lock, true); err != nil {
 		response.FailWithError(ctx, err)
 		return
