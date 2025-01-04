@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gin-web/pkg/email"
 	"gin-web/pkg/global"
 	"gin-web/pkg/response"
 	"github.com/go-redsync/redsync/v4"
+	"github.com/spf13/viper"
 	"sync"
 	"time"
 )
@@ -91,7 +93,12 @@ func autoExtend(ctx context.Context, lock *RedisLock) {
 				return nil
 			}
 		}, func(dog *Watchdog, err error) {
-			global.Logger.Errorf("%s extend lock fail: %v", lock.Name(), err)
+			go func() {
+				adminEmail := viper.GetString("system.admin.email")
+				if e := email.SendText(adminEmail, "Extend Lock Fail", fmt.Sprintf("%s extend lock fail: %v", lock.Name(), err)); e != nil {
+					global.Logger.Errorf("发送邮件失败,信息:%s\n", e.Error())
+				}
+			}()
 			dog.Stop()
 		})
 		go func() {
@@ -99,7 +106,12 @@ func autoExtend(ctx context.Context, lock *RedisLock) {
 			case <-ctx.Done():
 				err := Unlock(lock)
 				if err != nil {
-					global.Logger.Errorf("%s unlock fail: %v", lock.Name(), err)
+					go func() {
+						adminEmail := viper.GetString("system.admin.email")
+						if e := email.SendText(adminEmail, "Unlock Fail", fmt.Sprintf("%s unlock fail: %v", lock.Name(), err)); e != nil {
+							global.Logger.Errorf("发送邮件失败,信息:%s\n", e.Error())
+						}
+					}()
 				}
 			}
 		}()

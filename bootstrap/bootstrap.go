@@ -11,5 +11,6 @@ func Start() {
 	global.DB = initialize.InitGORM()
 	global.RedisClient = initialize.InitRedis()
 	global.Localizer = initialize.InitI18N()
+	global.Dialer = initialize.InitDialer()
 	initialize.InitServer(initialize.InitEngine(initialize.LoggerSyncer))
 }
