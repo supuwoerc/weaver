@@ -11,6 +11,8 @@ import (
 func InitEngine(writer io.Writer) *gin.Engine {
 	// 不携带日志和Recovery中间件，自己添加中间件，为了方便收集Recovery日志
 	r := gin.New()
+	// 开启ContextWithFallback
+	r.ContextWithFallback = true
 	// 设置上传文件的最大字节数,Gin默认为32Mb
 	maxMultipartMemory := viper.GetInt64("system.maxMultipartMemory")
 	if maxMultipartMemory > 0 {
