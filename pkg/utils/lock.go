@@ -64,7 +64,7 @@ func TryLock(ctx context.Context, lock *RedisLock, extend bool) error {
 
 func Unlock(lock *RedisLock) error {
 	until := lock.Until()
-	if until.IsZero() || until.Before(time.Now()) {
+	if lock.dog.stopChan == nil || until.IsZero() || until.Before(time.Now()) {
 		return nil
 	}
 	ok, err := lock.Unlock()
