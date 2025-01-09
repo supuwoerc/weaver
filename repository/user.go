@@ -68,8 +68,8 @@ func (u *UserRepository) AssociateRoles(ctx context.Context, uid uint, roleIds [
 	return u.dao.AssociateRoles(ctx, uid, &roles)
 }
 
-func (u *UserRepository) FindByUid(ctx context.Context, uid uint, needRoles bool) (*models.User, error) {
-	user, err := u.dao.FindByUid(ctx, uid, needRoles)
+func (u *UserRepository) FindByUid(ctx context.Context, uid uint, needRoles, needPermissions bool) (*models.User, error) {
+	user, err := u.dao.FindByUid(ctx, uid, needRoles, needPermissions)
 	return toModelUser(user), err
 }
 

@@ -14,8 +14,9 @@ type RoleDAO struct {
 
 type Role struct {
 	gorm.Model
-	Name  string  `gorm:"unique;not null;comment:角色名"`
-	Users []*User `gorm:"many2many:user_role;"`
+	Name        string        `gorm:"unique;not null;comment:角色名"`
+	Users       []*User       `gorm:"many2many:user_role;"`
+	Permissions []*Permission `gorm:"many2many:role_permission;"`
 }
 
 func NewRoleDAO() *RoleDAO {

@@ -27,5 +27,3 @@ cors:
 captcha:
   keyPrefix: "captcha:"
   expiration: 60 # 秒
-casbin:
-  cacheExpireTime: 3600 # 秒

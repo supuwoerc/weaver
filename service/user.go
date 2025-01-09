@@ -94,7 +94,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 
 func (u *UserService) SetRoles(ctx context.Context, uid uint, roleIds []uint) error {
 	// TODO:配置ADMIN账户，限制ADMIN账户被更改角色
-	user, err := u.repository.FindByUid(ctx, uid, false)
+	user, err := u.repository.FindByUid(ctx, uid, false, false)
 	if err != nil {
 		return err
 	}
@@ -116,5 +116,5 @@ func (u *UserService) GetRoles(ctx context.Context, uid uint) ([]*models.Role, e
 }
 
 func (u *UserService) Profile(ctx context.Context, uid uint) (*models.User, error) {
-	return u.repository.FindByUid(ctx, uid, true)
+	return u.repository.FindByUid(ctx, uid, true, true)
 }

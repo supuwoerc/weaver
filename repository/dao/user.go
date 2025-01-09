@@ -54,11 +54,14 @@ func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles *[]Role) e
 	}).Association("Roles").Replace(roles)
 }
 
-func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles bool) (*User, error) {
+func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles, needPermissions bool) (*User, error) {
 	var user User
 	query := u.Datasource(ctx).Model(&User{})
 	if needRoles {
 		query.Preload("Roles")
+		if needPermissions {
+			query.Preload("Roles.Permissions")
+		}
 	}
 	err := query.Where("id = ?", uid).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
