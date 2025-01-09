@@ -3,6 +3,12 @@ package cache
 import (
 	"gin-web/pkg/global"
 	"gin-web/pkg/redis"
+	"sync"
+)
+
+var (
+	basicCache     *BasicCache
+	basicCacheOnce sync.Once
 )
 
 type BasicCache struct {
@@ -10,7 +16,10 @@ type BasicCache struct {
 }
 
 func NewBasicCache() *BasicCache {
-	return &BasicCache{
-		redis: global.RedisClient,
-	}
+	basicCacheOnce.Do(func() {
+		basicCache = &BasicCache{
+			redis: global.RedisClient,
+		}
+	})
+	return basicCache
 }

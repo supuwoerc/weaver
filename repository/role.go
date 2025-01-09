@@ -5,6 +5,12 @@ import (
 	"gin-web/models"
 	"gin-web/repository/dao"
 	"github.com/samber/lo"
+	"sync"
+)
+
+var (
+	roleRepository     *RoleRepository
+	roleRepositoryOnce sync.Once
 )
 
 type RoleRepository struct {
@@ -12,9 +18,12 @@ type RoleRepository struct {
 }
 
 func NewRoleRepository() *RoleRepository {
-	return &RoleRepository{
-		dao: dao.NewRoleDAO(),
-	}
+	roleRepositoryOnce.Do(func() {
+		roleRepository = &RoleRepository{
+			dao: dao.NewRoleDAO(),
+		}
+	})
+	return roleRepository
 }
 
 func toModelRole(role *dao.Role) *models.Role {

@@ -34,11 +34,12 @@ func getEncoder() zapcore.Encoder {
 
 func getWriterSyncer() zapcore.WriteSyncer {
 	projectDir, err := os.Getwd()
+	write2Stdout := viper.GetBool("logger.stdout")
 	targetDir := viper.GetString("logger.dir")
 	maxSize := viper.GetInt("logger.maxSize")
 	maxBackups := viper.GetInt("logger.maxBackups")
 	maxAge := viper.GetInt("logger.maxAge")
-	write2Stdout := viper.GetBool("logger.stdout")
+	colorful := viper.GetBool("logger.colorful")
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +55,10 @@ func getWriterSyncer() zapcore.WriteSyncer {
 		MaxAge:     maxAge,     // 保留文件最大天数
 		Compress:   true,
 	}
-	var ws = []zapcore.WriteSyncer{zapcore.AddSync(lumberjackLogger)}
+	var ws = []zapcore.WriteSyncer{}
+	if !colorful {
+		ws = append(ws, zapcore.AddSync(lumberjackLogger))
+	}
 	if write2Stdout {
 		ws = append(ws, zapcore.AddSync(os.Stdout))
 	}

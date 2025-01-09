@@ -6,20 +6,26 @@ import (
 	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/response"
+	"sync"
 )
 
 type UserCache struct {
 	*BasicCache
 }
 
-const USER_CACHE_KEY = "user_cache"
+const UserCacheKey = "user_cache"
 
 var (
-	tokenPairKey = fmt.Sprintf("%s%s", USER_CACHE_KEY, "_token")
+	tokenPairKey  = fmt.Sprintf("%s%s", UserCacheKey, "_token")
+	userCache     *UserCache
+	userCacheOnce sync.Once
 )
 
 func NewUserCache() *UserCache {
-	return &UserCache{BasicCache: NewBasicCache()}
+	userCacheOnce.Do(func() {
+		userCache = &UserCache{BasicCache: NewBasicCache()}
+	})
+	return userCache
 }
 
 func (u *UserCache) HSetTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {

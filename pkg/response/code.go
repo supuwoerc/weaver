@@ -44,5 +44,9 @@ const (
 )
 
 const (
+	PermissionCreateDuplicate StatusCode = 50000 // permissionCreateDuplicate
+)
+
+const (
 	InvalidAttachmentLength StatusCode = 50000 // invalidAttachmentLength
 )

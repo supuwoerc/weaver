@@ -7,6 +7,12 @@ import (
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
+	"sync"
+)
+
+var (
+	userDAO     *UserDAO
+	userDAOOnce sync.Once
 )
 
 type UserDAO struct {
@@ -25,7 +31,10 @@ type User struct {
 }
 
 func NewUserDAO() *UserDAO {
-	return &UserDAO{BasicDAO: NewBasicDao()}
+	userDAOOnce.Do(func() {
+		userDAO = &UserDAO{BasicDAO: NewBasicDao()}
+	})
+	return userDAO
 }
 
 func (u *UserDAO) Insert(ctx context.Context, user *User) error {

@@ -6,6 +6,12 @@ import (
 	"gin-web/repository/dao"
 	"gin-web/repository/transducer"
 	"github.com/samber/lo"
+	"sync"
+)
+
+var (
+	attachmentRepository     *AttachmentRepository
+	attachmentRepositoryOnce sync.Once
 )
 
 type AttachmentRepository struct {
@@ -13,9 +19,12 @@ type AttachmentRepository struct {
 }
 
 func NewAttachmentRepository() *AttachmentRepository {
-	return &AttachmentRepository{
-		dao: dao.NewAttachmentDAO(),
-	}
+	attachmentRepositoryOnce.Do(func() {
+		attachmentRepository = &AttachmentRepository{
+			dao: dao.NewAttachmentDAO(),
+		}
+	})
+	return attachmentRepository
 }
 
 func toModelAttachment(record *dao.Attachment) *models.Attachment {

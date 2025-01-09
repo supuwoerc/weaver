@@ -20,6 +20,7 @@ logger:
   level: -1
   dir: "./log"   # 日志文件存放的目录,为空时默认在项目目录下创建log目录存放日志文件
   stdout: false
+  colorful: false
 cors:
   originPrefix:
     - http://localhost

@@ -5,13 +5,22 @@ import (
 	"gin-web/pkg/database"
 	"gin-web/pkg/global"
 	"gorm.io/gorm"
+	"sync"
+)
+
+var (
+	basicDAO     *BasicDAO
+	basicDAOOnce sync.Once
 )
 
 type BasicDAO struct {
 }
 
 func NewBasicDao() *BasicDAO {
-	return &BasicDAO{}
+	basicDAOOnce.Do(func() {
+		basicDAO = &BasicDAO{}
+	})
+	return basicDAO
 }
 
 func (basic *BasicDAO) Datasource(ctx context.Context) *gorm.DB {

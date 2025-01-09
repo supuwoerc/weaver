@@ -29,6 +29,7 @@ func _() {
 	_ = x[CaptchaVerifyFail-30000]
 	_ = x[RoleCreateDuplicateName-40000]
 	_ = x[NoValidRoles-40001]
+	_ = x[PermissionCreateDuplicate-50000]
 	_ = x[InvalidAttachmentLength-50000]
 }
 
@@ -37,7 +38,7 @@ const (
 	_StatusCode_name_1 = "userCreateDuplicateEmailuserLoginEmailNotFounduserLoginFailuserLoginTokenPairCacheErrpasswordValidErruserNotExist"
 	_StatusCode_name_2 = "captchaVerifyFail"
 	_StatusCode_name_3 = "roleCreateDuplicateNamenoValidRoles"
-	_StatusCode_name_4 = "invalidAttachmentLength"
+	_StatusCode_name_4 = "permissionCreateDuplicate"
 )
 
 var (

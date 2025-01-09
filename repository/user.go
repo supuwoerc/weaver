@@ -8,6 +8,12 @@ import (
 	"gin-web/repository/transducer"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
+	"sync"
+)
+
+var (
+	userRepository     *UserRepository
+	userRepositoryOnce sync.Once
 )
 
 type UserRepository struct {
@@ -16,10 +22,13 @@ type UserRepository struct {
 }
 
 func NewUserRepository() *UserRepository {
-	return &UserRepository{
-		dao:   dao.NewUserDAO(),
-		cache: cache.NewUserCache(),
-	}
+	userRepositoryOnce.Do(func() {
+		userRepository = &UserRepository{
+			dao:   dao.NewUserDAO(),
+			cache: cache.NewUserCache(),
+		}
+	})
+	return userRepository
 }
 
 func toModelUser(u *dao.User) *models.User {

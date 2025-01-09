@@ -4,6 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"gorm.io/gorm"
+	"sync"
+)
+
+var (
+	attachmentDAO     *AttachmentDAO
+	attachmentDAOOnce sync.Once
 )
 
 type AttachmentDAO struct {
@@ -21,7 +27,12 @@ type Attachment struct {
 }
 
 func NewAttachmentDAO() *AttachmentDAO {
-	return &AttachmentDAO{BasicDAO: NewBasicDao()}
+	attachmentDAOOnce.Do(func() {
+		attachmentDAO = &AttachmentDAO{
+			BasicDAO: NewBasicDao(),
+		}
+	})
+	return attachmentDAO
 }
 
 func (a *AttachmentDAO) Insert(ctx context.Context, records []*Attachment) ([]*Attachment, error) {
