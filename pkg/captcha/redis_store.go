@@ -22,11 +22,11 @@ func getExpiration() time.Duration {
 	return expiration * time.Second
 }
 
-func (r RedisStore) Set(id string, value string) error {
+func (r *RedisStore) Set(id string, value string) error {
 	return global.RedisClient.Client.Set(ctx, fmt.Sprintf("%s%s", getKeyPrefix(), id), value, getExpiration()).Err()
 }
 
-func (r RedisStore) Get(id string, clear bool) string {
+func (r *RedisStore) Get(id string, clear bool) string {
 	result, err := global.RedisClient.Client.Get(ctx, fmt.Sprintf("%s%s", getKeyPrefix(), id)).Result()
 	if err != nil {
 		return ""
@@ -40,7 +40,7 @@ func (r RedisStore) Get(id string, clear bool) string {
 	return result
 }
 
-func (r RedisStore) Verify(id, answer string, clear bool) bool {
+func (r *RedisStore) Verify(id, answer string, clear bool) bool {
 	result := r.Get(id, clear)
 	return result == answer
 }
