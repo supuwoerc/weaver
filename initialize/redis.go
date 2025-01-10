@@ -30,7 +30,7 @@ func (r *RedisLogger) DialHook(next goredislib.DialHook) goredislib.DialHook {
 
 func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.ProcessHook {
 	return func(ctx context.Context, cmd goredislib.Cmder) error {
-		r.logger.Infof("[Redis] Preparing to execute command: %s, Args: %v", cmd.Name(), cmd.Args())
+		r.logger.Infof("[Redis] Preparing to execute command: %s, Args: %s", cmd.Name(), cmd.Args())
 		err := next(ctx, cmd)
 		if err != nil {
 			r.logger.Errorf("[Redis] Error executing command %s: %s", cmd.Name(), err.Error())
@@ -44,7 +44,7 @@ func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.Proces
 func (r *RedisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) goredislib.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []goredislib.Cmder) error {
 		for _, cmd := range cmds {
-			r.logger.Infof("[Redis] Preparing to execute command in pipeline: %s, Args: %v", cmd.Name(), cmd.Args())
+			r.logger.Infof("[Redis] Preparing to execute command in pipeline: %s, Args: %s", cmd.Name(), cmd.Args())
 		}
 		err := next(ctx, cmds)
 		if err != nil {
