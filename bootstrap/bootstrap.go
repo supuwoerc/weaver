@@ -9,7 +9,7 @@ func Start() {
 	initialize.InitConfig()
 	global.Logger = initialize.InitZapLogger()
 	global.DB = initialize.InitGORM()
-	global.RedisClient = initialize.InitRedis()
+	global.RedisClient = initialize.InitRedis(global.Logger)
 	global.Localizer = initialize.InitI18N()
 	global.Dialer = initialize.InitDialer()
 	initialize.InitServer(initialize.InitEngine(initialize.LoggerSyncer))
