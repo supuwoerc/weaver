@@ -96,7 +96,7 @@ func autoExtend(ctx context.Context, lock *RedisLock) {
 			go func() {
 				adminEmail := viper.GetString("system.admin.email")
 				if e := email.SendText(adminEmail, "Extend Lock Fail", fmt.Sprintf("%s extend lock fail: %v", lock.Name(), err)); e != nil {
-					global.Logger.Errorf("发送邮件失败,信息:%s\n", e.Error())
+					global.Logger.Errorf("发送邮件失败,信息:%s", e.Error())
 				}
 			}()
 			dog.Stop()
@@ -109,7 +109,7 @@ func autoExtend(ctx context.Context, lock *RedisLock) {
 					go func() {
 						adminEmail := viper.GetString("system.admin.email")
 						if e := email.SendText(adminEmail, "Unlock Fail", fmt.Sprintf("%s unlock fail: %v", lock.Name(), err)); e != nil {
-							global.Logger.Errorf("发送邮件失败,信息:%s\n", e.Error())
+							global.Logger.Errorf("发送邮件失败,信息:%s", e.Error())
 						}
 					}()
 				}

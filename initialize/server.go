@@ -45,9 +45,9 @@ func httpServer(srv *http.Server) {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go func() {
-		global.Logger.Infof("服务启动，地址:%s\n", fmt.Sprintf("%s", srv.Addr))
+		global.Logger.Infof("服务启动，地址:%s", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			global.Logger.Error(fmt.Sprintf("服务启动失败：%s\n", err.Error()))
+			global.Logger.Error(fmt.Sprintf("服务启动失败：%s", err.Error()))
 			os.Exit(1)
 		}
 	}()
@@ -55,17 +55,17 @@ func httpServer(srv *http.Server) {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(timeoutContext); err != nil {
-		global.Logger.Errorf("服务关闭：%s\n", err.Error())
+		global.Logger.Errorf("服务关闭：%s", err.Error())
 		return
 	}
 	global.Logger.Info("服务关闭...")
 }
 
 func graceHttpServe(srv *http.Server) {
-	global.Logger.Infof("服务启动，地址:%s\n", fmt.Sprintf("%s", srv.Addr))
+	global.Logger.Infof("服务启动，地址:%s", srv.Addr)
 	err := gracehttp.Serve(srv)
 	if err != nil {
-		global.Logger.Errorf("服务启动失败：%s\n", err.Error())
+		global.Logger.Errorf("服务启动失败：%s", err.Error())
 		os.Exit(1)
 	}
 	global.Logger.Info("服务关闭...")
