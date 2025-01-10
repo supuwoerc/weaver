@@ -56,8 +56,8 @@ func (j *TokenBuilder) generateRefreshToken(createAt time.Time) (string, error) 
 
 type RefreshTokenCallback func(claims *TokenClaims, accessToken, refreshToken string) error
 
-// ReGenerateAccessAndRefreshToken 校验并生成长短token
-func (j *TokenBuilder) ReGenerateAccessAndRefreshToken(accessToken, refreshToken string, callback RefreshTokenCallback) (string, string, error) {
+// ReGenerateTokenPairs 校验并生成长短token
+func (j *TokenBuilder) ReGenerateTokenPairs(accessToken, refreshToken string, callback RefreshTokenCallback) (string, string, error) {
 	if _, err := j.ParseToken(refreshToken); err != nil {
 		return "", "", response.InvalidRefreshToken
 	}
