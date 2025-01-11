@@ -2,27 +2,28 @@ package initialize
 
 import (
 	"context"
+	"fmt"
 	local "gin-web/pkg/redis"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	goredislib "github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
+	"io"
 	"net"
 )
 
 type RedisLogger struct {
-	logger *zap.SugaredLogger
+	logger io.Writer
 }
 
 func (r *RedisLogger) DialHook(next goredislib.DialHook) goredislib.DialHook {
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
-		r.logger.Infof("[Redis] Dialing to Redis at %s://%s", network, addr)
+		_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] Dialing to Redis at %s://%s\n", network, addr))
 		conn, err := next(ctx, network, addr)
 		if err != nil {
-			r.logger.Errorf("[Redis] Error dialing Redis: %s", err.Error())
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] Error dialing Redis: %s\n", err.Error()))
 		} else {
-			r.logger.Infof("[Redis] Successfully connected to Redis at %s://%s", network, addr)
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] Successfully connected to Redis at %s://%s\n", network, addr))
 		}
 		return conn, err
 	}
@@ -30,12 +31,12 @@ func (r *RedisLogger) DialHook(next goredislib.DialHook) goredislib.DialHook {
 
 func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.ProcessHook {
 	return func(ctx context.Context, cmd goredislib.Cmder) error {
-		r.logger.Infof("[Redis] Preparing to execute command: %s, Args: %s", cmd.Name(), cmd.Args())
+		_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] Preparing to execute command: %s, Args: %s\n", cmd.Name(), cmd.Args()))
 		err := next(ctx, cmd)
 		if err != nil {
-			r.logger.Errorf("[Redis] Error executing command %s: %s", cmd.Name(), err.Error())
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] Error executing command %s: %s\n", cmd.Name(), err.Error()))
 		} else {
-			r.logger.Infof("[Redis] Successfully executed command: %s", cmd.Name())
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] Successfully executed command: %s\n", cmd.Name()))
 		}
 		return err
 	}
@@ -44,19 +45,19 @@ func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.Proces
 func (r *RedisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) goredislib.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []goredislib.Cmder) error {
 		for _, cmd := range cmds {
-			r.logger.Infof("[Redis] Preparing to execute command in pipeline: %s, Args: %s", cmd.Name(), cmd.Args())
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] Preparing to execute command in pipeline: %s, Args: %s\n", cmd.Name(), cmd.Args()))
 		}
 		err := next(ctx, cmds)
 		if err != nil {
-			r.logger.Errorf("[Redis] Error executing commands in pipeline: %s", err.Error())
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] Error executing commands in pipeline: %s\n", err.Error()))
 		} else {
-			r.logger.Infof("[Redis] Successfully executed commands in pipeline")
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] Successfully executed commands in pipeline"))
 		}
 		return err
 	}
 }
 
-func InitRedis(logger *zap.SugaredLogger) *local.RedisClient {
+func InitRedis(logger io.Writer) *local.RedisClient {
 	client := goredislib.NewClient(&goredislib.Options{
 		Addr:     viper.GetString("redis.addr"),
 		Password: viper.GetString("redis.password"),

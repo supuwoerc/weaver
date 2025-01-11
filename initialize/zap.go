@@ -62,5 +62,8 @@ func getWriterSyncer() zapcore.WriteSyncer {
 	if write2Stdout {
 		ws = append(ws, zapcore.AddSync(os.Stdout))
 	}
+	if len(ws) == 0 {
+		panic("缺少日志输出配置信息")
+	}
 	return zapcore.NewMultiWriteSyncer(ws...)
 }
