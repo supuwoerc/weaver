@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"gin-web/pkg/constant"
 	"gorm.io/gorm"
 )
@@ -28,4 +29,8 @@ func LoadManager(ctx context.Context) *TransactionManager {
 
 func InjectManager(ctx context.Context, m any) context.Context {
 	return context.WithValue(ctx, constant.TransactionKey, m)
+}
+
+func FuzzKeyword(s string) string {
+	return fmt.Sprintf("%%%s%%", s)
 }

@@ -49,3 +49,7 @@ func (r *RoleRepository) GetRolesByIds(ctx context.Context, ids []uint) ([]*mode
 	ret, err := r.dao.GetRolesByIds(ctx, ids)
 	return toModelRoles(ret), err
 }
+
+func (r *RoleRepository) GetRoleList(ctx context.Context, name string, limit, offset int) ([]*models.Role, error) {
+	return nil, nil
+}

@@ -42,3 +42,18 @@ func (r *RoleApi) CreateRole(ctx *gin.Context) {
 	}
 	response.Success(ctx)
 }
+
+// TODO:添加swagger文档注释
+func (r *RoleApi) GetRoleList(ctx *gin.Context) {
+	var params request.GetRoleListRequest
+	if err := ctx.ShouldBindJSON(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	list, err := r.service.GetRoleList(ctx, params.Name, params.Limit, params.Offset)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.SuccessWithPageData(ctx, 0, list)
+}

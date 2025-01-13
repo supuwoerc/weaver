@@ -46,3 +46,12 @@ func (r *RoleDAO) GetRolesByIds(ctx context.Context, ids []uint) ([]*Role, error
 	err := r.Datasource(ctx).Where("id in ?", ids).Find(&roles).Error
 	return roles, err
 }
+
+func (r *RoleDAO) GetRoleList(ctx context.Context, name string, limit, offset int) ([]*Role, error) {
+	var roles []*Role
+	query := r.Datasource(ctx) //.Where("id in ?", ids).Find(&roles).Error
+	if name != "" {
+		query = query.Where("name like ?", name)
+	}
+	return roles, nil
+}

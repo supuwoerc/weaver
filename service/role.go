@@ -45,3 +45,7 @@ func (r *RoleService) FilterValidRoles(ctx context.Context, roleIds []uint) ([]u
 	})
 	return result, nil
 }
+
+func (r *RoleService) GetRoleList(ctx context.Context, name string, limit, offset int) ([]*models.Role, error) {
+	return r.repository.GetRoleList(ctx, name, limit, offset)
+}
