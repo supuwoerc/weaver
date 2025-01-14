@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"net/http"
 )
 
-const TranslatorKey = "translator"
-const Locale = "locale"
+const I18nTranslatorKey = "i18n_translator"
+const ValidatorTranslatorKey = "validator_translator"
 
 // BasicResponse 通用的数据返回
 type BasicResponse[T any] struct {
@@ -26,7 +28,7 @@ type DataList[T any] struct {
 
 // HttpResponse json响应
 func HttpResponse[T any](ctx *gin.Context, code StatusCode, data T, config *i18n.LocalizeConfig, message *string) {
-	translator, exists := ctx.Get(TranslatorKey)
+	translator, exists := ctx.Get(I18nTranslatorKey)
 	var msg string
 	if message != nil {
 		msg = *message
@@ -101,5 +103,20 @@ func FailWithError(ctx *gin.Context, err error) {
 // ParamsValidateFail 失败响应-参数错误
 func ParamsValidateFail(ctx *gin.Context, err error) {
 	msg := err.Error()
-	HttpResponse[any](ctx, InvalidParams, nil, nil, &msg)
+	errs, ok := err.(validator.ValidationErrors)
+	if !ok {
+		HttpResponse[any](ctx, InvalidParams, nil, nil, &msg)
+	} else if translator, exists := ctx.Get(ValidatorTranslatorKey); exists {
+		if trans, isOk := translator.(ut.Translator); isOk {
+			errMap := make(map[string]string)
+			for _, e := range errs {
+				errMap[e.Field()] = e.Translate(trans)
+			}
+			HttpResponse[any](ctx, InvalidParams, errMap, nil, nil)
+		} else {
+			HttpResponse[any](ctx, InvalidParams, nil, nil, &msg)
+		}
+	} else {
+		HttpResponse[any](ctx, InvalidParams, nil, nil, &msg)
+	}
 }

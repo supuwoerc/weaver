@@ -32,6 +32,7 @@ func loadJsonFiles(dir string) ([]*i18n.Message, error) {
 	return m, err
 }
 
+// InitI18N 初始化 go-i18n
 func InitI18N() map[string]*i18n.Localizer {
 	// 创建一个新的Bundle指定默认语言
 	bundle := i18n.NewBundle(language.Chinese)

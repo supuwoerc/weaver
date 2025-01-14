@@ -46,7 +46,7 @@ func (r *RoleApi) CreateRole(ctx *gin.Context) {
 // TODO:添加swagger文档注释
 func (r *RoleApi) GetRoleList(ctx *gin.Context) {
 	var params request.GetRoleListRequest
-	if err := ctx.ShouldBindJSON(&params); err != nil {
+	if err := ctx.ShouldBindQuery(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
