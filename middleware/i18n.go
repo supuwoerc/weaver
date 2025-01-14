@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"gin-web/pkg/global"
+	"encoding/json"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -11,17 +11,76 @@ import (
 	"github.com/go-playground/validator/v10"
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/spf13/viper"
+	"golang.org/x/text/language"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
 
-var languages = []string{global.CN, global.EN}
+const (
+	CN string = "cn"
+	EN string = "en"
+)
+
+var languages = []string{CN, EN}
+
+func loadJsonFiles(dir string) ([]*i18n.Message, error) {
+	var m []*i18n.Message
+	err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".json") {
+			fileBytes, readErr := os.ReadFile(path)
+			if readErr != nil {
+				return readErr
+			}
+			var temp []*i18n.Message
+			if readErr = json.Unmarshal(fileBytes, &temp); readErr != nil {
+				return readErr
+			}
+			m = append(m, temp...)
+		}
+		return nil
+	})
+	return m, err
+}
 
 func I18N() gin.HandlerFunc {
+	// 创建一个新的Bundle指定默认语言
+	bundle := i18n.NewBundle(language.Chinese)
+	// 注册一个JSON加载器
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+	// 加载语言文件
+	enMessages, err := loadJsonFiles("./pkg/locale/en")
+	if err != nil {
+		panic(err)
+	}
+	err = bundle.AddMessages(language.English, enMessages...)
+	if err != nil {
+		panic(err)
+	}
+	cnMessages, err := loadJsonFiles("./pkg/locale/zh")
+	if err != nil {
+		panic(err)
+	}
+	err = bundle.AddMessages(language.Chinese, cnMessages...)
+	if err != nil {
+		panic(err)
+	}
 	defaultLang := viper.GetString("system.defaultLang")
+	cnLocalizer := i18n.NewLocalizer(bundle, language.Chinese.String())
+	enLocalizer := i18n.NewLocalizer(bundle, language.English.String())
+	localeKey := viper.GetString("system.defaultLocaleKey")
+	if strings.TrimSpace(localeKey) == "" {
+		panic("locale key is empty")
+	}
 	return func(ctx *gin.Context) {
-		locale := ctx.GetHeader("Locale")
+		locale := ctx.GetHeader(localeKey)
 		exist := false
 		for _, val := range languages {
 			if val == locale {
@@ -33,7 +92,11 @@ func I18N() gin.HandlerFunc {
 			locale = defaultLang
 		}
 		// 在上下文中注入i18n.Localizer实例
-		ctx.Set(response.I18nTranslatorKey, global.Localizer[locale])
+		if locale == CN {
+			ctx.Set(response.I18nTranslatorKey, cnLocalizer)
+		} else if locale == EN {
+			ctx.Set(response.I18nTranslatorKey, enLocalizer)
+		}
 	}
 }
 
@@ -44,6 +107,10 @@ func InjectTranslator() gin.HandlerFunc {
 	defaultLang := viper.GetString("system.defaultLang")
 	zhTrans, _ := uni.GetTranslator("zh")
 	enTrans, _ := uni.GetTranslator("en")
+	localeKey := viper.GetString("system.defaultLocaleKey")
+	if strings.TrimSpace(localeKey) == "" {
+		panic("locale key is empty")
+	}
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
 			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -64,7 +131,7 @@ func InjectTranslator() gin.HandlerFunc {
 			panic(err)
 		}
 		return func(ctx *gin.Context) {
-			locale := ctx.GetHeader("Locale")
+			locale := ctx.GetHeader(localeKey)
 			exist := false
 			for _, val := range languages {
 				if val == locale {
@@ -75,9 +142,9 @@ func InjectTranslator() gin.HandlerFunc {
 			if !exist {
 				locale = defaultLang
 			}
-			if locale == global.CN {
+			if locale == CN {
 				ctx.Set(response.ValidatorTranslatorKey, zhTrans)
-			} else if locale == global.EN {
+			} else if locale == EN {
 				ctx.Set(response.ValidatorTranslatorKey, enTrans)
 			}
 		}
