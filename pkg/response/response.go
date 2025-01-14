@@ -3,6 +3,7 @@ package response
 import (
 	"context"
 	"errors"
+	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -10,8 +11,14 @@ import (
 	"net/http"
 )
 
-const I18nTranslatorKey = "i18n_translator"
-const ValidatorTranslatorKey = "validator_translator"
+const (
+	I18nTranslatorKey      = "i18n_translator"
+	ValidatorTranslatorKey = "validator_translator"
+)
+
+var (
+	namespaceReg = regexp.MustCompile("\\[\\d+\\]", regexp.None)
+)
 
 // BasicResponse 通用的数据返回
 type BasicResponse[T any] struct {
@@ -110,7 +117,13 @@ func ParamsValidateFail(ctx *gin.Context, err error) {
 		if trans, isOk := translator.(ut.Translator); isOk {
 			errMap := make(map[string]string)
 			for _, e := range errs {
-				errMap[e.Field()] = e.Translate(trans)
+				fieldName := e.Field()
+				replace, temp := namespaceReg.Replace(fieldName, "", 0, -1)
+				if temp == nil {
+					errMap[replace] = e.Translate(trans)
+				} else {
+					errMap[fieldName] = e.Translate(trans)
+				}
 			}
 			HttpResponse[any](ctx, InvalidParams, errMap, nil, nil)
 		} else {
