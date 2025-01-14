@@ -6,6 +6,6 @@ type CreateRoleRequest struct {
 
 type GetRoleListRequest struct {
 	Name   string `json:"name" form:"name"`
-	Limit  int    `json:"limit" form:"limit" binding:"required,min=1,max=100"`
+	Limit  int    `json:"limit" form:"limit" binding:"required,min=1,max=200"`
 	Offset int    `json:"offset"  form:"offset" binding:"min=0"`
 }
