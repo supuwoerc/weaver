@@ -77,7 +77,7 @@ func I18N() gin.HandlerFunc {
 	enLocalizer := i18n.NewLocalizer(bundle, language.English.String())
 	localeKey := viper.GetString("system.defaultLocaleKey")
 	if strings.TrimSpace(localeKey) == "" {
-		panic("locale key is empty")
+		panic("locale key未配置")
 	}
 	return func(ctx *gin.Context) {
 		locale := ctx.GetHeader(localeKey)
@@ -109,7 +109,7 @@ func InjectTranslator() gin.HandlerFunc {
 	enTrans, _ := uni.GetTranslator("en")
 	localeKey := viper.GetString("system.defaultLocaleKey")
 	if strings.TrimSpace(localeKey) == "" {
-		panic("locale key is empty")
+		panic("locale key未配置")
 	}
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
