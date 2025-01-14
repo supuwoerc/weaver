@@ -12,5 +12,5 @@ func SendText(to, subject, body string) error {
 	message.SetHeader("To", to)
 	message.SetHeader("Subject", subject)
 	message.SetBody("text/plain", body)
-	return global.Dialer.DialAndSend(message)
+	return dialer.DialAndSend(message)
 }
