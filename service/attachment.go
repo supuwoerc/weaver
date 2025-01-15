@@ -173,7 +173,11 @@ func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.Fi
 		}
 	})
 	// TODO:创建一个事务，创建文件记录的同时为文件授权
-	return a.repository.Create(ctx, attachments)
+	temp = a.repository.Create(ctx, attachments)
+	if temp != nil {
+		return nil, temp
+	}
+	return attachments, nil
 }
 
 func (a *AttachmentService) SaveFile(ctx context.Context, file *multipart.FileHeader, uid uint) (*models.Attachment, error) {

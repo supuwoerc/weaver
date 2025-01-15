@@ -2,8 +2,7 @@ package dao
 
 import (
 	"context"
-	"database/sql"
-	"gorm.io/gorm"
+	"gin-web/models"
 	"sync"
 )
 
@@ -16,16 +15,6 @@ type AttachmentDAO struct {
 	*BasicDAO
 }
 
-type Attachment struct {
-	gorm.Model
-	Name string         // 上传的文件名
-	Uid  sql.Null[uint] // 上传的用户
-	Type int8           // 文件类型
-	Size int64          // 文件大小
-	Hash string         // 文件摘要
-	Path string         // 文件路径
-}
-
 func NewAttachmentDAO() *AttachmentDAO {
 	attachmentDAOOnce.Do(func() {
 		attachmentDAO = &AttachmentDAO{
@@ -35,9 +24,9 @@ func NewAttachmentDAO() *AttachmentDAO {
 	return attachmentDAO
 }
 
-func (a *AttachmentDAO) Insert(ctx context.Context, records []*Attachment) ([]*Attachment, error) {
+func (a *AttachmentDAO) Insert(ctx context.Context, records []*models.Attachment) error {
 	err := a.Datasource(ctx).Create(records).Error
-	return records, err
+	return err
 }
 
 func (a *AttachmentDAO) IsExistByHash(ctx context.Context, hash string) (bool, error) {

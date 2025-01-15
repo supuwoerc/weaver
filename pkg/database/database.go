@@ -2,9 +2,9 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"gin-web/pkg/constant"
 	"gorm.io/gorm"
+	"strings"
 )
 
 type Action func(ctx context.Context) error
@@ -32,5 +32,9 @@ func InjectManager(ctx context.Context, m any) context.Context {
 }
 
 func FuzzKeyword(s string) string {
-	return fmt.Sprintf("%%%s%%", s)
+	if s == "" {
+		return ""
+	}
+	str := strings.ReplaceAll(strings.ReplaceAll(s, "%", "\\%"), "_", "\\_")
+	return "%" + str + "%"
 }

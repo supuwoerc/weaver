@@ -1,8 +1,10 @@
 package models
 
+import "gorm.io/gorm"
+
 type Role struct {
-	ID          uint          `json:"id"`
-	Name        string        `json:"name"`
-	Users       []*User       `json:"users,omitempty"`
-	Permissions []*Permission `json:"permissions,omitempty"`
+	Name        string        `json:"name" gorm:"unique;not null"`
+	Users       []*User       `json:"users,omitempty" gorm:"many2many:user_role;"`
+	Permissions []*Permission `json:"permissions,omitempty" gorm:"many2many:role_permission;"`
+	gorm.Model  `json:"-"`
 }

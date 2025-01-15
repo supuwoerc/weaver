@@ -50,10 +50,10 @@ func (r *RoleApi) GetRoleList(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	list, err := r.service.GetRoleList(ctx, params.Name, params.Limit, params.Offset)
+	list, total, err := r.service.GetRoleList(ctx, params.Name, params.Limit, params.Offset)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
 	}
-	response.SuccessWithPageData(ctx, 0, list)
+	response.SuccessWithPageData(ctx, total, list)
 }

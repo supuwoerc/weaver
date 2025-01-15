@@ -2,8 +2,8 @@ package dao
 
 import (
 	"context"
-	"database/sql"
 	"errors"
+	"gin-web/models"
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
@@ -19,17 +19,6 @@ type UserDAO struct {
 	*BasicDAO
 }
 
-type User struct {
-	gorm.Model
-	Email    string          `gorm:"unique;not null;;comment:邮箱"`
-	Password string          `gorm:"type:varchar(60);not null;comment:密码"`
-	Nickname sql.NullString  `gorm:"type:varchar(10);comment:昵称"`
-	Gender   sql.Null[uint8] `gorm:"type:integer;comment:性别"`
-	About    sql.NullString  `gorm:"type:varchar(60);comment:关于我"`
-	Birthday sql.NullTime    `gorm:"comment:生日"`
-	Roles    []*Role         `gorm:"many2many:user_role;"`
-}
-
 func NewUserDAO() *UserDAO {
 	userDAOOnce.Do(func() {
 		userDAO = &UserDAO{BasicDAO: NewBasicDao()}
@@ -37,7 +26,7 @@ func NewUserDAO() *UserDAO {
 	return userDAO
 }
 
-func (u *UserDAO) Insert(ctx context.Context, user *User) error {
+func (u *UserDAO) Insert(ctx context.Context, user *models.User) error {
 	err := u.Datasource(ctx).Create(user).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
@@ -46,8 +35,8 @@ func (u *UserDAO) Insert(ctx context.Context, user *User) error {
 	return err
 }
 
-func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*User, error) {
-	var user User
+func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user models.User
 	err := u.Datasource(ctx).Preload("Roles").Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return &user, response.UserLoginEmailNotFound
@@ -55,17 +44,13 @@ func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*User, error) 
 	return &user, err
 }
 
-func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles *[]Role) error {
-	return u.Datasource(ctx).Model(&User{
-		Model: gorm.Model{
-			ID: uid,
-		},
-	}).Association("Roles").Replace(roles)
+func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles []*models.Role) error {
+	return u.Datasource(ctx).Model(&models.User{}).Where("id = ?", uid).Association("Roles").Replace(roles)
 }
 
-func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles, needPermissions bool) (*User, error) {
-	var user User
-	query := u.Datasource(ctx).Model(&User{})
+func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles, needPermissions bool) (*models.User, error) {
+	var user models.User
+	query := u.Datasource(ctx).Model(&models.User{})
 	if needRoles {
 		query.Preload("Roles")
 		if needPermissions {
@@ -79,8 +64,13 @@ func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles, needPermis
 	return &user, err
 }
 
-func (u *UserDAO) FindRolesByUid(ctx context.Context, uid uint) ([]*Role, error) {
-	var result []*Role
-	err := u.Datasource(ctx).Table("sys_role as r").Select("r.id", "r.name").Joins("join sys_user_role as ur on r.id = ur.role_id and ur.user_id = ?", uid).Scan(&result).Error
+func (u *UserDAO) FindRolesByUid(ctx context.Context, uid uint) ([]*models.Role, error) {
+	var result []*models.Role
+	// TODO:改造用Association查询
+	err := u.Datasource(ctx).
+		Table("sys_role as r").
+		Select("r.id", "r.name").
+		Joins("join sys_user_role as ur on r.id = ur.role_id and ur.user_id = ?", uid).
+		Scan(&result).Error
 	return result, err
 }

@@ -3,9 +3,10 @@ package dao
 import (
 	"context"
 	"errors"
+	"gin-web/models"
+	"gin-web/pkg/database"
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
-	"gorm.io/gorm"
 	"sync"
 )
 
@@ -18,13 +19,6 @@ type RoleDAO struct {
 	*BasicDAO
 }
 
-type Role struct {
-	gorm.Model
-	Name        string        `gorm:"unique;not null;comment:角色名"`
-	Users       []*User       `gorm:"many2many:user_role;"`
-	Permissions []*Permission `gorm:"many2many:role_permission;"`
-}
-
 func NewRoleDAO() *RoleDAO {
 	roleDAOOnce.Do(func() {
 		roleDAO = &RoleDAO{BasicDAO: NewBasicDao()}
@@ -32,7 +26,7 @@ func NewRoleDAO() *RoleDAO {
 	return roleDAO
 }
 
-func (r *RoleDAO) Insert(ctx context.Context, role *Role) error {
+func (r *RoleDAO) Insert(ctx context.Context, role *models.Role) error {
 	err := r.Datasource(ctx).Create(role).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
@@ -41,17 +35,22 @@ func (r *RoleDAO) Insert(ctx context.Context, role *Role) error {
 	return err
 }
 
-func (r *RoleDAO) GetRolesByIds(ctx context.Context, ids []uint) ([]*Role, error) {
-	var roles []*Role
+func (r *RoleDAO) GetRolesByIds(ctx context.Context, ids []uint) ([]*models.Role, error) {
+	var roles []*models.Role
 	err := r.Datasource(ctx).Where("id in ?", ids).Find(&roles).Error
 	return roles, err
 }
 
-func (r *RoleDAO) GetRoleList(ctx context.Context, name string, limit, offset int) ([]*Role, error) {
-	var roles []*Role
-	query := r.Datasource(ctx) //.Where("id in ?", ids).Find(&roles).Error
+func (r *RoleDAO) GetRoleList(ctx context.Context, name string, limit, offset int) ([]*models.Role, int64, error) {
+	var roles []*models.Role
+	var total int64
+	query := r.Datasource(ctx)
 	if name != "" {
-		query = query.Where("name like ?", name)
+		query = query.Where("name like ?", database.FuzzKeyword(name))
 	}
-	return roles, nil
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	err := query.Limit(limit).Offset(offset).Find(&roles).Error
+	return roles, total, err
 }

@@ -1,16 +1,19 @@
 package models
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type User struct {
-	ID       uint       `json:"id"`
-	Email    string     `json:"email"`
-	Password string     `json:"password,omitempty"`
-	Nickname *string    `json:"nickname"`
-	Gender   *uint8     `json:"gender"`
-	About    *string    `json:"about"`
-	Birthday *time.Time `json:"birthday"`
-	Roles    []*Role    `json:"roles"`
+	Email      string     `json:"email" orm:"unique;not null;;comment:邮箱"`
+	Password   string     `json:"password,omitempty"`
+	Nickname   *string    `json:"nickname"`
+	Gender     *uint8     `json:"gender"`
+	About      *string    `json:"about"`
+	Birthday   *time.Time `json:"birthday"`
+	Roles      []*Role    `json:"roles" gorm:"many2many:user_role;"`
+	gorm.Model `json:"-"`
 }
 
 type TokenPair struct {
