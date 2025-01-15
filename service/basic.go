@@ -79,7 +79,8 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		}
 		return execErr
 	}
-	if isStarter {
+	if isStarter && !manager.AlreadyCommittedOrRolledBack {
+		manager.AlreadyCommittedOrRolledBack = true
 		if commit := manager.DB.Commit(); commit.Error != nil {
 			return commit.Error
 		}
