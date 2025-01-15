@@ -11,8 +11,6 @@ func InitRouter(r *gin.Engine) {
 	group.Use(middleware.I18N(), middleware.InjectTranslator())
 	// 系统基础测试
 	InitPingRouter(group)
-	// swagger文档
-	InitSwagger(r)
 	// 开放api(不需要走鉴权中间件)
 	InitPublicRouter(group)
 	// 登录鉴权中间件

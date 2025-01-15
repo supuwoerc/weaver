@@ -35,7 +35,7 @@ func NewUserService() *UserService {
 	return userService
 }
 
-func (u *UserService) SignUp(ctx context.Context, id string, code string, user models.User) error {
+func (u *UserService) SignUp(ctx context.Context, id string, code string, user *models.User) error {
 	verify := u.CaptchaService.Verify(id, code)
 	if !verify {
 		return response.CaptchaVerifyFail
@@ -46,7 +46,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user m
 	}
 	var pwd = string(password)
 	user.Password = pwd
-	return u.repository.Create(ctx, &user)
+	return u.repository.Create(ctx, user)
 }
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*models.User, *models.TokenPair, error) {

@@ -28,7 +28,6 @@ func NewRoleApi() *RoleApi {
 	return roleApi
 }
 
-// TODO:添加swagger文档注释
 func (r *RoleApi) CreateRole(ctx *gin.Context) {
 	var params request.CreateRoleRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {

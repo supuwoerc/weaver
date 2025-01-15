@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is a sample server celler server.",
+        "description": "基于Gin开发的项目脚手架",
         "title": "Learn-Gin-Web API",
         "contact": {
             "name": "Idris",
@@ -10,6 +10,7 @@
         },
         "version": "1.0"
     },
+    "host": "localhost:8804",
     "basePath": "/api/v1",
     "paths": {
         "/api/v1/public/user/login": {
@@ -40,19 +41,55 @@
                     "10000": {
                         "description": "操作成功",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10001": {
                         "description": "操作失败",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10002": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -86,19 +123,55 @@
                     "10000": {
                         "description": "操作成功",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10001": {
                         "description": "操作失败",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10002": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -121,19 +194,126 @@
                     "10000": {
                         "description": "操作成功",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.User"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10001": {
                         "description": "操作失败",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10002": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/set-roles": {
+            "post": {
+                "description": "设置用户角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户模块"
+                ],
+                "summary": "用户信息",
+                "responses": {
+                    "10000": {
+                        "description": "操作成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "10001": {
+                        "description": "操作失败",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "10002": {
+                        "description": "参数错误",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -141,6 +321,72 @@
         }
     },
     "definitions": {
+        "models.Permission": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                }
+            }
+        },
+        "models.Role": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Permission"
+                    }
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "birthday": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                }
+            }
+        },
         "request.LoginRequest": {
             "type": "object",
             "required": [
@@ -186,20 +432,6 @@
                     "type": "integer"
                 },
                 "data": {},
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.BasicResponse-string": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "data": {
-                    "type": "string"
-                },
                 "message": {
                     "type": "string"
                 }

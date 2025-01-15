@@ -47,19 +47,55 @@ const docTemplate = `{
                     "10000": {
                         "description": "操作成功",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10001": {
                         "description": "操作失败",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10002": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -93,19 +129,55 @@ const docTemplate = `{
                     "10000": {
                         "description": "操作成功",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10001": {
                         "description": "操作失败",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10002": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -128,19 +200,126 @@ const docTemplate = `{
                     "10000": {
                         "description": "操作成功",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.User"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10001": {
                         "description": "操作失败",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "10002": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/set-roles": {
+            "post": {
+                "description": "设置用户角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户模块"
+                ],
+                "summary": "用户信息",
+                "responses": {
+                    "10000": {
+                        "description": "操作成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "10001": {
+                        "description": "操作失败",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "10002": {
+                        "description": "参数错误",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.BasicResponse-any"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -148,6 +327,72 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.Permission": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                }
+            }
+        },
+        "models.Role": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Permission"
+                    }
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "birthday": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                }
+            }
+        },
         "request.LoginRequest": {
             "type": "object",
             "required": [
@@ -197,20 +442,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "response.BasicResponse-string": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "data": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
         }
     }
 }`
@@ -218,11 +449,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "",
+	Host:             "localhost:8804",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Learn-Gin-Web API",
-	Description:      "This is a sample server celler server.",
+	Description:      "基于Gin开发的项目脚手架",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
