@@ -42,7 +42,6 @@ func (r *RoleApi) CreateRole(ctx *gin.Context) {
 	response.Success(ctx)
 }
 
-// TODO:添加swagger文档注释
 func (r *RoleApi) GetRoleList(ctx *gin.Context) {
 	var params request.GetRoleListRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {

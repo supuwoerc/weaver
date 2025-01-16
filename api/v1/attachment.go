@@ -36,7 +36,6 @@ func NewAttachmentApi() *AttachmentApi {
 	return attachmentApi
 }
 
-// MultipleUpload TODO：补充文档
 func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -78,7 +77,6 @@ func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 	response.SuccessWithData(ctx, ret)
 }
 
-// Upload TODO：补充文档
 func (a *AttachmentApi) Upload(ctx *gin.Context) {
 	file, err := ctx.FormFile("file")
 	if err != nil {

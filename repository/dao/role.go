@@ -44,7 +44,7 @@ func (r *RoleDAO) GetRolesByIds(ctx context.Context, ids []uint) ([]*models.Role
 func (r *RoleDAO) GetRoleList(ctx context.Context, name string, limit, offset int) ([]*models.Role, int64, error) {
 	var roles []*models.Role
 	var total int64
-	query := r.Datasource(ctx)
+	query := r.Datasource(ctx).Model(&models.Role{})
 	if name != "" {
 		query = query.Where("name like ?", database.FuzzKeyword(name))
 	}
