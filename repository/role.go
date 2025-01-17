@@ -25,9 +25,11 @@ func NewRoleRepository() *RoleRepository {
 	return roleRepository
 }
 
-func (r *RoleRepository) Create(ctx context.Context, name string) error {
+func (r *RoleRepository) Create(ctx context.Context, name string, users []*models.User, permissions []*models.Permission) error {
 	return r.dao.Insert(ctx, &models.Role{
-		Name: name,
+		Name:        name,
+		Users:       users,
+		Permissions: permissions,
 	})
 }
 

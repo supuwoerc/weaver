@@ -34,7 +34,7 @@ func (r *RoleApi) CreateRole(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	err := r.service.CreateRole(ctx, params.Name)
+	err := r.service.CreateRole(ctx, params.Name, params.Users, params.Permissions)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

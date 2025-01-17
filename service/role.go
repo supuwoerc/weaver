@@ -28,8 +28,17 @@ func NewRoleService() *RoleService {
 	return roleService
 }
 
-func (r *RoleService) CreateRole(ctx context.Context, name string) error {
-	return r.repository.Create(ctx, name)
+func (r *RoleService) CreateRole(ctx context.Context, name string, userIds, permissionIds []uint) error {
+	// TODO:检查用户信息/角色信息/记录信息到用户时间线
+	return r.Transaction(ctx, false, func(ctx context.Context) error {
+		// 查询有效的用户
+		// 查询有效的角色
+		// 创建角色 & 建立关联关系
+		if err := r.repository.Create(ctx, name, nil, nil); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (r *RoleService) FilterValidRoles(ctx context.Context, roleIds []uint) ([]uint, error) {

@@ -1,7 +1,9 @@
 package request
 
 type CreateRoleRequest struct {
-	Name string `json:"name" binding:"required"`
+	Name        string `json:"name" binding:"required"`
+	Users       []uint `json:"users" binding:"omitempty,dive,min=1"`
+	Permissions []uint `json:"permissions" binding:"omitempty,dive,min=1"`
 }
 
 type GetRoleListRequest struct {
