@@ -21,4 +21,6 @@ func InitRouter(r *gin.Engine) {
 	InitRoleRouter(group)
 	// 附件模块
 	InitAttachmentRouter(group)
+	// 权限模块
+	InitPermissionRouter(group)
 }

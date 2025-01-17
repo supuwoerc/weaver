@@ -29,7 +29,7 @@ func (a *AttachmentDAO) Insert(ctx context.Context, records []*models.Attachment
 	return err
 }
 
-func (a *AttachmentDAO) IsExistByHash(ctx context.Context, hash string) (bool, error) {
+func (a *AttachmentDAO) GetIsExistByHash(ctx context.Context, hash string) (bool, error) {
 	var count int64
 	err := a.Datasource(ctx).Where("hash = ?", hash).Count(&count).Error
 	return count > 0, err

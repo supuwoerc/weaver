@@ -29,6 +29,6 @@ func (r *AttachmentRepository) Create(ctx context.Context, records []*models.Att
 	return r.dao.Insert(ctx, records)
 }
 
-func (r *AttachmentRepository) IsExistByHash(ctx context.Context, hash string) (bool, error) {
-	return r.dao.IsExistByHash(ctx, hash)
+func (r *AttachmentRepository) GetIsExistByHash(ctx context.Context, hash string) (bool, error) {
+	return r.dao.GetIsExistByHash(ctx, hash)
 }

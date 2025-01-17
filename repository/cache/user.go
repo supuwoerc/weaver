@@ -28,7 +28,7 @@ func NewUserCache() *UserCache {
 	return userCache
 }
 
-func (u *UserCache) HSetTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
+func (u *UserCache) CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
 	if pair == nil {
 		return response.UserLoginTokenPairCacheErr
 	}
@@ -39,7 +39,7 @@ func (u *UserCache) HSetTokenPair(ctx context.Context, email string, pair *model
 	return u.redis.Client.HSet(ctx, tokenPairKey, email, result).Err()
 }
 
-func (u *UserCache) HExistsTokenPair(ctx context.Context, email string) (bool, error) {
+func (u *UserCache) GetTokenPairIsExist(ctx context.Context, email string) (bool, error) {
 	return u.redis.Client.HExists(ctx, tokenPairKey, email).Result()
 }
 
@@ -47,7 +47,7 @@ func (u *UserCache) HDelTokenPair(ctx context.Context, email string) error {
 	return u.redis.Client.HDel(ctx, tokenPairKey, email).Err()
 }
 
-func (u *UserCache) HGetTokenPair(ctx context.Context, email string) (*models.TokenPair, error) {
+func (u *UserCache) GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error) {
 	result, err := u.redis.Client.HGet(ctx, tokenPairKey, email).Result()
 	if err != nil {
 		return nil, err

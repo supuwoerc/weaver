@@ -28,7 +28,7 @@ func NewCaptchaApi() *CaptchaApi {
 }
 
 func (c *CaptchaApi) GenerateCaptcha(ctx *gin.Context) {
-	captchaInfo, err := c.service.Generate()
+	captchaInfo, err := c.service.Generate(service.SignUp)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

@@ -48,7 +48,7 @@ func (r *RoleApi) GetRoleList(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	list, total, err := r.service.GetRoleList(ctx, params.Name, params.Limit, params.Offset)
+	list, total, err := r.service.GetRoleList(ctx, params.Keyword, params.Limit, params.Offset)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

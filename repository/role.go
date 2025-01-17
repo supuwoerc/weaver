@@ -33,10 +33,10 @@ func (r *RoleRepository) Create(ctx context.Context, name string, users []*model
 	})
 }
 
-func (r *RoleRepository) GetRolesByIds(ctx context.Context, ids []uint) ([]*models.Role, error) {
-	return r.dao.GetRolesByIds(ctx, ids)
+func (r *RoleRepository) GetByIds(ctx context.Context, ids []uint, needUsers, needPermissions bool) ([]*models.Role, error) {
+	return r.dao.GetByIds(ctx, ids, needUsers, needPermissions)
 }
 
-func (r *RoleRepository) GetRoleList(ctx context.Context, name string, limit, offset int) ([]*models.Role, int64, error) {
-	return r.dao.GetRoleList(ctx, name, limit, offset)
+func (r *RoleRepository) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error) {
+	return r.dao.GetList(ctx, keyword, limit, offset)
 }

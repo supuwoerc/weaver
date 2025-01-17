@@ -11,9 +11,5 @@ func InitUserRouter(r *gin.RouterGroup) {
 	{
 		userAccessGroup.GET("refresh-token")
 		userAccessGroup.GET("profile", userApi.Profile)
-		// TODO:限制管理员权限
-		userAccessGroup.POST("set-roles", userApi.SetRoles)
-		// TODO:限制管理员权限
-		userAccessGroup.GET("get-roles", userApi.GetRoles)
 	}
 }

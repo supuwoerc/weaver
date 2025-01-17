@@ -26,7 +26,7 @@ func NewUserDAO() *UserDAO {
 	return userDAO
 }
 
-func (u *UserDAO) Insert(ctx context.Context, user *models.User) error {
+func (u *UserDAO) Created(ctx context.Context, user *models.User) error {
 	err := u.Datasource(ctx).Create(user).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
@@ -35,7 +35,7 @@ func (u *UserDAO) Insert(ctx context.Context, user *models.User) error {
 	return err
 }
 
-func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+func (u *UserDAO) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
 	err := u.Datasource(ctx).Preload("Roles").Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
@@ -44,11 +44,7 @@ func (u *UserDAO) FindByEmail(ctx context.Context, email string) (*models.User, 
 	return &user, err
 }
 
-func (u *UserDAO) AssociateRoles(ctx context.Context, uid uint, roles []*models.Role) error {
-	return u.Datasource(ctx).Model(&models.User{}).Where("id = ?", uid).Association("Roles").Replace(roles)
-}
-
-func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles, needPermissions bool) (*models.User, error) {
+func (u *UserDAO) GetById(ctx context.Context, uid uint, needRoles, needPermissions bool) (*models.User, error) {
 	var user models.User
 	query := u.Datasource(ctx).Model(&models.User{})
 	if needRoles {
@@ -64,13 +60,15 @@ func (u *UserDAO) FindByUid(ctx context.Context, uid uint, needRoles, needPermis
 	return &user, err
 }
 
-func (u *UserDAO) FindRolesByUid(ctx context.Context, uid uint) ([]*models.Role, error) {
-	var result []*models.Role
-	// TODO:改造用Association查询
-	err := u.Datasource(ctx).
-		Table("sys_role as r").
-		Select("r.id", "r.name").
-		Joins("join sys_user_role as ur on r.id = ur.role_id and ur.user_id = ?", uid).
-		Scan(&result).Error
-	return result, err
+func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, needRoles, needPermissions bool) ([]*models.User, error) {
+	var users []*models.User
+	query := u.Datasource(ctx).Model(&models.User{})
+	if needRoles {
+		query.Preload("Roles")
+		if needPermissions {
+			query.Preload("Roles.Permissions")
+		}
+	}
+	err := query.Where("id in (?)", ids).Find(&users).Error
+	return users, err
 }

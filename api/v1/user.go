@@ -100,31 +100,3 @@ func (u *UserApi) Profile(ctx *gin.Context) {
 	profile.Password = ""
 	response.SuccessWithData(ctx, profile)
 }
-
-func (u *UserApi) SetRoles(ctx *gin.Context) {
-	var params request.SetRolesRequest
-	if err := ctx.ShouldBindJSON(&params); err != nil {
-		response.ParamsValidateFail(ctx, err)
-		return
-	}
-	err := u.service.SetRoles(ctx, params.UserId, params.RoleIds)
-	if err != nil {
-		response.FailWithError(ctx, err)
-		return
-	}
-	response.Success(ctx)
-}
-
-func (u *UserApi) GetRoles(ctx *gin.Context) {
-	var params request.GetRolesRequest
-	if err := ctx.ShouldBindQuery(&params); err != nil {
-		response.ParamsValidateFail(ctx, err)
-		return
-	}
-	roles, err := u.service.GetRoles(ctx, params.UserId)
-	if err != nil {
-		response.FailWithError(ctx, err)
-		return
-	}
-	response.SuccessWithData(ctx, roles)
-}

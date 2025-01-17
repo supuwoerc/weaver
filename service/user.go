@@ -14,8 +14,8 @@ import (
 type UserService struct {
 	*BasicService
 	*CaptchaService
-	*RoleService
-	repository *repository.UserRepository
+	userRepository *repository.UserRepository
+	roleRepository *repository.RoleRepository
 }
 
 var (
@@ -28,15 +28,15 @@ func NewUserService() *UserService {
 		userService = &UserService{
 			BasicService:   NewBasicService(),
 			CaptchaService: NewCaptchaService(),
-			RoleService:    NewRoleService(),
-			repository:     repository.NewUserRepository(),
+			userRepository: repository.NewUserRepository(),
+			roleRepository: repository.NewRoleRepository(),
 		}
 	})
 	return userService
 }
 
 func (u *UserService) SignUp(ctx context.Context, id string, code string, user *models.User) error {
-	verify := u.CaptchaService.Verify(id, code)
+	verify := u.CaptchaService.Verify(SignUp, id, code)
 	if !verify {
 		return response.CaptchaVerifyFail
 	}
@@ -46,11 +46,11 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	}
 	var pwd = string(password)
 	user.Password = pwd
-	return u.repository.Create(ctx, user)
+	return u.userRepository.Create(ctx, user)
 }
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*models.User, *models.TokenPair, error) {
-	user, err := u.repository.FindByEmail(ctx, email)
+	user, err := u.userRepository.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -58,7 +58,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	if err != nil {
 		return nil, nil, response.UserLoginFail
 	}
-	pair, err := u.repository.GetTokenPair(ctx, email)
+	pair, err := u.userRepository.GetTokenPair(ctx, email)
 	builder := jwt.NewJwtBuilder()
 	if err == nil && pair != nil {
 		claims, parseErr := builder.ParseToken(pair.AccessToken)
@@ -79,7 +79,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	if err != nil {
 		return nil, nil, err
 	}
-	err = u.repository.CacheTokenPair(ctx, user.Email, &models.TokenPair{
+	err = u.userRepository.CacheTokenPair(ctx, user.Email, &models.TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
@@ -92,29 +92,6 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	}, nil
 }
 
-func (u *UserService) SetRoles(ctx context.Context, uid uint, roleIds []uint) error {
-	// TODO:配置ADMIN账户，限制ADMIN账户被更改角色
-	user, err := u.repository.FindByUid(ctx, uid, false, false)
-	if err != nil {
-		return err
-	}
-	if user.ID == 0 {
-		return response.UserNotExist
-	}
-	validIds, err := u.RoleService.FilterValidRoles(ctx, roleIds)
-	if err != nil {
-		return err
-	}
-	if len(validIds) == 0 {
-		return response.NoValidRoles
-	}
-	return u.repository.AssociateRoles(ctx, uid, validIds)
-}
-
-func (u *UserService) GetRoles(ctx context.Context, uid uint) ([]*models.Role, error) {
-	return u.repository.FindRolesByUid(ctx, uid)
-}
-
 func (u *UserService) Profile(ctx context.Context, uid uint) (*models.User, error) {
-	return u.repository.FindByUid(ctx, uid, true, true)
+	return u.userRepository.GetById(ctx, uid, true, true)
 }
