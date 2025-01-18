@@ -7,6 +7,7 @@ import (
 	"gin-web/pkg/database"
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -43,6 +44,21 @@ func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, needRoles bool
 	}
 	err := query.Where("id in (?)", ids).Find(&result).Error
 	return result, err
+}
+
+func (r *PermissionDAO) GetById(ctx context.Context, id uint, needRoles bool) (*models.Permission, error) {
+	var result = models.Permission{
+		Roles: make([]*models.Role, 0),
+	}
+	query := r.Datasource(ctx).Model(&models.Permission{})
+	if needRoles {
+		query = query.Preload("Roles")
+	}
+	err := query.Where("id = ?", id).Find(&result).Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		return &result, response.PermissionCreateDuplicate
+	}
+	return &result, err
 }
 
 func (r *PermissionDAO) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error) {

@@ -30,6 +30,7 @@ func _() {
 	_ = x[RoleCreateDuplicateName-40000]
 	_ = x[NoValidRoles-40001]
 	_ = x[PermissionCreateDuplicate-50000]
+	_ = x[PermissionNotExist-50001]
 	_ = x[InvalidAttachmentLength-50000]
 }
 
@@ -38,13 +39,14 @@ const (
 	_StatusCode_name_1 = "userCreateDuplicateEmailuserLoginEmailNotFounduserLoginFailuserLoginTokenPairCacheErrpasswordValidErruserNotExist"
 	_StatusCode_name_2 = "captchaVerifyFail"
 	_StatusCode_name_3 = "roleCreateDuplicateNamenoValidRoles"
-	_StatusCode_name_4 = "permissionCreateDuplicate"
+	_StatusCode_name_4 = "permissionCreateDuplicatepermissionNotExist"
 )
 
 var (
 	_StatusCode_index_0 = [...]uint8{0, 2, 7, 20, 32, 45, 58, 77, 100, 107, 118, 128, 132}
 	_StatusCode_index_1 = [...]uint8{0, 24, 46, 59, 85, 101, 113}
 	_StatusCode_index_3 = [...]uint8{0, 23, 35}
+	_StatusCode_index_4 = [...]uint8{0, 25, 43}
 )
 
 func (i StatusCode) String() string {
@@ -60,8 +62,9 @@ func (i StatusCode) String() string {
 	case 40000 <= i && i <= 40001:
 		i -= 40000
 		return _StatusCode_name_3[_StatusCode_index_3[i]:_StatusCode_index_3[i+1]]
-	case i == 50000:
-		return _StatusCode_name_4
+	case 50000 <= i && i <= 50001:
+		i -= 50000
+		return _StatusCode_name_4[_StatusCode_index_4[i]:_StatusCode_index_4[i+1]]
 	default:
 		return "StatusCode(" + strconv.FormatInt(int64(i), 10) + ")"
 	}

@@ -2,5 +2,9 @@
   {
     "id": "permissionCreateDuplicate",
     "other": "Permission already exists"
+  },
+  {
+    "id": "permissionNotExist",
+    "other": "Permission not exist"
   }
 ]

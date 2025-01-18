@@ -55,3 +55,17 @@ func (r *PermissionApi) GetPermissionList(ctx *gin.Context) {
 	}
 	response.SuccessWithPageData(ctx, total, list)
 }
+
+func (r *PermissionApi) GetPermissionDetail(ctx *gin.Context) {
+	var params request.GetPermissionDetailRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	detail, err := r.service.GetPermissionDetail(ctx, params.ID)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.SuccessWithData(ctx, detail)
+}

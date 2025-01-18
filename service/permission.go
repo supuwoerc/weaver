@@ -44,3 +44,7 @@ func (r *PermissionService) CreatePermission(ctx context.Context, name, resource
 func (r *PermissionService) GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error) {
 	return r.permissionRepository.GetList(ctx, keyword, limit, offset)
 }
+
+func (r *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*models.Permission, error) {
+	return r.permissionRepository.GetById(ctx, id, true)
+}

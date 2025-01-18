@@ -11,3 +11,7 @@ type GetPermissionListRequest struct {
 	Limit   int    `json:"limit" form:"limit" binding:"required,min=1,max=200"`
 	Offset  int    `json:"offset"  form:"offset" binding:"min=0"`
 }
+
+type GetPermissionDetailRequest struct {
+	ID uint `json:"id" form:"id" binding:"required,min=1"`
+}
