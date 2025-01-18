@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gin-web/models"
+	"gin-web/pkg/database"
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
 	"sync"
@@ -42,4 +43,19 @@ func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, needRoles bool
 	}
 	err := query.Where("id in (?)", ids).Find(&result).Error
 	return result, err
+}
+
+func (r *PermissionDAO) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error) {
+	var permissions []*models.Permission
+	var total int64
+	query := r.Datasource(ctx).Model(&models.Permission{})
+	if keyword != "" {
+		keyword = database.FuzzKeyword(keyword)
+		query = query.Where("name like ? or resource like ?", keyword, keyword)
+	}
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	err := query.Limit(limit).Offset(offset).Find(&permissions).Error
+	return permissions, total, err
 }

@@ -35,3 +35,7 @@ func (r *PermissionRepository) Create(ctx context.Context, name, resource string
 func (r *PermissionRepository) GetByIds(ctx context.Context, ids []uint, needRoles bool) ([]*models.Permission, error) {
 	return r.dao.GetByIds(ctx, ids, needRoles)
 }
+
+func (r *PermissionRepository) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error) {
+	return r.dao.GetList(ctx, keyword, limit, offset)
+}
