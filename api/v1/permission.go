@@ -69,3 +69,31 @@ func (r *PermissionApi) GetPermissionDetail(ctx *gin.Context) {
 	}
 	response.SuccessWithData(ctx, detail)
 }
+
+func (r *PermissionApi) UpdatePermission(ctx *gin.Context) {
+	var params request.UpdatePermissionRequest
+	if err := ctx.ShouldBindJSON(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	err := r.service.UpdatePermission(ctx, params.ID, params.Name, params.Resource, params.Roles)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.Success(ctx)
+}
+
+func (r *PermissionApi) DeletePermission(ctx *gin.Context) {
+	var params request.DeletePermissionRequest
+	if err := ctx.ShouldBindJSON(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	err := r.service.DeletePermission(ctx, params.ID)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.Success(ctx)
+}

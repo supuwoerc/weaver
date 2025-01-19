@@ -46,6 +46,7 @@ const (
 const (
 	PermissionCreateDuplicate StatusCode = 50000 // permissionCreateDuplicate
 	PermissionNotExist        StatusCode = 50001 // permissionNotExist
+	PermissionExistRoleRef    StatusCode = 50002 // permissionExistRoleRef
 )
 
 const (

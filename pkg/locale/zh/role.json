@@ -6,5 +6,9 @@
   {
     "id": "noValidRoles",
     "other": "无有效角色"
+  },
+  {
+    "id": "permissionExistRoleRef",
+    "other": "存在角色引用"
   }
 ]

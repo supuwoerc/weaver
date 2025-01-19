@@ -40,7 +40,7 @@ type BasicModel struct {
 	ID        uint           `json:"id" gorm:"primarykey"`
 	CreatedAt UpsertTime     `json:"created_at"`
 	UpdatedAt UpsertTime     `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
 type Action func(ctx context.Context) error

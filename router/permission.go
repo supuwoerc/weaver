@@ -13,5 +13,7 @@ func InitPermissionRouter(r *gin.RouterGroup) {
 		permissionAccessGroup.POST("create", permissionApi.CreatePermission)
 		permissionAccessGroup.GET("list", permissionApi.GetPermissionList)
 		permissionAccessGroup.GET("detail", permissionApi.GetPermissionDetail)
+		permissionAccessGroup.POST("update", permissionApi.UpdatePermission)
+		permissionAccessGroup.POST("delete", permissionApi.DeletePermission)
 	}
 }

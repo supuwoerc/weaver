@@ -56,7 +56,7 @@ func (r *PermissionDAO) GetById(ctx context.Context, id uint, needRoles bool) (*
 	}
 	err := query.Where("id = ?", id).Find(&result).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return &result, response.PermissionCreateDuplicate
+		return &result, response.PermissionNotExist
 	}
 	return &result, err
 }
@@ -74,4 +74,18 @@ func (r *PermissionDAO) GetList(ctx context.Context, keyword string, limit, offs
 	}
 	err := query.Limit(limit).Offset(offset).Find(&permissions).Error
 	return permissions, total, err
+}
+
+func (r *PermissionDAO) DeleteById(ctx context.Context, id uint) error {
+	return r.Datasource(ctx).Model(&models.Permission{}).Where("id = ?", id).Delete(&models.Permission{}).Error
+}
+
+func (r *PermissionDAO) GetRolesCount(ctx context.Context, id uint) int64 {
+	return r.Datasource(ctx).Model(&models.Permission{
+		BasicModel: database.BasicModel{ID: id},
+	}).Association("Roles").Count()
+}
+
+func (r *PermissionDAO) Update(ctx context.Context, permission *models.Permission) error {
+	return r.Datasource(ctx).Save(permission).Error
 }
