@@ -54,13 +54,16 @@ func (r *PermissionRepository) GetRolesCount(ctx context.Context, id uint) int64
 	return r.dao.GetRolesCount(ctx, id)
 }
 
-func (r *PermissionRepository) Update(ctx context.Context, id uint, name, resource string, roles []*models.Role) error {
+func (r *PermissionRepository) Update(ctx context.Context, id uint, name, resource string) error {
 	return r.dao.Update(ctx, &models.Permission{
 		Name:     name,
 		Resource: resource,
-		Roles:    roles,
 		BasicModel: database.BasicModel{
 			ID: id,
 		},
 	})
+}
+
+func (r *PermissionRepository) AssociateRoles(ctx context.Context, id uint, roles []*models.Role) error {
+	return r.dao.AssociateRoles(ctx, id, roles)
 }

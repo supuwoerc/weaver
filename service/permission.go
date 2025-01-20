@@ -49,13 +49,20 @@ func (r *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*
 }
 
 func (r *PermissionService) UpdatePermission(ctx context.Context, id uint, name, resource string, roleIds []uint) error {
-	// 查询有效的角色
-	roles, err := r.roleRepository.GetByIds(ctx, roleIds, false, false)
-	if err != nil {
-		return err
-	}
-	// 更新权限
-	return r.permissionRepository.Update(ctx, id, name, resource, roles)
+	return r.Transaction(ctx, false, func(ctx context.Context) error {
+		// 更新权限
+		if err := r.permissionRepository.Update(ctx, id, name, resource); err != nil {
+			return err
+		}
+		// 查询有效的角色
+		roles, err := r.roleRepository.GetByIds(ctx, roleIds, false, false)
+		if err != nil {
+			return err
+		}
+		// 更新关联关系
+		return r.permissionRepository.AssociateRoles(ctx, id, roles)
+	})
+	//return r.permissionRepository.Update(ctx, id, name, resource)
 }
 
 func (r *PermissionService) DeletePermission(ctx context.Context, id uint) error {
