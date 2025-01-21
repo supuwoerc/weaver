@@ -6,7 +6,6 @@ import (
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
 	"gin-web/repository"
-	"github.com/samber/lo"
 	"golang.org/x/crypto/bcrypt"
 	"sync"
 )
@@ -67,14 +66,10 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 			return user, pair, nil
 		}
 	}
-	roleIds := lo.Map[*models.Role, uint](user.Roles, func(item *models.Role, _ int) uint {
-		return item.ID
-	})
 	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
 		UID:      user.ID,
 		Email:    user.Email,
 		Nickname: user.Nickname,
-		Roles:    roleIds,
 	})
 	if err != nil {
 		return nil, nil, err

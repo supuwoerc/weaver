@@ -12,10 +12,9 @@ import (
 )
 
 type TokenClaimsBasic struct {
-	UID      uint
-	Email    string
-	Nickname *string
-	Roles    []uint // token中仅存储角色ID
+	UID      uint    `json:"uid"`
+	Email    string  `json:"email"`
+	Nickname *string `json:"nickname"`
 }
 
 type TokenClaims struct {
@@ -76,7 +75,6 @@ func (j *TokenBuilder) ReGenerateTokenPairs(accessToken, refreshToken string, ca
 		UID:      claims.User.UID,
 		Email:    claims.User.Email,
 		Nickname: claims.User.Nickname,
-		Roles:    claims.User.Roles,
 	}, createAt)
 	if err != nil {
 		return "", "", err
