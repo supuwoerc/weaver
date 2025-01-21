@@ -26,7 +26,7 @@ func NewUserDAO() *UserDAO {
 	return userDAO
 }
 
-func (u *UserDAO) Created(ctx context.Context, user *models.User) error {
+func (u *UserDAO) Create(ctx context.Context, user *models.User) error {
 	err := u.Datasource(ctx).Create(user).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {

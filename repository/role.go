@@ -26,7 +26,7 @@ func NewRoleRepository() *RoleRepository {
 }
 
 func (r *RoleRepository) Create(ctx context.Context, name string, users []*models.User, permissions []*models.Permission) error {
-	return r.dao.Insert(ctx, &models.Role{
+	return r.dao.Create(ctx, &models.Role{
 		Name:        name,
 		Users:       users,
 		Permissions: permissions,

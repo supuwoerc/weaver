@@ -26,7 +26,7 @@ func NewRoleDAO() *RoleDAO {
 	return roleDAO
 }
 
-func (r *RoleDAO) Insert(ctx context.Context, role *models.Role) error {
+func (r *RoleDAO) Create(ctx context.Context, role *models.Role) error {
 	err := r.Datasource(ctx).Create(role).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {

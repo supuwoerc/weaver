@@ -18,7 +18,7 @@ type RedisLock struct {
 }
 
 const (
-	defaultMaxRetries = 16
+	defaultMaxRetries = 32
 )
 
 // NewRedisLock 创建锁

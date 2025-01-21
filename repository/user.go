@@ -29,7 +29,7 @@ func NewUserRepository() *UserRepository {
 }
 
 func (u *UserRepository) Create(ctx context.Context, user *models.User) error {
-	return u.dao.Created(ctx, user)
+	return u.dao.Create(ctx, user)
 }
 
 func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {

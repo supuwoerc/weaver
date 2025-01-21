@@ -30,45 +30,55 @@ func NewPermissionService() *PermissionService {
 	return permissionService
 }
 
-func (r *PermissionService) CreatePermission(ctx context.Context, name, resource string, roleIds []uint) error {
-	// 查询有效的角色
-	roles, err := r.roleRepository.GetByIds(ctx, roleIds, false, false)
-	if err != nil {
-		return err
-	}
-	// 创建权限 & 建立关联关系
-	return r.permissionRepository.Create(ctx, name, resource, roles)
+func (p *PermissionService) CreatePermission(ctx context.Context, name, resource string, roleIds []uint) error {
+	return p.Transaction(ctx, false, func(ctx context.Context) error {
+		// 查询有效的角色
+		var roles []*models.Role
+		var err error
+		if len(roleIds) > 0 {
+			// TODO:加锁
+			roles, err = p.roleRepository.GetByIds(ctx, roleIds, false, false)
+			if err != nil {
+				return err
+			}
+		}
+		// 创建权限 & 建立关联关系
+		return p.permissionRepository.Create(ctx, name, resource, roles)
+	})
 }
 
-func (r *PermissionService) GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error) {
-	return r.permissionRepository.GetList(ctx, keyword, limit, offset)
+func (p *PermissionService) GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error) {
+	return p.permissionRepository.GetList(ctx, keyword, limit, offset)
 }
 
-func (r *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*models.Permission, error) {
-	return r.permissionRepository.GetById(ctx, id, true)
+func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*models.Permission, error) {
+	return p.permissionRepository.GetById(ctx, id, true)
 }
 
-func (r *PermissionService) UpdatePermission(ctx context.Context, id uint, name, resource string, roleIds []uint) error {
-	return r.Transaction(ctx, false, func(ctx context.Context) error {
+func (p *PermissionService) UpdatePermission(ctx context.Context, id uint, name, resource string, roleIds []uint) error {
+	return p.Transaction(ctx, false, func(ctx context.Context) error {
 		// 更新权限
-		if err := r.permissionRepository.Update(ctx, id, name, resource); err != nil {
+		if err := p.permissionRepository.Update(ctx, id, name, resource); err != nil {
 			return err
 		}
 		// 查询有效的角色
-		roles, err := r.roleRepository.GetByIds(ctx, roleIds, false, false)
-		if err != nil {
-			return err
+		var roles []*models.Role
+		if len(roleIds) > 0 {
+			r, err := p.roleRepository.GetByIds(ctx, roleIds, false, false)
+			if err != nil {
+				return err
+			}
+			roles = r
 		}
 		// 更新关联关系
-		return r.permissionRepository.AssociateRoles(ctx, id, roles)
+		return p.permissionRepository.AssociateRoles(ctx, id, roles)
 	})
-	//return r.permissionRepository.Update(ctx, id, name, resource)
 }
 
-func (r *PermissionService) DeletePermission(ctx context.Context, id uint) error {
-	count := r.permissionRepository.GetRolesCount(ctx, id)
+func (p *PermissionService) DeletePermission(ctx context.Context, id uint) error {
+	count := p.permissionRepository.GetRolesCount(ctx, id)
 	if count > 0 {
 		return response.PermissionExistRoleRef
 	}
-	return r.permissionRepository.DeleteById(ctx, id)
+	return p.permissionRepository.DeleteById(ctx, id)
 }
