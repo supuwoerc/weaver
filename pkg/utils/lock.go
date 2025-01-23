@@ -4,11 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gin-web/pkg/constant"
 	"gin-web/pkg/email"
 	"gin-web/pkg/global"
 	"gin-web/pkg/response"
 	"github.com/go-redsync/redsync/v4"
+	"github.com/samber/lo"
 	"github.com/spf13/viper"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -18,14 +22,25 @@ type RedisLock struct {
 }
 
 const (
-	defaultMaxRetries = 32
+	defaultMaxRetries   = 32
+	defaultLockDuration = 10 * time.Second
 )
 
-// NewRedisLock 创建锁
-func NewRedisLock(name string, t time.Duration) *RedisLock {
+// NewLock 创建锁
+func NewLock[T uint | string](t constant.Prefix, object ...T) *RedisLock {
+	var temp []string
+	switch any(object).(type) {
+	case []uint:
+		temp = lo.Map(any(object).([]uint), func(item uint, _ int) string {
+			return strconv.Itoa(int(item))
+		})
+	case []string:
+		temp = any(object).([]string)
+	}
+	name := fmt.Sprintf("%s:%s", t.String(), strings.Join(temp, "_"))
 	return &RedisLock{
-		Mutex:    global.RedisClient.Redsync.NewMutex(name, redsync.WithExpiry(t), redsync.WithTries(defaultMaxRetries)),
-		duration: t,
+		Mutex:    global.RedisClient.Redsync.NewMutex(name, redsync.WithExpiry(defaultLockDuration), redsync.WithTries(defaultMaxRetries)),
+		duration: defaultLockDuration,
 	}
 }
 

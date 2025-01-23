@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"gin-web/pkg/constant"
 	"gin-web/pkg/global"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
@@ -36,7 +37,7 @@ func SlowResponse(ctx *gin.Context) {
 }
 
 func LockResponse(ctx *gin.Context) {
-	lock := utils.NewRedisLock("test", time.Second*10)
+	lock := utils.NewLock[uint](constant.PermissionIdLockPrefix, 100, 200)
 	if err := utils.TryLock(ctx, lock, true); err != nil {
 		response.FailWithError(ctx, err)
 		return

@@ -55,7 +55,7 @@ func LoginRequired() gin.HandlerFunc {
 				unnecessaryRefreshResponse(ctx)
 				return
 			}
-			ctx.Set(constant.ClaimsKeyContext, claims)
+			ctx.Set(constant.ClaimsContextKey, claims)
 		} else if ctx.Request.URL.Path == refreshUrl && ctx.Request.Method == http.MethodGet {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
