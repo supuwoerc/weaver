@@ -12,7 +12,7 @@ import (
 )
 
 type TokenClaimsBasic struct {
-	UID      uint    `json:"uid"`
+	ID       uint    `json:"uid"`
 	Email    string  `json:"email"`
 	Nickname *string `json:"nickname"`
 }
@@ -67,12 +67,12 @@ func (j *TokenBuilder) ReGenerateTokenPairs(accessToken, refreshToken string, ca
 	if !errors.Is(response.InvalidToken, err) {
 		return "", "", err
 	}
-	if claims == nil || claims.User.UID == 0 {
+	if claims == nil || claims.User.ID == 0 {
 		return "", "", response.InvalidToken
 	}
 	createAt := time.Now()
 	newAccessToken, err := j.generateAccessToken(&TokenClaimsBasic{
-		UID:      claims.User.UID,
+		ID:       claims.User.ID,
 		Email:    claims.User.Email,
 		Nickname: claims.User.Nickname,
 	}, createAt)

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"gin-web/models"
-	"gin-web/pkg/database"
 	"gin-web/repository/dao"
 	"sync"
 )
@@ -26,12 +25,8 @@ func NewPermissionRepository() *PermissionRepository {
 	return permissionRepository
 }
 
-func (r *PermissionRepository) Create(ctx context.Context, name, resource string, roles []*models.Role) error {
-	return r.dao.Create(ctx, &models.Permission{
-		Name:     name,
-		Resource: resource,
-		Roles:    roles,
-	})
+func (r *PermissionRepository) Create(ctx context.Context, permission *models.Permission) error {
+	return r.dao.Create(ctx, permission)
 }
 
 func (r *PermissionRepository) GetByIds(ctx context.Context, ids []uint, needRoles bool) ([]*models.Permission, error) {
@@ -46,22 +41,16 @@ func (r *PermissionRepository) GetList(ctx context.Context, keyword string, limi
 	return r.dao.GetList(ctx, keyword, limit, offset)
 }
 
-func (r *PermissionRepository) DeleteById(ctx context.Context, id uint) error {
-	return r.dao.DeleteById(ctx, id)
+func (r *PermissionRepository) DeleteById(ctx context.Context, id, updater uint) error {
+	return r.dao.DeleteById(ctx, id, updater)
 }
 
 func (r *PermissionRepository) GetRolesCount(ctx context.Context, id uint) int64 {
 	return r.dao.GetRolesCount(ctx, id)
 }
 
-func (r *PermissionRepository) Update(ctx context.Context, id uint, name, resource string) error {
-	return r.dao.Update(ctx, &models.Permission{
-		Name:     name,
-		Resource: resource,
-		BasicModel: database.BasicModel{
-			ID: id,
-		},
-	})
+func (r *PermissionRepository) Update(ctx context.Context, permission *models.Permission) error {
+	return r.dao.Update(ctx, permission)
 }
 
 func (r *PermissionRepository) AssociateRoles(ctx context.Context, id uint, roles []*models.Role) error {

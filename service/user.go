@@ -86,7 +86,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 		}
 	}
 	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
-		UID:      user.ID,
+		ID:       user.ID,
 		Email:    user.Email,
 		Nickname: user.Nickname,
 	})

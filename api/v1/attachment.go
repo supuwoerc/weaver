@@ -57,7 +57,7 @@ func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	result, err := a.service.SaveFiles(ctx, files, claims.User.UID)
+	result, err := a.service.SaveFiles(ctx, files, claims.User.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
@@ -88,7 +88,7 @@ func (a *AttachmentApi) Upload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	result, err := a.service.SaveFile(ctx, file, claims.User.UID)
+	result, err := a.service.SaveFile(ctx, file, claims.User.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

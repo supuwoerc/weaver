@@ -3,6 +3,7 @@ package v1
 import (
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
+	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
 	"sync"
@@ -34,7 +35,12 @@ func (r *PermissionApi) CreatePermission(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	err := r.service.CreatePermission(ctx, params.Name, params.Resource, params.Roles)
+	claims, err := utils.GetContextClaims(ctx)
+	if err != nil || claims == nil {
+		response.FailWithCode(ctx, response.UserNotExist)
+		return
+	}
+	err = r.service.CreatePermission(ctx, claims.User.ID, params.Name, params.Resource, params.Roles)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
@@ -76,7 +82,12 @@ func (r *PermissionApi) UpdatePermission(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	err := r.service.UpdatePermission(ctx, params.ID, params.Name, params.Resource, params.Roles)
+	claims, err := utils.GetContextClaims(ctx)
+	if err != nil || claims == nil {
+		response.FailWithCode(ctx, response.UserNotExist)
+		return
+	}
+	err = r.service.UpdatePermission(ctx, claims.User.ID, params.ID, params.Name, params.Resource, params.Roles)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
@@ -90,7 +101,12 @@ func (r *PermissionApi) DeletePermission(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	err := r.service.DeletePermission(ctx, params.ID)
+	claims, err := utils.GetContextClaims(ctx)
+	if err != nil || claims == nil {
+		response.FailWithCode(ctx, response.UserNotExist)
+		return
+	}
+	err = r.service.DeletePermission(ctx, params.ID, claims.User.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

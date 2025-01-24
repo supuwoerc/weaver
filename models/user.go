@@ -7,7 +7,7 @@ import (
 
 type User struct {
 	Email    string     `json:"email" gorm:"unique;not null;;comment:邮箱"`
-	Password string     `json:"password,omitempty"`
+	Password string     `json:"-"`
 	Nickname *string    `json:"nickname"`
 	Gender   *uint8     `json:"gender"`
 	About    *string    `json:"about"`

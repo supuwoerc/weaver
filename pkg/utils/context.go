@@ -12,7 +12,7 @@ func GetContextClaims(ctx *gin.Context) (*jwt.TokenClaims, error) {
 	value, exists := ctx.Get(constant.ClaimsContextKey)
 	if exists {
 		claims, ok := value.(*jwt.TokenClaims)
-		if !ok || claims == nil || claims.User.UID == 0 {
+		if !ok || claims == nil || claims.User.ID == 0 {
 			return nil, response.UserNotExist
 		}
 		return claims, nil

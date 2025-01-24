@@ -9,6 +9,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"sync"
+	"time"
 )
 
 var (
@@ -70,12 +71,17 @@ func (r *PermissionDAO) GetList(ctx context.Context, keyword string, limit, offs
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := query.Limit(limit).Offset(offset).Find(&permissions).Error
+	err := query.Preload("Creator").Preload("Updater").Limit(limit).Offset(offset).Find(&permissions).Error
 	return permissions, total, err
 }
 
-func (r *PermissionDAO) DeleteById(ctx context.Context, id uint) error {
-	return r.Datasource(ctx).Model(&models.Permission{}).Where("id = ?", id).Delete(&models.Permission{}).Error
+func (r *PermissionDAO) DeleteById(ctx context.Context, id, updater uint) error {
+	return r.Datasource(ctx).Model(&models.Permission{}).Where("id = ?", id).
+		Select("updater_id", "deleted_at").
+		Updates(map[string]any{
+			"updater_id": updater,
+			"deleted_at": time.Now(),
+		}).Error
 }
 
 func (r *PermissionDAO) GetRolesCount(ctx context.Context, id uint) int64 {
@@ -86,7 +92,7 @@ func (r *PermissionDAO) GetRolesCount(ctx context.Context, id uint) int64 {
 
 func (r *PermissionDAO) Update(ctx context.Context, permission *models.Permission) error {
 	// save并不能自动更新多对多的关系:https://github.com/go-gorm/gorm/issues/3575
-	return r.Datasource(ctx).Omit("created_at", "roles").Save(permission).Error
+	return r.Datasource(ctx).Omit("created_at", "roles", "creator_id").Save(permission).Error
 }
 
 func (r *PermissionDAO) AssociateRoles(ctx context.Context, id uint, roles []*models.Role) error {

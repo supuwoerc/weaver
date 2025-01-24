@@ -4,6 +4,7 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/database"
 	"gin-web/pkg/global"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
@@ -58,7 +59,7 @@ func lockPermissionField(ctx context.Context, name, resource string, roleIds []u
 	return locks, nil
 }
 
-func (p *PermissionService) CreatePermission(ctx context.Context, name, resource string, roleIds []uint) error {
+func (p *PermissionService) CreatePermission(ctx context.Context, operator uint, name, resource string, roleIds []uint) error {
 	locks, err := lockPermissionField(ctx, name, resource, roleIds)
 	defer func() {
 		for _, l := range locks {
@@ -80,7 +81,13 @@ func (p *PermissionService) CreatePermission(ctx context.Context, name, resource
 			}
 		}
 		// 创建权限 & 建立关联关系
-		return p.permissionRepository.Create(ctx, name, resource, roles)
+		return p.permissionRepository.Create(ctx, &models.Permission{
+			Name:      name,
+			Resource:  resource,
+			Roles:     roles,
+			CreatorId: operator,
+			UpdaterId: operator,
+		})
 	})
 }
 
@@ -92,7 +99,7 @@ func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*
 	return p.permissionRepository.GetById(ctx, id, true)
 }
 
-func (p *PermissionService) UpdatePermission(ctx context.Context, id uint, name, resource string, roleIds []uint) error {
+func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint, id uint, name, resource string, roleIds []uint) error {
 	// 对权限自身加锁
 	permissionLock := utils.NewLock(constant.PermissionIdPrefix, id)
 	if err := utils.Lock(ctx, permissionLock); err != nil {
@@ -117,7 +124,15 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, id uint, name,
 	}
 	return p.Transaction(ctx, false, func(ctx context.Context) error {
 		// 更新权限
-		if err = p.permissionRepository.Update(ctx, id, name, resource); err != nil {
+		err = p.permissionRepository.Update(ctx, &models.Permission{
+			Name:      name,
+			Resource:  resource,
+			UpdaterId: operator,
+			BasicModel: database.BasicModel{
+				ID: id,
+			},
+		})
+		if err != nil {
 			return err
 		}
 		// 查询有效的角色
@@ -133,7 +148,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, id uint, name,
 	})
 }
 
-func (p *PermissionService) DeletePermission(ctx context.Context, id uint) error {
+func (p *PermissionService) DeletePermission(ctx context.Context, id, operator uint) error {
 	// 对权限自身加锁
 	permissionLock := utils.NewLock(constant.PermissionIdPrefix, id)
 	if err := utils.Lock(ctx, permissionLock); err != nil {
@@ -148,5 +163,5 @@ func (p *PermissionService) DeletePermission(ctx context.Context, id uint) error
 	if count > 0 {
 		return response.PermissionExistRoleRef
 	}
-	return p.permissionRepository.DeleteById(ctx, id)
+	return p.permissionRepository.DeleteById(ctx, id, operator)
 }

@@ -70,7 +70,6 @@ func (u *UserApi) Login(ctx *gin.Context) {
 			response.FailWithError(ctx, err)
 			return
 		}
-		user.Password = ""
 		response.SuccessWithData[response.LoginResponse](ctx, response.LoginResponse{
 			User:         user,
 			Token:        pair.AccessToken,
@@ -92,11 +91,10 @@ func (u *UserApi) Profile(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	profile, err := u.service.Profile(ctx, claims.User.UID)
+	profile, err := u.service.Profile(ctx, claims.User.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
 	}
-	profile.Password = ""
 	response.SuccessWithData(ctx, profile)
 }
