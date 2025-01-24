@@ -11,5 +11,8 @@ func InitRoleRouter(r *gin.RouterGroup) {
 	{
 		roleAccessGroup.POST("create", roleApi.CreateRole)
 		roleAccessGroup.GET("list", roleApi.GetRoleList)
+		roleAccessGroup.GET("detail", roleApi.GetRoleDetail)
+		//permissionAccessGroup.POST("update", permissionApi.UpdatePermission)
+		//permissionAccessGroup.POST("delete", permissionApi.DeletePermission)
 	}
 }

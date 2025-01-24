@@ -8,7 +8,7 @@
     "other": "No valid roles"
   },
   {
-    "id": "permissionExistRoleRef",
-    "other": "Role references exist"
+    "id": "roleNotExist",
+    "other": "Role not exist"
   }
 ]

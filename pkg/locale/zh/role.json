@@ -8,7 +8,7 @@
     "other": "无有效角色"
   },
   {
-    "id": "permissionExistRoleRef",
-    "other": "存在角色引用"
+    "id": "roleNotExist",
+    "other": "角色不存在"
   }
 ]

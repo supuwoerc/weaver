@@ -44,3 +44,7 @@ func (r *RoleRepository) GetList(ctx context.Context, keyword string, limit, off
 func (r *RoleRepository) GetIsExistByName(ctx context.Context, name string) (bool, error) {
 	return r.dao.GetIsExistByName(ctx, name)
 }
+
+func (r *RoleRepository) GetById(ctx context.Context, id uint, needUsers, needPermissions bool) (*models.Role, error) {
+	return r.dao.GetById(ctx, id, needUsers, needPermissions)
+}

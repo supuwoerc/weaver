@@ -41,6 +41,7 @@ const (
 const (
 	RoleCreateDuplicateName StatusCode = 40000 // roleCreateDuplicateName
 	NoValidRoles            StatusCode = 40001 // noValidRoles
+	RoleNotExist            StatusCode = 40002 // roleNotExist
 )
 
 const (

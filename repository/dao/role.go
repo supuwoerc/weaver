@@ -7,6 +7,7 @@ import (
 	"gin-web/pkg/database"
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -66,4 +67,20 @@ func (r *RoleDAO) GetIsExistByName(ctx context.Context, name string) (bool, erro
 	var count int64
 	err := r.Datasource(ctx).Model(&models.Role{}).Where("name = ?", name).Count(&count).Error
 	return count > 0, err
+}
+
+func (r *RoleDAO) GetById(ctx context.Context, id uint, needUsers, needPermissions bool) (*models.Role, error) {
+	var result models.Role
+	query := r.Datasource(ctx).Model(&models.Role{})
+	if needUsers {
+		query = query.Preload("Users")
+	}
+	if needPermissions {
+		query = query.Preload("Permissions")
+	}
+	err := query.Where("id = ?", id).Find(&result).Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		return &result, response.RoleNotExist
+	}
+	return &result, err
 }

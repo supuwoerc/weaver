@@ -6,7 +6,7 @@ import (
 )
 
 type User struct {
-	Email    string     `json:"email" orm:"unique;not null;;comment:邮箱"`
+	Email    string     `json:"email" gorm:"unique;not null;;comment:邮箱"`
 	Password string     `json:"password,omitempty"`
 	Nickname *string    `json:"nickname"`
 	Gender   *uint8     `json:"gender"`

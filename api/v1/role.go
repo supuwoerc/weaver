@@ -55,3 +55,17 @@ func (r *RoleApi) GetRoleList(ctx *gin.Context) {
 	}
 	response.SuccessWithPageData(ctx, total, list)
 }
+
+func (r *RoleApi) GetRoleDetail(ctx *gin.Context) {
+	var params request.GetRoleDetailRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	detail, err := r.service.GetRoleDetail(ctx, params.ID)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.SuccessWithData(ctx, detail)
+}

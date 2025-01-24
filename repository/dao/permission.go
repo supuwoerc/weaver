@@ -47,9 +47,7 @@ func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, needRoles bool
 }
 
 func (r *PermissionDAO) GetById(ctx context.Context, id uint, needRoles bool) (*models.Permission, error) {
-	var result = models.Permission{
-		Roles: make([]*models.Role, 0),
-	}
+	var result models.Permission
 	query := r.Datasource(ctx).Model(&models.Permission{})
 	if needRoles {
 		query = query.Preload("Roles")

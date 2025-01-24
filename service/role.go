@@ -73,3 +73,7 @@ func (r *RoleService) CreateRole(ctx context.Context, name string, userIds, perm
 func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error) {
 	return r.roleRepository.GetList(ctx, keyword, limit, offset)
 }
+
+func (p *RoleService) GetRoleDetail(ctx context.Context, id uint) (*models.Role, error) {
+	return p.roleRepository.GetById(ctx, id, true, true)
+}
