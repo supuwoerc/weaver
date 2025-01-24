@@ -37,7 +37,7 @@ func (u *UserDAO) Create(ctx context.Context, user *models.User) error {
 
 func (u *UserDAO) GetByEmail(ctx context.Context, email string, needRoles bool, needPermissions bool) (*models.User, error) {
 	var user models.User
-	query := u.Datasource(ctx).Model(&models.User{})
+	query := u.Datasource(ctx).Model(&models.User{}).Preload("Avatar")
 	if needRoles {
 		query = query.Preload("Roles")
 		if needPermissions {
@@ -53,7 +53,7 @@ func (u *UserDAO) GetByEmail(ctx context.Context, email string, needRoles bool, 
 
 func (u *UserDAO) GetById(ctx context.Context, uid uint, needRoles, needPermissions bool) (*models.User, error) {
 	var user models.User
-	query := u.Datasource(ctx).Model(&models.User{})
+	query := u.Datasource(ctx).Model(&models.User{}).Preload("Avatar")
 	if needRoles {
 		query.Preload("Roles")
 		if needPermissions {
