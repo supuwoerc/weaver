@@ -2,13 +2,13 @@ package utils
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/email"
 	"gin-web/pkg/global"
 	"gin-web/pkg/response"
 	"github.com/go-redsync/redsync/v4"
+	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 	"strconv"
@@ -45,7 +45,7 @@ func NewLock[T uint | string](t constant.Prefix, object ...T) *RedisLock {
 }
 
 // Lock 会多次尝试(defaultMaxRetries 次), 如果尝试次数内还未获取到锁则返回错误
-func Lock(ctx context.Context, lock *RedisLock, extend bool) error {
+func Lock(ctx context.Context, lock *RedisLock) error {
 	err := lock.Lock()
 	if err != nil {
 		var e *redsync.ErrTaken
@@ -54,14 +54,12 @@ func Lock(ctx context.Context, lock *RedisLock, extend bool) error {
 		}
 		return fmt.Errorf("lock err: %v", err)
 	}
-	if extend {
-		go autoExtend(ctx, lock)
-	}
+	go autoExtend(ctx, lock)
 	return nil
 }
 
 // TryLock 获取不到锁直接返回错误
-func TryLock(ctx context.Context, lock *RedisLock, extend bool) error {
+func TryLock(ctx context.Context, lock *RedisLock) error {
 	err := lock.TryLock()
 	if err != nil {
 		var e *redsync.ErrTaken
@@ -70,9 +68,7 @@ func TryLock(ctx context.Context, lock *RedisLock, extend bool) error {
 		}
 		return fmt.Errorf("lock err: %v", err)
 	}
-	if extend {
-		go autoExtend(ctx, lock)
-	}
+	go autoExtend(ctx, lock)
 	return nil
 }
 
@@ -83,7 +79,7 @@ func Unlock(lock *RedisLock) error {
 		if errors.Is(err, redsync.ErrLockAlreadyExpired) {
 			return nil
 		}
-		return err
+		return errors.Wrapf(err, lock.Name())
 	}
 	if !ok {
 		return fmt.Errorf("%s unlock failed", lock.Name())

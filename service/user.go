@@ -3,8 +3,11 @@ package service
 import (
 	"context"
 	"gin-web/models"
+	"gin-web/pkg/constant"
+	"gin-web/pkg/global"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
+	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"golang.org/x/crypto/bcrypt"
 	"sync"
@@ -45,11 +48,27 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	}
 	var pwd = string(password)
 	user.Password = pwd
+	emailLock := utils.NewLock(constant.SignUpEmailPrefix, user.Email)
+	if err = utils.Lock(ctx, emailLock); err != nil {
+		return err
+	}
+	defer func(lock *utils.RedisLock) {
+		if e := utils.Unlock(lock); e != nil {
+			global.Logger.Errorf("unlock fail %s", e.Error())
+		}
+	}(emailLock)
+	exist, err := u.userRepository.GetIsExistByEmail(ctx, user.Email)
+	if err != nil {
+		return err
+	}
+	if exist {
+		return response.UserCreateDuplicateEmail
+	}
 	return u.userRepository.Create(ctx, user)
 }
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*models.User, *models.TokenPair, error) {
-	user, err := u.userRepository.GetByEmail(ctx, email)
+	user, err := u.userRepository.GetByEmail(ctx, email, false, false)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -35,9 +35,16 @@ func (u *UserDAO) Create(ctx context.Context, user *models.User) error {
 	return err
 }
 
-func (u *UserDAO) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+func (u *UserDAO) GetByEmail(ctx context.Context, email string, needRoles bool, needPermissions bool) (*models.User, error) {
 	var user models.User
-	err := u.Datasource(ctx).Preload("Roles").Where("email = ?", email).First(&user).Error
+	query := u.Datasource(ctx).Model(&models.User{})
+	if needRoles {
+		query = query.Preload("Roles")
+		if needPermissions {
+			query.Preload("Roles.Permissions")
+		}
+	}
+	err := query.Where("email = ?", email).First(&user).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return &user, response.UserLoginEmailNotFound
 	}
@@ -71,4 +78,10 @@ func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, needRoles, needPermi
 	}
 	err := query.Where("id in (?)", ids).Find(&users).Error
 	return users, err
+}
+
+func (u *UserDAO) GetIsExistByEmail(ctx context.Context, email string) (bool, error) {
+	var count int64
+	err := u.Datasource(ctx).Model(&models.User{}).Where("email = ?", email).Count(&count).Error
+	return count > 0, err
 }

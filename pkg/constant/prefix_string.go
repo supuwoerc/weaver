@@ -8,13 +8,17 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[PermissionIdLockPrefix-1]
-	_ = x[RoleIdLockPrefix-2]
+	_ = x[PermissionIdPrefix-1]
+	_ = x[PermissionNamePrefix-2]
+	_ = x[PermissionResourcePrefix-3]
+	_ = x[RoleIdPrefix-4]
+	_ = x[RoleNamePrefix-5]
+	_ = x[SignUpEmailPrefix-6]
 }
 
-const _Prefix_name = "lock:permissionlock:role"
+const _Prefix_name = "lock:permission:idlock:permission:namelock:permission:resourcelock:role:idlock:role:namelock:signup:email"
 
-var _Prefix_index = [...]uint8{0, 15, 24}
+var _Prefix_index = [...]uint8{0, 18, 38, 62, 74, 88, 105}
 
 func (i Prefix) String() string {
 	i -= 1

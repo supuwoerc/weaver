@@ -61,3 +61,9 @@ func (r *RoleDAO) GetList(ctx context.Context, keyword string, limit, offset int
 	err := query.Limit(limit).Offset(offset).Find(&roles).Error
 	return roles, total, err
 }
+
+func (r *RoleDAO) GetIsExistByName(ctx context.Context, name string) (bool, error) {
+	var count int64
+	err := r.Datasource(ctx).Model(&models.Role{}).Where("name = ?", name).Count(&count).Error
+	return count > 0, err
+}

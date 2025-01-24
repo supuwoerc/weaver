@@ -32,8 +32,8 @@ func (u *UserRepository) Create(ctx context.Context, user *models.User) error {
 	return u.dao.Create(ctx, user)
 }
 
-func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	return u.dao.GetByEmail(ctx, email)
+func (u *UserRepository) GetByEmail(ctx context.Context, email string, needRoles bool, needPermissions bool) (*models.User, error) {
+	return u.dao.GetByEmail(ctx, email, needRoles, needPermissions)
 }
 
 func (u *UserRepository) CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
@@ -54,4 +54,8 @@ func (u *UserRepository) GetByIds(ctx context.Context, ids []uint, needRoles, ne
 
 func (u *UserRepository) GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error) {
 	return u.cache.GetTokenPair(ctx, email)
+}
+
+func (u *UserRepository) GetIsExistByEmail(ctx context.Context, email string) (bool, error) {
+	return u.dao.GetIsExistByEmail(ctx, email)
 }

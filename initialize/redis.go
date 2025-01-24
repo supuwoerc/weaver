@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 	"io"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -32,7 +33,14 @@ func (r *RedisLogger) DialHook(next goredislib.DialHook) goredislib.DialHook {
 
 func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.ProcessHook {
 	return func(ctx context.Context, cmd goredislib.Cmder) error {
-		_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Preparing to execute command: %s, Args: %s\n", time.Now().Format(time.DateTime), cmd.Name(), cmd.Args()))
+		builder := strings.Builder{}
+		for i, arg := range cmd.Args() {
+			if i > 0 {
+				builder.WriteString(" ")
+			}
+			builder.WriteString(fmt.Sprintf("%v", arg))
+		}
+		_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Preparing to execute command: %s, [Args]: %s\n", time.Now().Format(time.DateTime), cmd.Name(), builder.String()))
 		err := next(ctx, cmd)
 		if err != nil {
 			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Error executing command %s: %s\n", time.Now().Format(time.DateTime), cmd.Name(), err.Error()))
@@ -46,7 +54,14 @@ func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.Proces
 func (r *RedisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) goredislib.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []goredislib.Cmder) error {
 		for _, cmd := range cmds {
-			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Preparing to execute command in pipeline: %s, Args: %s\n", time.Now().Format(time.DateTime), cmd.Name(), cmd.Args()))
+			builder := strings.Builder{}
+			for i, arg := range cmd.Args() {
+				if i > 0 {
+					builder.WriteString(" ")
+				}
+				builder.WriteString(fmt.Sprintf("%v", arg))
+			}
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Preparing to execute command in pipeline: %s, [Args]: %s\n", time.Now().Format(time.DateTime), cmd.Name(), builder.String()))
 		}
 		err := next(ctx, cmds)
 		if err != nil {

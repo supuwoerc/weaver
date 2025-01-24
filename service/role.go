@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 	"gin-web/models"
+	"gin-web/pkg/constant"
+	"gin-web/pkg/global"
+	"gin-web/pkg/response"
+	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"sync"
 )
@@ -32,8 +36,25 @@ func NewRoleService() *RoleService {
 }
 
 func (r *RoleService) CreateRole(ctx context.Context, name string, userIds, permissionIds []uint) error {
+	roleNameLock := utils.NewLock(constant.RoleNamePrefix, name)
+	if err := utils.Lock(ctx, roleNameLock); err != nil {
+		return err
+	}
+	defer func(lock *utils.RedisLock) {
+		if e := utils.Unlock(lock); e != nil {
+			global.Logger.Errorf("unlock fail %s", e.Error())
+		}
+	}(roleNameLock)
 	// TODO:记录信息到用户时间线
 	return r.Transaction(ctx, false, func(ctx context.Context) error {
+		// 查询是否重复
+		exist, err := r.roleRepository.GetIsExistByName(ctx, name)
+		if err != nil {
+			return err
+		}
+		if exist {
+			return response.RoleCreateDuplicateName
+		}
 		// 查询有效的用户
 		users, err := r.userRepository.GetByIds(ctx, userIds, false, false)
 		if err != nil {

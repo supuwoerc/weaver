@@ -4,6 +4,10 @@ package constant
 type Prefix int
 
 const (
-	PermissionIdLockPrefix Prefix = iota + 1 // lock:permission
-	RoleIdLockPrefix                         // lock:role
+	PermissionIdPrefix       Prefix = iota + 1 // lock:permission:id
+	PermissionNamePrefix                       // lock:permission:name
+	PermissionResourcePrefix                   // lock:permission:resource
+	RoleIdPrefix                               // lock:role:id
+	RoleNamePrefix                             // lock:role:name
+	SignUpEmailPrefix                          // lock:signup:email
 )

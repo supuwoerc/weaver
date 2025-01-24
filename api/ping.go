@@ -37,8 +37,8 @@ func SlowResponse(ctx *gin.Context) {
 }
 
 func LockResponse(ctx *gin.Context) {
-	lock := utils.NewLock[uint](constant.PermissionIdLockPrefix, 100, 200)
-	if err := utils.TryLock(ctx, lock, true); err != nil {
+	lock := utils.NewLock[uint](constant.PermissionIdPrefix, 100, 200)
+	if err := utils.TryLock(ctx, lock); err != nil {
 		response.FailWithError(ctx, err)
 		return
 	}
