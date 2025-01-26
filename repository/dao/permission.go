@@ -63,7 +63,7 @@ func (r *PermissionDAO) GetById(ctx context.Context, id uint, needRoles bool) (*
 func (r *PermissionDAO) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error) {
 	var permissions []*models.Permission
 	var total int64
-	query := r.Datasource(ctx).Model(&models.Permission{})
+	query := r.Datasource(ctx).Model(&models.Permission{}).Order("updated_at desc,id desc")
 	if keyword != "" {
 		keyword = database.FuzzKeyword(keyword)
 		query = query.Where("name like ? or resource like ?", keyword, keyword)
