@@ -37,7 +37,7 @@ func (r *PermissionApi) CreatePermission(ctx *gin.Context) {
 	}
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
-		response.FailWithCode(ctx, response.UserNotExist)
+		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
 	err = r.service.CreatePermission(ctx, claims.User.ID, params.Name, params.Resource, params.Roles)
@@ -84,7 +84,7 @@ func (r *PermissionApi) UpdatePermission(ctx *gin.Context) {
 	}
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
-		response.FailWithCode(ctx, response.UserNotExist)
+		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
 	err = r.service.UpdatePermission(ctx, claims.User.ID, params.ID, params.Name, params.Resource, params.Roles)
@@ -103,7 +103,7 @@ func (r *PermissionApi) DeletePermission(ctx *gin.Context) {
 	}
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
-		response.FailWithCode(ctx, response.UserNotExist)
+		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
 	err = r.service.DeletePermission(ctx, params.ID, claims.User.ID)

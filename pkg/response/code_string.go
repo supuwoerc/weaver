@@ -30,6 +30,8 @@ func _() {
 	_ = x[RoleCreateDuplicateName-40000]
 	_ = x[NoValidRoles-40001]
 	_ = x[RoleNotExist-40002]
+	_ = x[RoleExistPermissionRef-40003]
+	_ = x[RoleExistUserRef-40004]
 	_ = x[PermissionCreateDuplicate-50000]
 	_ = x[PermissionNotExist-50001]
 	_ = x[PermissionExistRoleRef-50002]
@@ -40,14 +42,14 @@ const (
 	_StatusCode_name_0 = "okerrorinvalidParamsinvalidTokencancelRequestrecoveryErrorinvalidRefreshTokenunnecessaryRefreshTokenauthErrnoAuthoritytimeoutErrbusy"
 	_StatusCode_name_1 = "userCreateDuplicateEmailuserLoginEmailNotFounduserLoginFailuserLoginTokenPairCacheErrpasswordValidErruserNotExist"
 	_StatusCode_name_2 = "captchaVerifyFail"
-	_StatusCode_name_3 = "roleCreateDuplicateNamenoValidRolesroleNotExist"
+	_StatusCode_name_3 = "roleCreateDuplicateNamenoValidRolesroleNotExistroleExistPermissionRefroleExistUserRef"
 	_StatusCode_name_4 = "permissionCreateDuplicatepermissionNotExistpermissionExistRoleRef"
 )
 
 var (
 	_StatusCode_index_0 = [...]uint8{0, 2, 7, 20, 32, 45, 58, 77, 100, 107, 118, 128, 132}
 	_StatusCode_index_1 = [...]uint8{0, 24, 46, 59, 85, 101, 113}
-	_StatusCode_index_3 = [...]uint8{0, 23, 35, 47}
+	_StatusCode_index_3 = [...]uint8{0, 23, 35, 47, 69, 85}
 	_StatusCode_index_4 = [...]uint8{0, 25, 43, 65}
 )
 
@@ -61,7 +63,7 @@ func (i StatusCode) String() string {
 		return _StatusCode_name_1[_StatusCode_index_1[i]:_StatusCode_index_1[i+1]]
 	case i == 30000:
 		return _StatusCode_name_2
-	case 40000 <= i && i <= 40002:
+	case 40000 <= i && i <= 40004:
 		i -= 40000
 		return _StatusCode_name_3[_StatusCode_index_3[i]:_StatusCode_index_3[i+1]]
 	case 50000 <= i && i <= 50002:

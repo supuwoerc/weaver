@@ -10,5 +10,13 @@
   {
     "id": "roleNotExist",
     "other": "Role not exist"
+  },
+  {
+    "id": "roleExistPermissionRef",
+    "other": "Permission references exist"
+  },
+  {
+    "id": "roleExistUserRef",
+    "other": "User references exist"
   }
 ]

@@ -10,5 +10,13 @@
   {
     "id": "roleNotExist",
     "other": "角色不存在"
+  },
+  {
+    "id": "roleExistPermissionRef",
+    "other": "存在权限引用"
+  },
+  {
+    "id": "roleExistUserRef",
+    "other": "存在账户引用"
   }
 ]

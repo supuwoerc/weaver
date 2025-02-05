@@ -56,3 +56,7 @@ func (r *PermissionRepository) Update(ctx context.Context, permission *models.Pe
 func (r *PermissionRepository) AssociateRoles(ctx context.Context, id uint, roles []*models.Role) error {
 	return r.dao.AssociateRoles(ctx, id, roles)
 }
+
+func (r *PermissionRepository) GetByNameOrResource(ctx context.Context, name, resource string) ([]*models.Permission, error) {
+	return r.dao.GetByNameOrResource(ctx, name, resource)
+}

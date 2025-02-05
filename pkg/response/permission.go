@@ -38,6 +38,8 @@ type PermissionDetailRole struct {
 	*models.Role
 	Users       any `json:"users,omitempty"`
 	Permissions any `json:"permissions,omitempty"`
+	Creator     any `json:"creator,omitempty"`
+	Updater     any `json:"updater,omitempty"`
 }
 
 // ToPermissionDetailResponse 将permission转为响应

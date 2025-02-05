@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"gin-web/pkg/constant"
 	"gorm.io/gorm"
+	"gorm.io/plugin/soft_delete"
 	"strings"
 	"time"
 )
@@ -37,10 +38,10 @@ func (c *UpsertTime) Scan(v interface{}) error {
 }
 
 type BasicModel struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
-	CreatedAt UpsertTime     `json:"created_at"`
-	UpdatedAt UpsertTime     `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	ID        uint                  `json:"id" gorm:"primarykey"`
+	CreatedAt UpsertTime            `json:"created_at"`
+	UpdatedAt UpsertTime            `json:"updated_at"`
+	DeletedAt soft_delete.DeletedAt `json:"-" gorm:"softDelete:milli;index"`
 }
 
 type Action func(ctx context.Context) error

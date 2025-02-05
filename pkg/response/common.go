@@ -14,3 +14,4 @@ type Creator struct {
 }
 
 type Updater = Creator
+type SimpleUser = Creator

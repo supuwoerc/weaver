@@ -54,7 +54,7 @@ func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 	}
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
-		response.FailWithCode(ctx, response.UserNotExist)
+		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
 	result, err := a.service.SaveFiles(ctx, files, claims.User.ID)
@@ -85,7 +85,7 @@ func (a *AttachmentApi) Upload(ctx *gin.Context) {
 	}
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
-		response.FailWithCode(ctx, response.UserNotExist)
+		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
 	result, err := a.service.SaveFile(ctx, file, claims.User.ID)

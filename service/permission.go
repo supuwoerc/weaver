@@ -73,6 +73,14 @@ func (p *PermissionService) CreatePermission(ctx context.Context, operator uint,
 		return err
 	}
 	return p.Transaction(ctx, false, func(ctx context.Context) error {
+		// 查询是否重复
+		existPermissions, temp := p.permissionRepository.GetByNameOrResource(ctx, name, resource)
+		if temp != nil {
+			return temp
+		}
+		if len(existPermissions) > 0 {
+			return response.PermissionCreateDuplicate
+		}
 		// 查询有效的角色
 		var roles []*models.Role
 		if len(roleIds) > 0 {
@@ -128,6 +136,15 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 		return err
 	}
 	return p.Transaction(ctx, false, func(ctx context.Context) error {
+		// 查询是否重复
+		existPermissions, temp := p.permissionRepository.GetByNameOrResource(ctx, name, resource)
+		if temp != nil {
+			return temp
+		}
+		count := len(existPermissions)
+		if count > 1 || (count == 1 && existPermissions[0].ID != id) {
+			return response.PermissionCreateDuplicate
+		}
 		// 更新权限
 		err = p.permissionRepository.Update(ctx, &models.Permission{
 			Name:      name,
