@@ -1,0 +1,14 @@
+[
+  {
+    "id": "deptCreateDuplicate",
+    "other": "Department already exists"
+  },
+  {
+    "id": "deptNotExist",
+    "other": "Department not exist"
+  },
+  {
+    "id": "deptExistUserRef",
+    "other": "User references exist"
+  }
+]

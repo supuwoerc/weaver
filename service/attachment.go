@@ -164,12 +164,12 @@ func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.Fi
 	}
 	attachments := lo.Map(files, func(item *multipart.FileHeader, index int) *models.Attachment {
 		return &models.Attachment{
-			Name: item.Filename,
-			Uid:  &uid,
-			Type: info[index].classify,
-			Size: item.Size,
-			Hash: info[index].uniqueName,
-			Path: info[index].path,
+			Name:      item.Filename,
+			CreatorId: &uid,
+			Type:      info[index].classify,
+			Size:      item.Size,
+			Hash:      info[index].uniqueName,
+			Path:      info[index].path,
 		}
 	})
 	// TODO:创建一个事务，创建文件记录的同时为文件授权

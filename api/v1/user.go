@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"errors"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/request"
@@ -65,23 +64,14 @@ func (u *UserApi) Login(ctx *gin.Context) {
 	}
 	user, pair, err := u.service.Login(ctx, params.Email, params.Password)
 	switch {
-	case pair != nil:
-		if err != nil {
-			response.FailWithError(ctx, err)
-			return
-		}
-		response.SuccessWithData[response.LoginResponse](ctx, response.LoginResponse{
+	case err == nil && pair != nil:
+		response.SuccessWithData(ctx, response.LoginResponse{
 			User:         user,
 			Token:        pair.AccessToken,
 			RefreshToken: pair.RefreshToken,
 		})
-	case errors.Is(err, response.UserLoginFail) || errors.Is(err, response.UserLoginEmailNotFound):
-		response.FailWithCode(ctx, response.UserLoginFail)
 	default:
-		if err != nil {
-			response.FailWithMessage(ctx, err.Error())
-		}
-		response.FailWithError(ctx, err)
+		response.FailWithCode(ctx, response.UserLoginFail)
 	}
 }
 

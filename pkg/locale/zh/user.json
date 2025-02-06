@@ -4,10 +4,6 @@
     "other": "邮箱已注册"
   },
   {
-    "id": "userLoginEmailNotFound",
-    "other": "用户不存在"
-  },
-  {
     "id": "userLoginFail",
     "other": "用户名或密码错误"
   },

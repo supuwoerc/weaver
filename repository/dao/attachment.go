@@ -24,13 +24,6 @@ func NewAttachmentDAO() *AttachmentDAO {
 	return attachmentDAO
 }
 
-func (a *AttachmentDAO) Insert(ctx context.Context, records []*models.Attachment) error {
-	err := a.Datasource(ctx).Create(records).Error
-	return err
-}
-
-func (a *AttachmentDAO) GetIsExistByHash(ctx context.Context, hash string) (bool, error) {
-	var count int64
-	err := a.Datasource(ctx).Where("hash = ?", hash).Count(&count).Error
-	return count > 0, err
+func (a *AttachmentDAO) Create(ctx context.Context, records []*models.Attachment) error {
+	return a.Datasource(ctx).Create(records).Error
 }

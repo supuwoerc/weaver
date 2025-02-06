@@ -21,11 +21,10 @@ func _() {
 	_ = x[TimeoutErr-10010]
 	_ = x[Busy-10011]
 	_ = x[UserCreateDuplicateEmail-20000]
-	_ = x[UserLoginEmailNotFound-20001]
-	_ = x[UserLoginFail-20002]
-	_ = x[UserLoginTokenPairCacheErr-20003]
-	_ = x[PasswordValidErr-20004]
-	_ = x[UserNotExist-20005]
+	_ = x[UserLoginFail-20001]
+	_ = x[UserLoginTokenPairCacheErr-20002]
+	_ = x[PasswordValidErr-20003]
+	_ = x[UserNotExist-20004]
 	_ = x[CaptchaVerifyFail-30000]
 	_ = x[RoleCreateDuplicateName-40000]
 	_ = x[NoValidRoles-40001]
@@ -36,21 +35,26 @@ func _() {
 	_ = x[PermissionNotExist-50001]
 	_ = x[PermissionExistRoleRef-50002]
 	_ = x[InvalidAttachmentLength-50000]
+	_ = x[DeptCreateDuplicate-60000]
+	_ = x[DeptNotExist-60001]
+	_ = x[DeptExistUserRef-60002]
 }
 
 const (
 	_StatusCode_name_0 = "okerrorinvalidParamsinvalidTokencancelRequestrecoveryErrorinvalidRefreshTokenunnecessaryRefreshTokenauthErrnoAuthoritytimeoutErrbusy"
-	_StatusCode_name_1 = "userCreateDuplicateEmailuserLoginEmailNotFounduserLoginFailuserLoginTokenPairCacheErrpasswordValidErruserNotExist"
+	_StatusCode_name_1 = "userCreateDuplicateEmailuserLoginFailuserLoginTokenPairCacheErrpasswordValidErruserNotExist"
 	_StatusCode_name_2 = "captchaVerifyFail"
 	_StatusCode_name_3 = "roleCreateDuplicateNamenoValidRolesroleNotExistroleExistPermissionRefroleExistUserRef"
 	_StatusCode_name_4 = "permissionCreateDuplicatepermissionNotExistpermissionExistRoleRef"
+	_StatusCode_name_5 = "deptCreateDuplicatedeptNotExistdeptExistUserRef"
 )
 
 var (
 	_StatusCode_index_0 = [...]uint8{0, 2, 7, 20, 32, 45, 58, 77, 100, 107, 118, 128, 132}
-	_StatusCode_index_1 = [...]uint8{0, 24, 46, 59, 85, 101, 113}
+	_StatusCode_index_1 = [...]uint8{0, 24, 37, 63, 79, 91}
 	_StatusCode_index_3 = [...]uint8{0, 23, 35, 47, 69, 85}
 	_StatusCode_index_4 = [...]uint8{0, 25, 43, 65}
+	_StatusCode_index_5 = [...]uint8{0, 19, 31, 47}
 )
 
 func (i StatusCode) String() string {
@@ -58,7 +62,7 @@ func (i StatusCode) String() string {
 	case 10000 <= i && i <= 10011:
 		i -= 10000
 		return _StatusCode_name_0[_StatusCode_index_0[i]:_StatusCode_index_0[i+1]]
-	case 20000 <= i && i <= 20005:
+	case 20000 <= i && i <= 20004:
 		i -= 20000
 		return _StatusCode_name_1[_StatusCode_index_1[i]:_StatusCode_index_1[i+1]]
 	case i == 30000:
@@ -69,6 +73,9 @@ func (i StatusCode) String() string {
 	case 50000 <= i && i <= 50002:
 		i -= 50000
 		return _StatusCode_name_4[_StatusCode_index_4[i]:_StatusCode_index_4[i+1]]
+	case 60000 <= i && i <= 60002:
+		i -= 60000
+		return _StatusCode_name_5[_StatusCode_index_5[i]:_StatusCode_index_5[i+1]]
 	default:
 		return "StatusCode(" + strconv.FormatInt(int64(i), 10) + ")"
 	}

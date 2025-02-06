@@ -71,7 +71,7 @@ func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 			ID:   item.ID,
 			Name: item.Name,
 			Size: item.Size,
-			Path: filepath.Join(string(filepath.Separator), item.Path),
+			Path: filepath.Join(string(filepath.Separator), item.Path), // TODO:返回预览/下载接口完整路径
 		}
 	})
 	response.SuccessWithData(ctx, ret)

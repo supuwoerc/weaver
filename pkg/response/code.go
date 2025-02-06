@@ -27,11 +27,10 @@ const (
 
 const (
 	UserCreateDuplicateEmail   StatusCode = 20000 // userCreateDuplicateEmail
-	UserLoginEmailNotFound     StatusCode = 20001 // userLoginEmailNotFound
-	UserLoginFail              StatusCode = 20002 // userLoginFail
-	UserLoginTokenPairCacheErr StatusCode = 20003 // userLoginTokenPairCacheErr
-	PasswordValidErr           StatusCode = 20004 // passwordValidErr
-	UserNotExist               StatusCode = 20005 // userNotExist
+	UserLoginFail              StatusCode = 20001 // userLoginFail
+	UserLoginTokenPairCacheErr StatusCode = 20002 // userLoginTokenPairCacheErr
+	PasswordValidErr           StatusCode = 20003 // passwordValidErr
+	UserNotExist               StatusCode = 20004 // userNotExist
 )
 
 const (
@@ -54,4 +53,10 @@ const (
 
 const (
 	InvalidAttachmentLength StatusCode = 50000 // invalidAttachmentLength
+)
+
+const (
+	DeptCreateDuplicate StatusCode = 60000 // deptCreateDuplicate
+	DeptNotExist        StatusCode = 60001 // deptNotExist
+	DeptExistUserRef    StatusCode = 60002 // deptExistUserRef
 )

@@ -10,4 +10,6 @@ const (
 	RoleIdPrefix                               // lock:role:id
 	RoleNamePrefix                             // lock:role:name
 	SignUpEmailPrefix                          // lock:signup:email
+	DepartmentIdPrefix                         // lock:department:id
+	DepartmentNamePrefix                       // lock:department:name
 )

@@ -35,9 +35,12 @@ func (u *UserDAO) Create(ctx context.Context, user *models.User) error {
 	return err
 }
 
-func (u *UserDAO) GetByEmail(ctx context.Context, email string, needRoles bool, needPermissions bool) (*models.User, error) {
+func (u *UserDAO) GetByEmail(ctx context.Context, email string, needAvatar, needRoles, needPermissions bool) (*models.User, error) {
 	var user models.User
-	query := u.Datasource(ctx).Model(&models.User{}).Preload("Avatar")
+	query := u.Datasource(ctx).Model(&models.User{})
+	if needAvatar {
+		query = query.Preload("Avatar")
+	}
 	if needRoles {
 		query = query.Preload("Roles")
 		if needPermissions {
@@ -45,15 +48,21 @@ func (u *UserDAO) GetByEmail(ctx context.Context, email string, needRoles bool, 
 		}
 	}
 	err := query.Where("email = ?", email).First(&user).Error
-	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return &user, response.UserLoginEmailNotFound
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, response.UserNotExist
+		}
+		return nil, err
 	}
-	return &user, err
+	return &user, nil
 }
 
-func (u *UserDAO) GetById(ctx context.Context, uid uint, needRoles, needPermissions bool) (*models.User, error) {
+func (u *UserDAO) GetById(ctx context.Context, uid uint, needAvatar, needRoles, needPermissions bool) (*models.User, error) {
 	var user models.User
-	query := u.Datasource(ctx).Model(&models.User{}).Preload("Avatar")
+	query := u.Datasource(ctx).Model(&models.User{})
+	if needAvatar {
+		query = query.Preload("Avatar")
+	}
 	if needRoles {
 		query.Preload("Roles")
 		if needPermissions {
@@ -61,10 +70,13 @@ func (u *UserDAO) GetById(ctx context.Context, uid uint, needRoles, needPermissi
 		}
 	}
 	err := query.Where("id = ?", uid).First(&user).Error
-	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return &user, response.UserNotExist
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, response.UserNotExist
+		}
+		return nil, err
 	}
-	return &user, err
+	return &user, nil
 }
 
 func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, needRoles, needPermissions bool) ([]*models.User, error) {
@@ -77,11 +89,8 @@ func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, needRoles, needPermi
 		}
 	}
 	err := query.Where("id in (?)", ids).Find(&users).Error
-	return users, err
-}
-
-func (u *UserDAO) GetIsExistByEmail(ctx context.Context, email string) (bool, error) {
-	var count int64
-	err := u.Datasource(ctx).Model(&models.User{}).Where("email = ?", email).Count(&count).Error
-	return count > 0, err
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

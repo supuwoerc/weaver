@@ -47,7 +47,10 @@ func (r *RoleDAO) GetByIds(ctx context.Context, ids []uint, needUsers, needPermi
 		query = query.Preload("Permissions")
 	}
 	err := query.Where("id in (?)", ids).Find(&roles).Error
-	return roles, err
+	if err != nil {
+		return nil, err
+	}
+	return roles, nil
 }
 
 func (r *RoleDAO) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error) {
@@ -61,7 +64,10 @@ func (r *RoleDAO) GetList(ctx context.Context, keyword string, limit, offset int
 		return nil, 0, err
 	}
 	err := query.Preload("Creator").Preload("Updater").Limit(limit).Offset(offset).Find(&roles).Error
-	return roles, total, err
+	if err != nil {
+		return nil, 0, err
+	}
+	return roles, total, nil
 }
 
 func (r *RoleDAO) GetByName(ctx context.Context, name string) (*models.Role, error) {
@@ -73,7 +79,7 @@ func (r *RoleDAO) GetByName(ctx context.Context, name string) (*models.Role, err
 		}
 		return nil, err
 	}
-	return role, err
+	return role, nil
 }
 
 func (r *RoleDAO) GetById(ctx context.Context, id uint, needUsers, needPermissions bool) (*models.Role, error) {
@@ -86,10 +92,13 @@ func (r *RoleDAO) GetById(ctx context.Context, id uint, needUsers, needPermissio
 		query = query.Preload("Permissions")
 	}
 	err := query.Where("id = ?", id).Find(&result).Error
-	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return &result, response.RoleNotExist
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, response.RoleNotExist
+		}
+		return nil, err
 	}
-	return &result, err
+	return &result, nil
 }
 
 func (r *RoleDAO) Update(ctx context.Context, role *models.Role) error {

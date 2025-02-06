@@ -4,10 +4,6 @@
     "other": "Email registered"
   },
   {
-    "id": "userLoginEmailNotFound",
-    "other": "The user does not exist"
-  },
-  {
     "id": "userLoginFail",
     "other": "Incorrect user name or password"
   },

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "deptCreateDuplicate",
+    "other": "部门已存在"
+  },
+  {
+    "id": "deptNotExist",
+    "other": "部门不存在"
+  },
+  {
+    "id": "deptExistUserRef",
+    "other": "存在账户引用"
+  }
+]

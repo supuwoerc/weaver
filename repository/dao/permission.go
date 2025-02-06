@@ -44,7 +44,10 @@ func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, needRoles bool
 		query = query.Preload("Roles")
 	}
 	err := query.Where("id in (?)", ids).Find(&result).Error
-	return result, err
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *PermissionDAO) GetById(ctx context.Context, id uint, needRoles bool) (*models.Permission, error) {
@@ -53,11 +56,14 @@ func (r *PermissionDAO) GetById(ctx context.Context, id uint, needRoles bool) (*
 	if needRoles {
 		query = query.Preload("Roles")
 	}
-	err := query.Where("id = ?", id).Find(&result).Error
-	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return &result, response.PermissionNotExist
+	err := query.Where("id = ?", id).First(&result).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, response.PermissionNotExist
+		}
+		return nil, err
 	}
-	return &result, err
+	return &result, nil
 }
 
 func (r *PermissionDAO) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error) {
@@ -72,7 +78,10 @@ func (r *PermissionDAO) GetList(ctx context.Context, keyword string, limit, offs
 		return nil, 0, err
 	}
 	err := query.Preload("Creator").Preload("Updater").Limit(limit).Offset(offset).Find(&permissions).Error
-	return permissions, total, err
+	if err != nil {
+		return nil, 0, err
+	}
+	return permissions, total, nil
 }
 
 func (r *PermissionDAO) DeleteById(ctx context.Context, id, updater uint) error {
@@ -107,5 +116,8 @@ func (r *PermissionDAO) AssociateRoles(ctx context.Context, id uint, roles []*mo
 func (r *PermissionDAO) GetByNameOrResource(ctx context.Context, name, resource string) ([]*models.Permission, error) {
 	var permissions []*models.Permission
 	err := r.Datasource(ctx).Model(&models.Permission{}).Where("name = ? or resource = ?", name, resource).Find(&permissions).Error
-	return permissions, err
+	if err != nil {
+		return nil, err
+	}
+	return permissions, nil
 }

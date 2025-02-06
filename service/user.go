@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/global"
@@ -57,18 +58,18 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 			global.Logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(emailLock)
-	exist, err := u.userRepository.GetIsExistByEmail(ctx, user.Email)
-	if err != nil {
+	existUser, err := u.userRepository.GetByEmail(ctx, user.Email, false, false, false)
+	if err != nil && !errors.Is(err, response.UserNotExist) {
 		return err
 	}
-	if exist {
+	if existUser != nil {
 		return response.UserCreateDuplicateEmail
 	}
 	return u.userRepository.Create(ctx, user)
 }
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*models.User, *models.TokenPair, error) {
-	user, err := u.userRepository.GetByEmail(ctx, email, false, false)
+	user, err := u.userRepository.GetByEmail(ctx, email, true, false, false)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -107,5 +108,5 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 }
 
 func (u *UserService) Profile(ctx context.Context, uid uint) (*models.User, error) {
-	return u.userRepository.GetById(ctx, uid, true, true)
+	return u.userRepository.GetById(ctx, uid, true, true, true)
 }
