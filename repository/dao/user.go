@@ -79,9 +79,12 @@ func (u *UserDAO) GetById(ctx context.Context, uid uint, needAvatar, needRoles, 
 	return &user, nil
 }
 
-func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, needRoles, needPermissions bool) ([]*models.User, error) {
+func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, needAvatar, needRoles, needPermissions bool) ([]*models.User, error) {
 	var users []*models.User
 	query := u.Datasource(ctx).Model(&models.User{})
+	if needAvatar {
+		query = query.Preload("Avatar")
+	}
 	if needRoles {
 		query.Preload("Roles")
 		if needPermissions {

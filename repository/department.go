@@ -32,3 +32,7 @@ func (r *DepartmentRepository) Create(ctx context.Context, dept *models.Departme
 func (r *DepartmentRepository) GetByName(ctx context.Context, name string) (*models.Department, error) {
 	return r.dao.GetByName(ctx, name)
 }
+
+func (r *DepartmentRepository) GetById(ctx context.Context, id uint) (*models.Department, error) {
+	return r.dao.GetById(ctx, id)
+}

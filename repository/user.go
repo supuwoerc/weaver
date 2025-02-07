@@ -48,8 +48,8 @@ func (u *UserRepository) GetById(ctx context.Context, uid uint, needAvatar, need
 	return u.dao.GetById(ctx, uid, needAvatar, needRoles, needPermissions)
 }
 
-func (u *UserRepository) GetByIds(ctx context.Context, ids []uint, needRoles, needPermissions bool) ([]*models.User, error) {
-	return u.dao.GetByIds(ctx, ids, needRoles, needPermissions)
+func (u *UserRepository) GetByIds(ctx context.Context, ids []uint, needAvatar, needRoles, needPermissions bool) ([]*models.User, error) {
+	return u.dao.GetByIds(ctx, ids, needAvatar, needRoles, needPermissions)
 }
 
 func (u *UserRepository) GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error) {

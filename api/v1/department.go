@@ -40,7 +40,7 @@ func (r *DepartmentApi) CreateDepartment(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
-	err = r.service.CreateDepartment(ctx, claims.User.ID, params.Name, params.ParentId)
+	err = r.service.CreateDepartment(ctx, claims.User.ID, params.Name, params.ParentId, params.Leaders, params.Users)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
