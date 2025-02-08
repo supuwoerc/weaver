@@ -99,7 +99,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		var users []*models.User
 		tempUserIds := lo.Union(userIds, leaderIds)
 		if len(tempUserIds) > 0 {
-			users, err = p.userRepository.GetByIds(ctx, tempUserIds, false, false, false)
+			users, err = p.userRepository.GetByIds(ctx, tempUserIds, false, false, false, false)
 			if err != nil {
 				return err
 			}
@@ -119,4 +119,9 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		// 创建部门 & 建立关联关系
 		return p.departmentRepository.Create(ctx, dept)
 	})
+}
+
+func (p *DepartmentService) GetAllDepartment(ctx context.Context) ([]*models.Department, error) {
+	// TODO:添加缓存优化 single flight
+	return p.departmentRepository.GetAll(ctx)
 }

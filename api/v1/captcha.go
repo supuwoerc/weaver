@@ -33,7 +33,7 @@ func (c *CaptchaApi) GenerateCaptcha(ctx *gin.Context) {
 		response.FailWithError(ctx, err)
 		return
 	}
-	response.SuccessWithData[response.GetCaptchaResponse](ctx, response.GetCaptchaResponse{
+	response.SuccessWithData(ctx, response.GetCaptchaResponse{
 		ID:     captchaInfo.ID,
 		Base64: captchaInfo.Base64,
 	})

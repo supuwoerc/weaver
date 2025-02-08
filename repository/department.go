@@ -36,3 +36,7 @@ func (r *DepartmentRepository) GetByName(ctx context.Context, name string) (*mod
 func (r *DepartmentRepository) GetById(ctx context.Context, id uint) (*models.Department, error) {
 	return r.dao.GetById(ctx, id)
 }
+
+func (r *DepartmentRepository) GetAll(ctx context.Context) ([]*models.Department, error) {
+	return r.dao.GetAll(ctx)
+}

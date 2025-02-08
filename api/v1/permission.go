@@ -1,11 +1,13 @@
 package v1
 
 import (
+	"gin-web/models"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
+	"github.com/samber/lo"
 	"sync"
 )
 
@@ -59,7 +61,9 @@ func (r *PermissionApi) GetPermissionList(ctx *gin.Context) {
 		response.FailWithError(ctx, err)
 		return
 	}
-	response.SuccessWithPageData(ctx, total, list)
+	response.SuccessWithPageData(ctx, total, lo.Map(list, func(item *models.Permission, _ int) *response.PermissionListRowResponse {
+		return response.ToPermissionListRowResponse(item)
+	}))
 }
 
 func (r *PermissionApi) GetPermissionDetail(ctx *gin.Context) {
@@ -68,12 +72,12 @@ func (r *PermissionApi) GetPermissionDetail(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	detail, err := r.service.GetPermissionDetail(ctx, params.ID)
+	permission, err := r.service.GetPermissionDetail(ctx, params.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
 	}
-	response.SuccessWithData(ctx, detail)
+	response.SuccessWithData(ctx, response.ToPermissionDetailResponse(permission))
 }
 
 func (r *PermissionApi) UpdatePermission(ctx *gin.Context) {

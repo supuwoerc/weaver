@@ -10,7 +10,6 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
-	"github.com/samber/lo"
 	"sync"
 )
 
@@ -82,7 +81,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, name string
 		// 查询有效的用户
 		var users []*models.User
 		if len(userIds) > 0 {
-			users, err = r.userRepository.GetByIds(ctx, userIds, false, false, false)
+			users, err = r.userRepository.GetByIds(ctx, userIds, false, false, false, false)
 			if err != nil {
 				return err
 			}
@@ -106,16 +105,20 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, name string
 	})
 }
 
-func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*response.RoleListRowResponse, int64, error) {
+func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error) {
 	list, total, err := r.roleRepository.GetList(ctx, keyword, limit, offset)
-	return lo.Map(list, func(item *models.Role, _ int) *response.RoleListRowResponse {
-		return response.ToRoleListRowResponse(item)
-	}), total, err
+	if err != nil {
+		return nil, 0, err
+	}
+	return list, total, nil
 }
 
-func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error) {
+func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*models.Role, error) {
 	role, err := r.roleRepository.GetById(ctx, id, true, true)
-	return response.ToRoleDetailResponse(role), err
+	if err != nil {
+		return nil, err
+	}
+	return role, nil
 }
 
 func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, name string, userIds, permissionIds []uint) error {
@@ -164,7 +167,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, na
 		// 查询有效的用户
 		var users []*models.User
 		if len(userIds) > 0 {
-			users, err = r.userRepository.GetByIds(ctx, userIds, false, false, false)
+			users, err = r.userRepository.GetByIds(ctx, userIds, false, false, false, false)
 			if err != nil {
 				return err
 			}

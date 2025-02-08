@@ -47,3 +47,12 @@ func (r *DepartmentApi) CreateDepartment(ctx *gin.Context) {
 	}
 	response.Success(ctx)
 }
+
+func (r *DepartmentApi) GetDepartmentTree(ctx *gin.Context) {
+	departments, err := r.service.GetAllDepartment(ctx)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.SuccessWithData(ctx, departments)
+}

@@ -10,5 +10,6 @@ func InitDepartmentRouter(r *gin.RouterGroup) {
 	departmentAccessGroup := r.Group("department")
 	{
 		departmentAccessGroup.POST("create", departmentApi.CreateDepartment)
+		departmentAccessGroup.GET("tree", departmentApi.GetDepartmentTree)
 	}
 }

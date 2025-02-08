@@ -58,3 +58,12 @@ func (r *DepartmentDAO) GetById(ctx context.Context, id uint) (*models.Departmen
 	}
 	return &dept, nil
 }
+
+func (r *DepartmentDAO) GetAll(ctx context.Context) ([]*models.Department, error) {
+	var depts []*models.Department
+	err := r.Datasource(ctx).Model(&models.Department{}).Preload("Parent").Preload("Children").Find(&depts).Error
+	if err != nil {
+		return nil, err
+	}
+	return depts, nil
+}

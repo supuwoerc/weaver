@@ -91,7 +91,7 @@ func (r *RoleDAO) GetById(ctx context.Context, id uint, needUsers, needPermissio
 	if needPermissions {
 		query = query.Preload("Permissions")
 	}
-	err := query.Where("id = ?", id).Find(&result).Error
+	err := query.Where("id = ?", id).First(&result).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, response.RoleNotExist

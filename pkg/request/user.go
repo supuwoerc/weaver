@@ -1,5 +1,6 @@
 package request
 
+// SignUpRequest 注册请求参数
 type SignUpRequest struct {
 	Email    string `json:"email" binding:"required,email,max=50"`
 	Password string `json:"password" binding:"required"`
@@ -7,7 +8,15 @@ type SignUpRequest struct {
 	Code     string `json:"code" binding:"required"`
 }
 
+// LoginRequest 登录请求参数
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email,max=50"`
 	Password string `json:"password" binding:"required"`
+}
+
+// GetUserListRequest 查询用户列表的参数
+type GetUserListRequest struct {
+	Keyword string `json:"keyword" form:"keyword" binding:"omitempty,min=1,max=20"`
+	Limit   int    `json:"limit" form:"limit" binding:"required,min=1,max=200"`
+	Offset  int    `json:"offset"  form:"offset" binding:"min=0"`
 }
