@@ -50,7 +50,12 @@ func (r *DepartmentApi) CreateDepartment(ctx *gin.Context) {
 }
 
 func (r *DepartmentApi) GetDepartmentTree(ctx *gin.Context) {
-	departments, err := r.service.GetAllDepartment(ctx)
+	var params request.GetDepartmentTreeRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	departments, err := r.service.GetDepartmentTree(ctx, params.Crew)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

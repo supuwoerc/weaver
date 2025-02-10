@@ -7,3 +7,8 @@ type CreateDepartmentRequest struct {
 	Leaders  []uint `json:"leaders" binding:"omitempty,dive,min=1"`
 	Users    []uint `json:"users" binding:"omitempty,dive,min=1"`
 }
+
+// GetDepartmentTreeRequest 查询组织架构树的参数
+type GetDepartmentTreeRequest struct {
+	Crew bool `form:"crew" binding:"boolean"`
+}

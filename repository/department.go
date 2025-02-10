@@ -37,6 +37,6 @@ func (r *DepartmentRepository) GetById(ctx context.Context, id uint) (*models.De
 	return r.dao.GetById(ctx, id)
 }
 
-func (r *DepartmentRepository) GetAll(ctx context.Context) ([]*models.Department, error) {
-	return r.dao.GetAll(ctx)
+func (r *DepartmentRepository) GetAll(ctx context.Context, crew bool) ([]*models.Department, error) {
+	return r.dao.GetAll(ctx, crew)
 }

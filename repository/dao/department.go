@@ -59,9 +59,14 @@ func (r *DepartmentDAO) GetById(ctx context.Context, id uint) (*models.Departmen
 	return &dept, nil
 }
 
-func (r *DepartmentDAO) GetAll(ctx context.Context) ([]*models.Department, error) {
+// TODO:替换Preload查询,使用全量查询后程序组装数据,避免将查询压力放到DB上
+func (r *DepartmentDAO) GetAll(ctx context.Context, crew bool) ([]*models.Department, error) {
 	var depts []*models.Department
-	err := r.Datasource(ctx).Model(&models.Department{}).Preload("Creator").Preload("Updater").Find(&depts).Error
+	query := r.Datasource(ctx).Model(&models.Department{}).Preload("Creator").Preload("Updater")
+	if crew {
+		query = query.Preload("Leaders").Preload("Users")
+	}
+	err := query.Find(&depts).Error
 	if err != nil {
 		return nil, err
 	}

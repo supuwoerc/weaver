@@ -129,7 +129,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	})
 }
 
-func (p *DepartmentService) GetAllDepartment(ctx context.Context) ([]*models.Department, error) {
+func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([]*models.Department, error) {
 	// TODO:添加缓存优化 single flight
-	return p.departmentRepository.GetAll(ctx)
+	return p.departmentRepository.GetAll(ctx, crew)
 }
