@@ -7,7 +7,7 @@ type Department struct {
 	ParentId  *uint         `json:"-"` // 父级部门ID,nil则为顶级部门
 	Parent    *Department   `json:"parent" gorm:"foreignKey:ParentId;references:ID"`
 	Children  []*Department `json:"children" gorm:"foreignKey:ParentId"` // 不建议使用 gorm 预加载
-	Ancestors *string       `json:"-"`                                   // 祖先部门路径逗号拼接的字符串
+	Ancestors *string       `json:"ancestors"`                           // 祖先部门路径逗号拼接的字符串
 	Leaders   []*User       `json:"leaders" gorm:"many2many:department_leader;"`
 	Users     []*User       `json:"users" gorm:"many2many:user_department;"`
 	CreatorId uint          `json:"-" gorm:"not null;"`

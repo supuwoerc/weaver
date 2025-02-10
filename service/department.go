@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/global"
@@ -11,6 +10,8 @@ import (
 	"gin-web/repository"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -91,7 +92,14 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		}
 		// 完善 Parent & Ancestors
 		if parentDept != nil {
-			ancestors := fmt.Sprintf("%s,%s", parentDept.Ancestors, parentDept.ID)
+			parentDeptAncestors := ""
+			if parentDept.Ancestors != nil {
+				parentDeptAncestors = *parentDept.Ancestors
+			}
+			t := lo.Filter([]string{parentDeptAncestors, strconv.Itoa(int(parentDept.ID))}, func(item string, _ int) bool {
+				return item != ""
+			})
+			ancestors := strings.Join(t, ",")
 			dept.Ancestors = &ancestors
 			dept.ParentId = parentId
 		}
