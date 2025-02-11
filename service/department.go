@@ -107,7 +107,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		var users []*models.User
 		tempUserIds := lo.Union(userIds, leaderIds)
 		if len(tempUserIds) > 0 {
-			users, err = p.userRepository.GetByIds(ctx, tempUserIds, false, false, false, false)
+			users, err = p.userRepository.GetByIds(ctx, tempUserIds, false, false, false)
 			if err != nil {
 				return err
 			}
@@ -129,7 +129,70 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	})
 }
 
-func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([]*models.Department, error) {
-	// TODO:添加缓存优化 single flight
-	return p.departmentRepository.GetAll(ctx, crew)
+type departmentBaseData struct {
+	departments []*models.Department
+	deptLeader  []*models.DepartmentLeader
+	userDept    []*models.UserDepartment
+}
+
+// TODO:添加缓存优化 single flight
+func (p *DepartmentService) GetAllDepartment(ctx context.Context, crew bool) ([]*models.Department, error) {
+	departments, err := p.departmentRepository.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if crew {
+		var users []*models.User
+		var deptLeader []*models.DepartmentLeader
+		var userDept []*models.UserDepartment
+		deptLeader, err = p.departmentRepository.GetAllDepartmentLeader(ctx)
+		if err != nil {
+			return nil, err
+		}
+		userDept, err = p.departmentRepository.GetAllUserDepartment(ctx)
+		if err != nil {
+			return nil, err
+		}
+		users, err = p.userRepository.GetAll(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, dept := range departments {
+			tempUserDept := lo.Filter(userDept, func(item *models.UserDepartment, _ int) bool {
+				return item.DepartmentId == dept.ID
+			})
+			userIds := lo.Map(tempUserDept, func(item *models.UserDepartment, _ int) uint {
+				return item.UserId
+			})
+			tempDeptLeader := lo.Filter(deptLeader, func(item *models.DepartmentLeader, _ int) bool {
+				return item.DepartmentId == dept.ID
+			})
+			leaderIds := lo.Map(tempDeptLeader, func(item *models.DepartmentLeader, _ int) uint {
+				return item.UserId
+			})
+			dept.Users = lo.Filter(users, func(item *models.User, _ int) bool {
+				return lo.Contains(userIds, item.ID)
+			})
+			dept.Leaders = lo.Filter(users, func(item *models.User, _ int) bool {
+				return lo.Contains(leaderIds, item.ID)
+			})
+			creator, ok := lo.Find(users, func(item *models.User) bool {
+				return item.ID == dept.CreatorId
+			})
+			if ok {
+				dept.Creator = *creator
+			} else {
+				return nil, response.Error
+			}
+			updater, ok := lo.Find(users, func(item *models.User) bool {
+				return item.ID == dept.UpdaterId
+			})
+			if ok {
+				dept.Updater = *updater
+			} else {
+				return nil, response.Error
+			}
+		}
+	}
+	return departments, nil
 }

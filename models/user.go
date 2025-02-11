@@ -9,8 +9,7 @@ type User struct {
 	Email       string        `json:"email" gorm:"unique;not null;;comment:邮箱"`
 	Password    string        `json:"-"`
 	Nickname    *string       `json:"nickname"`
-	AvatarId    *uint         `json:"-"`
-	Avatar      *Attachment   `json:"avatar" gorm:"foreignKey:AvatarId;references:ID"`
+	Avatar      *string       `json:"avatar"`
 	Gender      *uint8        `json:"gender"`
 	About       *string       `json:"about"`
 	Birthday    *time.Time    `json:"birthday"`

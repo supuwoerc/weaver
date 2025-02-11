@@ -17,8 +17,8 @@ type DepartmentTreeResponse struct {
 	Children  []*DepartmentTreeResponse `json:"children,omitempty"`
 	Leaders   []*SimpleUser             `json:"leaders,omitempty"`
 	Users     []*SimpleUser             `json:"users,omitempty"`
-	Creator   Creator                   `json:"creator"`
-	Updater   Updater                   `json:"updater"`
+	Creator   *Creator                  `json:"creator,omitempty"`
+	Updater   *Updater                  `json:"updater,omitempty"`
 }
 
 // ToDepartmentTreeResponse 将 dept 转为响应
@@ -46,7 +46,7 @@ func ToDepartmentTreeResponse(dept *models.Department, deptMap map[uint]*models.
 	fullIds := make([]uint, len(splitAncestors))
 	copy(fullIds, splitAncestors)
 	fullIds = append(fullIds, dept.ID)
-	return &DepartmentTreeResponse{
+	res := &DepartmentTreeResponse{
 		Department: dept,
 		Ancestors:  splitAncestors,
 		FullName:   fullName,
@@ -61,11 +61,16 @@ func ToDepartmentTreeResponse(dept *models.Department, deptMap map[uint]*models.
 				User: item,
 			}
 		}),
-		Creator: Creator{
+	}
+	if dept.Creator.ID != 0 {
+		res.Creator = &Creator{
 			User: &dept.Creator,
-		},
-		Updater: Updater{
+		}
+	}
+	if dept.Updater.ID != 0 {
+		res.Updater = &Updater{
 			User: &dept.Updater,
-		},
-	}, nil
+		}
+	}
+	return res, nil
 }

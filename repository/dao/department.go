@@ -59,16 +59,29 @@ func (r *DepartmentDAO) GetById(ctx context.Context, id uint) (*models.Departmen
 	return &dept, nil
 }
 
-// TODO:替换Preload查询,使用全量查询后程序组装数据,避免将查询压力放到DB上
-func (r *DepartmentDAO) GetAll(ctx context.Context, crew bool) ([]*models.Department, error) {
+func (r *DepartmentDAO) GetAll(ctx context.Context) ([]*models.Department, error) {
 	var depts []*models.Department
-	query := r.Datasource(ctx).Model(&models.Department{}).Preload("Creator").Preload("Updater")
-	if crew {
-		query = query.Preload("Leaders").Preload("Users")
-	}
-	err := query.Find(&depts).Error
+	err := r.Datasource(ctx).Model(&models.Department{}).Find(&depts).Error
 	if err != nil {
 		return nil, err
 	}
 	return depts, nil
+}
+
+func (r *DepartmentDAO) GetAllUserDepartment(ctx context.Context) ([]*models.UserDepartment, error) {
+	var res []*models.UserDepartment
+	err := r.Datasource(ctx).Model(&models.UserDepartment{}).Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (r *DepartmentDAO) GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error) {
+	var res []*models.DepartmentLeader
+	err := r.Datasource(ctx).Model(&models.DepartmentLeader{}).Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

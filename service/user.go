@@ -58,7 +58,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 			global.Logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(emailLock)
-	existUser, err := u.userRepository.GetByEmail(ctx, user.Email, false, false, false, false)
+	existUser, err := u.userRepository.GetByEmail(ctx, user.Email, false, false, false)
 	if err != nil && !errors.Is(err, response.UserNotExist) {
 		return err
 	}
@@ -69,7 +69,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 }
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*models.User, *models.TokenPair, error) {
-	user, err := u.userRepository.GetByEmail(ctx, email, true, false, false, false)
+	user, err := u.userRepository.GetByEmail(ctx, email, true, false, false)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -108,7 +108,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 }
 
 func (u *UserService) Profile(ctx context.Context, uid uint) (*models.User, error) {
-	return u.userRepository.GetById(ctx, uid, true, true, true, true)
+	return u.userRepository.GetById(ctx, uid, true, true, true)
 }
 
 func (p *UserService) GetUserList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error) {
