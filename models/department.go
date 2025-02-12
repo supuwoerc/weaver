@@ -4,7 +4,7 @@ import "gin-web/pkg/database"
 
 type Department struct {
 	Name      string        `json:"name" gorm:"not null;"`
-	ParentId  *uint         `json:"-"` // 父级部门ID,nil则为顶级部门
+	ParentId  *uint         `json:"parent_id"` // 父级部门ID,nil则为顶级部门
 	Parent    *Department   `json:"parent" gorm:"foreignKey:ParentId;references:ID"`
 	Children  []*Department `json:"children" gorm:"foreignKey:ParentId"` // 不建议使用 gorm 预加载
 	Ancestors *string       `json:"ancestors"`                           // 祖先部门路径逗号拼接的字符串

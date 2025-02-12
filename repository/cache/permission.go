@@ -8,8 +8,6 @@ type PermissionCache struct {
 	*BasicCache
 }
 
-const PermissionCacheKey = "permission_cache"
-
 var (
 	permissionCache     *PermissionCache
 	permissionCacheOnce sync.Once

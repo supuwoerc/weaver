@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"gin-web/pkg/constant"
 	"gorm.io/gorm"
@@ -14,9 +13,25 @@ import (
 
 type UpsertTime time.Time
 
+func (c *UpsertTime) UnmarshalJSON(bytes []byte) error {
+	str := string(bytes)
+	if str == "null" || str == `""` {
+		return nil
+	}
+	if parse, err := time.Parse(`"`+time.DateTime+`"`, str); err != nil {
+		return err
+	} else {
+		*c = UpsertTime(parse)
+		return nil
+	}
+}
+
 func (c UpsertTime) MarshalJSON() ([]byte, error) {
-	format := time.Time(c).Format(time.DateTime)
-	return json.Marshal(format)
+	b := make([]byte, 0, len(time.DateTime)+len(`""`))
+	b = append(b, '"')
+	b = time.Time(c).AppendFormat(b, time.DateTime)
+	b = append(b, '"')
+	return b, nil
 }
 
 func (c UpsertTime) Value() (driver.Value, error) {

@@ -9,7 +9,9 @@ import (
 	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
+	"golang.org/x/sync/singleflight"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,6 +21,7 @@ type DepartmentService struct {
 	*BasicService
 	departmentRepository *repository.DepartmentRepository
 	userRepository       *repository.UserRepository
+	deptTreeSfg          singleflight.Group
 }
 
 var (
@@ -129,70 +132,100 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	})
 }
 
-type departmentBaseData struct {
-	departments []*models.Department
-	deptLeader  []*models.DepartmentLeader
-	userDept    []*models.UserDepartment
-}
-
-// TODO:添加缓存优化 single flight
-func (p *DepartmentService) GetAllDepartment(ctx context.Context, crew bool) ([]*models.Department, error) {
-	departments, err := p.departmentRepository.GetAll(ctx)
+func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([]*models.Department, error) {
+	key := constant.DepartmentTreeSfgKey
+	if crew {
+		key = constant.DepartmentTreeCrewSfgKey
+	}
+	departmentCache, cacheErr := p.processDepartmentCache(ctx, key)
+	if cacheErr != nil {
+		return nil, cacheErr
+	}
+	if departmentCache != nil {
+		return departmentCache, nil
+	}
+	result, err, _ := p.deptTreeSfg.Do(key, func() (interface{}, error) {
+		departments, err := p.departmentRepository.GetAll(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if crew {
+			if err = p.processDepartmentCrew(ctx, departments); err != nil {
+				return nil, err
+			}
+		}
+		if err = p.departmentRepository.CacheDepartment(ctx, key, departments); err != nil {
+			return nil, err
+		}
+		return departments, nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	if crew {
-		var users []*models.User
-		var deptLeader []*models.DepartmentLeader
-		var userDept []*models.UserDepartment
-		deptLeader, err = p.departmentRepository.GetAllDepartmentLeader(ctx)
-		if err != nil {
-			return nil, err
+	return result.([]*models.Department), nil
+}
+
+func (p *DepartmentService) processDepartmentCache(ctx context.Context, key string) ([]*models.Department, error) {
+	cache, err := p.departmentRepository.GetDepartmentCache(ctx, key)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
 		}
-		userDept, err = p.departmentRepository.GetAllUserDepartment(ctx)
-		if err != nil {
-			return nil, err
-		}
-		users, err = p.userRepository.GetAll(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, dept := range departments {
-			tempUserDept := lo.Filter(userDept, func(item *models.UserDepartment, _ int) bool {
-				return item.DepartmentId == dept.ID
-			})
-			userIds := lo.Map(tempUserDept, func(item *models.UserDepartment, _ int) uint {
+		return nil, err
+	}
+	return cache, nil
+}
+
+func (p *DepartmentService) processDepartmentCrew(ctx context.Context, departments []*models.Department) error {
+	var users []*models.User
+	var deptLeader []*models.DepartmentLeader
+	var userDept []*models.UserDepartment
+	var err error
+	deptLeader, err = p.departmentRepository.GetAllDepartmentLeader(ctx)
+	if err != nil {
+		return err
+	}
+	userDept, err = p.departmentRepository.GetAllUserDepartment(ctx)
+	if err != nil {
+		return err
+	}
+	users, err = p.userRepository.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+	for _, dept := range departments {
+		ud := lo.Filter(userDept, func(item *models.UserDepartment, _ int) bool {
+			return item.DepartmentId == dept.ID
+		})
+		dl := lo.Filter(deptLeader, func(item *models.DepartmentLeader, _ int) bool {
+			return item.DepartmentId == dept.ID
+		})
+		dept.Users = lo.Filter(users, func(item *models.User, _ int) bool {
+			return lo.Contains(lo.Map(ud, func(item *models.UserDepartment, _ int) uint {
 				return item.UserId
-			})
-			tempDeptLeader := lo.Filter(deptLeader, func(item *models.DepartmentLeader, _ int) bool {
-				return item.DepartmentId == dept.ID
-			})
-			leaderIds := lo.Map(tempDeptLeader, func(item *models.DepartmentLeader, _ int) uint {
+			}), item.ID)
+		})
+		dept.Leaders = lo.Filter(users, func(item *models.User, _ int) bool {
+			return lo.Contains(lo.Map(dl, func(item *models.DepartmentLeader, _ int) uint {
 				return item.UserId
-			})
-			dept.Users = lo.Filter(users, func(item *models.User, _ int) bool {
-				return lo.Contains(userIds, item.ID)
-			})
-			dept.Leaders = lo.Filter(users, func(item *models.User, _ int) bool {
-				return lo.Contains(leaderIds, item.ID)
-			})
-			creator, ok := lo.Find(users, func(item *models.User) bool {
-				return item.ID == dept.CreatorId
-			})
-			if ok {
-				dept.Creator = *creator
-			} else {
-				return nil, response.Error
-			}
-			updater, ok := lo.Find(users, func(item *models.User) bool {
-				return item.ID == dept.UpdaterId
-			})
-			if ok {
-				dept.Updater = *updater
-			} else {
-				return nil, response.Error
-			}
+			}), item.ID)
+		})
+		creator, ok := lo.Find(users, func(item *models.User) bool {
+			return item.ID == dept.CreatorId
+		})
+		if ok {
+			dept.Creator = *creator
+		} else {
+			return response.Error
+		}
+		updater, ok := lo.Find(users, func(item *models.User) bool {
+			return item.ID == dept.UpdaterId
+		})
+		if ok {
+			dept.Updater = *updater
+		} else {
+			return response.Error
 		}
 	}
-	return departments, nil
+	return nil
 }

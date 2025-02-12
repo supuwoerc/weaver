@@ -3,8 +3,8 @@ package cache
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"gin-web/models"
+	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"sync"
 )
@@ -13,10 +13,7 @@ type UserCache struct {
 	*BasicCache
 }
 
-const UserCacheKey = "user_cache"
-
 var (
-	tokenPairKey  = fmt.Sprintf("%s%s", UserCacheKey, "_token")
 	userCache     *UserCache
 	userCacheOnce sync.Once
 )
@@ -36,19 +33,19 @@ func (u *UserCache) CacheTokenPair(ctx context.Context, email string, pair *mode
 	if err != nil {
 		return err
 	}
-	return u.redis.Client.HSet(ctx, tokenPairKey, email, result).Err()
+	return u.redis.Client.HSet(ctx, constant.UserTokenPairKey, email, result).Err()
 }
 
 func (u *UserCache) GetTokenPairIsExist(ctx context.Context, email string) (bool, error) {
-	return u.redis.Client.HExists(ctx, tokenPairKey, email).Result()
+	return u.redis.Client.HExists(ctx, constant.UserTokenPairKey, email).Result()
 }
 
 func (u *UserCache) HDelTokenPair(ctx context.Context, email string) error {
-	return u.redis.Client.HDel(ctx, tokenPairKey, email).Err()
+	return u.redis.Client.HDel(ctx, constant.UserTokenPairKey, email).Err()
 }
 
 func (u *UserCache) GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error) {
-	result, err := u.redis.Client.HGet(ctx, tokenPairKey, email).Result()
+	result, err := u.redis.Client.HGet(ctx, constant.UserTokenPairKey, email).Result()
 	if err != nil {
 		return nil, err
 	}

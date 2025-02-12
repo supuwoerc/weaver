@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"gin-web/models"
+	"gin-web/repository/cache"
 	"gin-web/repository/dao"
 	"sync"
 )
@@ -13,13 +14,15 @@ var (
 )
 
 type DepartmentRepository struct {
-	dao *dao.DepartmentDAO
+	dao   *dao.DepartmentDAO
+	cache *cache.DepartmentCache
 }
 
 func NewDepartmentRepository() *DepartmentRepository {
 	departmentRepositoryOnce.Do(func() {
 		departmentRepository = &DepartmentRepository{
-			dao: dao.NewDepartmentDAO(),
+			dao:   dao.NewDepartmentDAO(),
+			cache: cache.NewDepartmentCache(),
 		}
 	})
 	return departmentRepository
@@ -47,4 +50,12 @@ func (r *DepartmentRepository) GetAllUserDepartment(ctx context.Context) ([]*mod
 
 func (r *DepartmentRepository) GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error) {
 	return r.dao.GetAllDepartmentLeader(ctx)
+}
+
+func (r *DepartmentRepository) CacheDepartment(ctx context.Context, key string, depts []*models.Department) error {
+	return r.cache.CacheDepartment(ctx, key, depts)
+}
+
+func (r *DepartmentRepository) GetDepartmentCache(ctx context.Context, key string) ([]*models.Department, error) {
+	return r.cache.GetDepartmentCache(ctx, key)
 }

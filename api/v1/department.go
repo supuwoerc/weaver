@@ -55,7 +55,7 @@ func (r *DepartmentApi) GetDepartmentTree(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	departments, err := r.service.GetAllDepartment(ctx, params.Crew)
+	departments, err := r.service.GetDepartmentTree(ctx, params.Crew)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
