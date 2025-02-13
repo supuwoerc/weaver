@@ -2,6 +2,7 @@ package service
 
 import (
 	"gin-web/pkg/captcha"
+	"gin-web/pkg/response"
 	"sync"
 )
 
@@ -36,12 +37,21 @@ func NewCaptchaService() *CaptchaService {
 	return captchaService
 }
 
-func (c *CaptchaService) Generate(t CaptchaType) (*captcha.CaptchaInfo, error) {
+func (c *CaptchaService) Generate(t CaptchaType) (*response.GetCaptchaResponse, error) {
+	var info *captcha.CaptchaInfo
+	var err error
 	if target, ok := c.clients[t]; ok {
-		return target.Generate()
+		info, err = target.Generate()
 	} else {
-		return c.clients[Default].Generate()
+		info, err = c.clients[Default].Generate()
 	}
+	if err != nil {
+		return nil, err
+	}
+	return &response.GetCaptchaResponse{
+		ID:     info.ID,
+		Base64: info.Base64,
+	}, nil
 }
 
 func (c *CaptchaService) Verify(t CaptchaType, id, answer string) bool {

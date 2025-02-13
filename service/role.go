@@ -10,6 +10,7 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
+	"github.com/samber/lo"
 	"sync"
 )
 
@@ -105,20 +106,22 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, name string
 	})
 }
 
-func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error) {
+func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*response.RoleListRowResponse, int64, error) {
 	list, total, err := r.roleRepository.GetList(ctx, keyword, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
-	return list, total, nil
+	return lo.Map(list, func(item *models.Role, _ int) *response.RoleListRowResponse {
+		return response.ToRoleListRowResponse(item)
+	}), total, nil
 }
 
-func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*models.Role, error) {
+func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error) {
 	role, err := r.roleRepository.GetById(ctx, id, true, true)
 	if err != nil {
 		return nil, err
 	}
-	return role, nil
+	return response.ToRoleDetailResponse(role), nil
 }
 
 func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, name string, userIds, permissionIds []uint) error {

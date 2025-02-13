@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"gin-web/models"
+	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"github.com/google/uuid"
@@ -82,7 +83,7 @@ func getFileType(header []byte) int8 {
 	}
 }
 
-func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.FileHeader, uid uint) ([]*models.Attachment, error) {
+func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.FileHeader, uid uint) ([]*response.UploadAttachmentResponse, error) {
 	var info = make([]*AttachmentInfo, 0, len(files))
 	projectDir, temp := os.Getwd()
 	if temp != nil {
@@ -177,10 +178,18 @@ func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.Fi
 	if temp != nil {
 		return nil, temp
 	}
-	return attachments, nil
+	ret := lo.Map(attachments, func(item *models.Attachment, _ int) *response.UploadAttachmentResponse {
+		return &response.UploadAttachmentResponse{
+			ID:   item.ID,
+			Name: item.Name,
+			Size: item.Size,
+			Path: filepath.Join(string(filepath.Separator), item.Path), // TODO:返回预览/下载接口完整路径
+		}
+	})
+	return ret, nil
 }
 
-func (a *AttachmentService) SaveFile(ctx context.Context, file *multipart.FileHeader, uid uint) (*models.Attachment, error) {
+func (a *AttachmentService) SaveFile(ctx context.Context, file *multipart.FileHeader, uid uint) (*response.UploadAttachmentResponse, error) {
 	files, err := a.SaveFiles(ctx, []*multipart.FileHeader{file}, uid)
 	if err != nil || files == nil || len(files) == 0 {
 		return nil, err

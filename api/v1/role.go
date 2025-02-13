@@ -1,13 +1,11 @@
 package v1
 
 import (
-	"gin-web/models"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/lo"
 	"sync"
 )
 
@@ -61,9 +59,7 @@ func (r *RoleApi) GetRoleList(ctx *gin.Context) {
 		response.FailWithError(ctx, err)
 		return
 	}
-	response.SuccessWithPageData(ctx, total, lo.Map(list, func(item *models.Role, _ int) *response.RoleListRowResponse {
-		return response.ToRoleListRowResponse(item)
-	}))
+	response.SuccessWithPageData(ctx, total, list)
 }
 
 func (r *RoleApi) GetRoleDetail(ctx *gin.Context) {
@@ -72,12 +68,12 @@ func (r *RoleApi) GetRoleDetail(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	role, err := r.service.GetRoleDetail(ctx, params.ID)
+	detail, err := r.service.GetRoleDetail(ctx, params.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
 	}
-	response.SuccessWithData(ctx, response.ToRoleDetailResponse(role))
+	response.SuccessWithData(ctx, detail)
 }
 
 func (r *RoleApi) UpdateRole(ctx *gin.Context) {

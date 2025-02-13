@@ -10,6 +10,7 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
+	"github.com/samber/lo"
 	"golang.org/x/crypto/bcrypt"
 	"sync"
 )
@@ -68,14 +69,14 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	return u.userRepository.Create(ctx, user)
 }
 
-func (u *UserService) Login(ctx context.Context, email string, password string) (*models.User, *models.TokenPair, error) {
+func (u *UserService) Login(ctx context.Context, email string, password string) (*response.LoginResponse, error) {
 	user, err := u.userRepository.GetByEmail(ctx, email, true, false, false)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return nil, nil, response.UserLoginFail
+		return nil, response.UserLoginFail
 	}
 	pair, err := u.userRepository.GetTokenPair(ctx, email)
 	builder := jwt.NewJwtBuilder()
@@ -83,7 +84,15 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 		claims, parseErr := builder.ParseToken(pair.AccessToken)
 		if parseErr == nil && claims != nil {
 			// 如果缓存的token还未过期,直接返回缓存中的记录
-			return user, pair, nil
+			return &response.LoginResponse{
+				User: response.LoginUser{
+					ID:       user.ID,
+					Email:    user.Email,
+					Nickname: user.Nickname,
+				},
+				Token:        pair.AccessToken,
+				RefreshToken: pair.RefreshToken,
+			}, nil
 		}
 	}
 	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
@@ -92,29 +101,54 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 		Nickname: user.Nickname,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	err = u.userRepository.CacheTokenPair(ctx, user.Email, &models.TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return user, &models.TokenPair{
-		AccessToken:  accessToken,
+	return &response.LoginResponse{
+		User: response.LoginUser{
+			ID:       user.ID,
+			Email:    user.Email,
+			Nickname: user.Nickname,
+		},
+		Token:        accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
 
-func (u *UserService) Profile(ctx context.Context, uid uint) (*models.User, error) {
-	return u.userRepository.GetById(ctx, uid, true, true, true)
+func (u *UserService) Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error) {
+	user, err := u.userRepository.GetById(ctx, uid, true, true, true)
+	if err != nil {
+		return nil, err
+	}
+	return &response.ProfileResponse{
+		User: user,
+		Roles: lo.Map(user.Roles, func(item *models.Role, _ int) *response.ProfileResponseRole {
+			return &response.ProfileResponseRole{
+				ID:   item.ID,
+				Name: item.Name,
+			}
+		}),
+		Departments: lo.Map(user.Departments, func(item *models.Department, _ int) *response.ProfileResponseDept {
+			return &response.ProfileResponseDept{
+				ID:   item.ID,
+				Name: item.Name,
+			}
+		}),
+	}, nil
 }
 
-func (p *UserService) GetUserList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error) {
+func (p *UserService) GetUserList(ctx context.Context, keyword string, limit, offset int) ([]*response.UserListRowResponse, int64, error) {
 	list, total, err := p.userRepository.GetList(ctx, keyword, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
-	return list, total, nil
+	return lo.Map(list, func(item *models.User, _ int) *response.UserListRowResponse {
+		return response.ToUserListRowResponse(item)
+	}), total, nil
 }

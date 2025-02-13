@@ -1,14 +1,11 @@
 package v1
 
 import (
-	"gin-web/models"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/lo"
 	"github.com/spf13/viper"
-	"path/filepath"
 	"sync"
 )
 
@@ -66,15 +63,7 @@ func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.Error)
 		return
 	}
-	ret := lo.Map(result, func(item *models.Attachment, _ int) *response.UploadAttachmentResponse {
-		return &response.UploadAttachmentResponse{
-			ID:   item.ID,
-			Name: item.Name,
-			Size: item.Size,
-			Path: filepath.Join(string(filepath.Separator), item.Path), // TODO:返回预览/下载接口完整路径
-		}
-	})
-	response.SuccessWithData(ctx, ret)
+	response.SuccessWithData(ctx, result)
 }
 
 func (a *AttachmentApi) Upload(ctx *gin.Context) {
@@ -97,10 +86,5 @@ func (a *AttachmentApi) Upload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.Error)
 		return
 	}
-	response.SuccessWithData(ctx, &response.UploadAttachmentResponse{
-		ID:   result.ID,
-		Name: result.Name,
-		Size: result.Size,
-		Path: result.Path,
-	})
+	response.SuccessWithData(ctx, result)
 }

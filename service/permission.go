@@ -9,6 +9,7 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
+	"github.com/samber/lo"
 	"sync"
 )
 
@@ -99,20 +100,22 @@ func (p *PermissionService) CreatePermission(ctx context.Context, operator uint,
 	})
 }
 
-func (p *PermissionService) GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error) {
+func (p *PermissionService) GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*response.PermissionListRowResponse, int64, error) {
 	list, total, err := p.permissionRepository.GetList(ctx, keyword, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
-	return list, total, nil
+	return lo.Map(list, func(item *models.Permission, _ int) *response.PermissionListRowResponse {
+		return response.ToPermissionListRowResponse(item)
+	}), total, nil
 }
 
-func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*models.Permission, error) {
+func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error) {
 	permission, err := p.permissionRepository.GetById(ctx, id, true)
 	if err != nil {
 		return nil, err
 	}
-	return permission, nil
+	return response.ToPermissionDetailResponse(permission), nil
 }
 
 func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint, id uint, name, resource string, roleIds []uint) error {

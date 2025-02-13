@@ -9,7 +9,6 @@ import (
 	"gin-web/service"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/lo"
 	"sync"
 )
 
@@ -64,20 +63,12 @@ func (u *UserApi) Login(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	user, pair, err := u.service.Login(ctx, params.Email, params.Password)
+	res, err := u.service.Login(ctx, params.Email, params.Password)
 	if err != nil {
 		response.FailWithCode(ctx, response.UserLoginFail)
 		return
 	}
-	response.SuccessWithData(ctx, &response.LoginResponse{
-		User: response.LoginUser{
-			ID:       user.ID,
-			Email:    user.Email,
-			Nickname: user.Nickname,
-		},
-		Token:        pair.AccessToken,
-		RefreshToken: pair.RefreshToken,
-	})
+	response.SuccessWithData(ctx, res)
 }
 
 func (u *UserApi) Profile(ctx *gin.Context) {
@@ -86,26 +77,12 @@ func (u *UserApi) Profile(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	user, err := u.service.Profile(ctx, claims.User.ID)
+	detail, err := u.service.Profile(ctx, claims.User.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
 	}
-	response.SuccessWithData(ctx, &response.ProfileResponse{
-		User: user,
-		Roles: lo.Map(user.Roles, func(item *models.Role, _ int) *response.ProfileResponseRole {
-			return &response.ProfileResponseRole{
-				ID:   item.ID,
-				Name: item.Name,
-			}
-		}),
-		Departments: lo.Map(user.Departments, func(item *models.Department, _ int) *response.ProfileResponseDept {
-			return &response.ProfileResponseDept{
-				ID:   item.ID,
-				Name: item.Name,
-			}
-		}),
-	})
+	response.SuccessWithData(ctx, detail)
 }
 
 func (r *UserApi) GetUserList(ctx *gin.Context) {
@@ -119,7 +96,5 @@ func (r *UserApi) GetUserList(ctx *gin.Context) {
 		response.FailWithError(ctx, err)
 		return
 	}
-	response.SuccessWithPageData(ctx, total, lo.Map(list, func(item *models.User, _ int) *response.UserListRowResponse {
-		return response.ToUserListRowResponse(item)
-	}))
+	response.SuccessWithPageData(ctx, total, list)
 }

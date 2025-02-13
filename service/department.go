@@ -132,7 +132,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	})
 }
 
-func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([]*models.Department, error) {
+func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([]*response.DepartmentTreeResponse, error) {
 	key := constant.DepartmentTreeSfgKey
 	if crew {
 		key = constant.DepartmentTreeCrewSfgKey
@@ -142,7 +142,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 		return nil, cacheErr
 	}
 	if departmentCache != nil {
-		return departmentCache, nil
+		return p.processTree(departmentCache)
 	}
 	result, err, _ := p.deptTreeSfg.Do(key, func() (interface{}, error) {
 		departments, err := p.departmentRepository.GetAll(ctx)
@@ -157,12 +157,12 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 		if err = p.departmentRepository.CacheDepartment(ctx, key, departments); err != nil {
 			return nil, err
 		}
-		return departments, nil
+		return p.processTree(departments), nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.([]*models.Department), nil
+	return result.([]*response.DepartmentTreeResponse), nil
 }
 
 func (p *DepartmentService) processDepartmentCache(ctx context.Context, key string) ([]*models.Department, error) {
@@ -228,4 +228,39 @@ func (p *DepartmentService) processDepartmentCrew(ctx context.Context, departmen
 		}
 	}
 	return nil
+}
+
+func (p *DepartmentService) processTree(departments []*models.Department) ([]*response.DepartmentTreeResponse, error) {
+	var res []*response.DepartmentTreeResponse
+	nodeMap := make(map[uint]*response.DepartmentTreeResponse)
+	deptMap := make(map[uint]*models.Department)
+	for _, dept := range departments {
+		deptMap[dept.ID] = dept
+	}
+	for _, dept := range departments {
+		holder, exist := nodeMap[dept.ID]
+		var children = make([]*response.DepartmentTreeResponse, 0)
+		if exist {
+			children = holder.Children
+		}
+		node, parseErr := response.ToDepartmentTreeResponse(dept, deptMap)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		node.Children = children
+		nodeMap[node.ID] = node
+		if dept.ParentId == nil {
+			res = append(res, node)
+		} else {
+			_, exist = nodeMap[*dept.ParentId]
+			if !exist {
+				nodeMap[*dept.ParentId], parseErr = response.ToDepartmentTreeResponse(&models.Department{}, deptMap)
+				if parseErr != nil {
+					return nil, parseErr
+				}
+			}
+			nodeMap[*dept.ParentId].Children = append(nodeMap[*dept.ParentId].Children, node)
+		}
+	}
+	return res, nil
 }
