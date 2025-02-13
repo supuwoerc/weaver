@@ -46,7 +46,7 @@ func (u *UserDAO) GetByEmail(ctx context.Context, email string, needRoles, needP
 		}
 	}
 	if needDepts {
-		query = query.Preload("Department")
+		query = query.Preload("Departments")
 	}
 	err := query.Where("email = ?", email).First(&user).Error
 	if err != nil {
@@ -90,7 +90,7 @@ func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, needRoles, needPermi
 		}
 	}
 	if needDepts {
-		query = query.Preload("Department")
+		query = query.Preload("Departments")
 	}
 	err := query.Where("id in (?)", ids).Find(&users).Error
 	if err != nil {
