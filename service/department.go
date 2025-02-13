@@ -157,7 +157,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 		if err = p.departmentRepository.CacheDepartment(ctx, key, departments); err != nil {
 			return nil, err
 		}
-		return p.processTree(departments), nil
+		return p.processTree(departments)
 	})
 	if err != nil {
 		return nil, err
