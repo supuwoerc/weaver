@@ -105,7 +105,7 @@ func (r *UserDAO) GetList(ctx context.Context, keyword string, limit, offset int
 	query := r.Datasource(ctx).Model(&models.User{}).Order("updated_at desc,id desc")
 	if keyword != "" {
 		keyword = database.FuzzKeyword(keyword)
-		query = query.Where("name like ? or email like ?", keyword, keyword)
+		query = query.Where("nickname like ? or email like ?", keyword, keyword)
 	}
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
