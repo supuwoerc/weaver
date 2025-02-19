@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
@@ -9,9 +10,14 @@ import (
 	"sync"
 )
 
+type DepartmentService interface {
+	CreateDepartment(ctx context.Context, operator uint, name string, parentId *uint, leaderIds, userIds []uint) error
+	GetDepartmentTree(ctx context.Context, crew bool) ([]*response.DepartmentTreeResponse, error)
+}
+
 type DepartmentApi struct {
 	*BasicApi
-	service *service.DepartmentService
+	service DepartmentService
 }
 
 var (

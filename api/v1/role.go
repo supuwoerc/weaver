@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
@@ -9,9 +10,17 @@ import (
 	"sync"
 )
 
+type RoleService interface {
+	CreateRole(ctx context.Context, operator uint, name string, userIds, permissionIds []uint) error
+	GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*response.RoleListRowResponse, int64, error)
+	GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error)
+	UpdateRole(ctx context.Context, operator uint, id uint, name string, userIds, permissionIds []uint) error
+	DeleteRole(ctx context.Context, id, operator uint) error
+}
+
 type RoleApi struct {
 	*BasicApi
-	service *service.RoleService
+	service RoleService
 }
 
 var (

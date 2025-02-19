@@ -13,9 +13,23 @@ var (
 	departmentRepositoryOnce sync.Once
 )
 
+type DepartmentDAO interface {
+	Create(ctx context.Context, dept *models.Department) error
+	GetByName(ctx context.Context, name string) (*models.Department, error)
+	GetById(ctx context.Context, id uint) (*models.Department, error)
+	GetAll(ctx context.Context) ([]*models.Department, error)
+	GetAllUserDepartment(ctx context.Context) ([]*models.UserDepartment, error)
+	GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error)
+}
+
+type DepartmentCache interface {
+	CacheDepartment(ctx context.Context, key string, depts []*models.Department) error
+	GetDepartmentCache(ctx context.Context, key string) ([]*models.Department, error)
+}
+
 type DepartmentRepository struct {
-	dao   *dao.DepartmentDAO
-	cache *cache.DepartmentCache
+	dao   DepartmentDAO
+	cache DepartmentCache
 }
 
 func NewDepartmentRepository() *DepartmentRepository {

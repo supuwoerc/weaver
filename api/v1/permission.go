@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
@@ -9,9 +10,17 @@ import (
 	"sync"
 )
 
+type PermissionService interface {
+	CreatePermission(ctx context.Context, operator uint, name, resource string, roleIds []uint) error
+	GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*response.PermissionListRowResponse, int64, error)
+	GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error)
+	UpdatePermission(ctx context.Context, operator uint, id uint, name, resource string, roleIds []uint) error
+	DeletePermission(ctx context.Context, id, operator uint) error
+}
+
 type PermissionApi struct {
 	*BasicApi
-	service *service.PermissionService
+	service PermissionService
 }
 
 var (

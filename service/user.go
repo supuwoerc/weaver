@@ -40,7 +40,7 @@ func NewUserService() *UserService {
 }
 
 func (u *UserService) SignUp(ctx context.Context, id string, code string, user *models.User) error {
-	verify := u.CaptchaService.Verify(SignUp, id, code)
+	verify := u.CaptchaService.Verify(constant.SignUp, id, code)
 	if !verify {
 		return response.CaptchaVerifyFail
 	}

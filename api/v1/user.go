@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/request"
@@ -12,11 +13,18 @@ import (
 	"sync"
 )
 
+type UserService interface {
+	SignUp(ctx context.Context, id string, code string, user *models.User) error
+	Login(ctx context.Context, email string, password string) (*response.LoginResponse, error)
+	Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error)
+	GetUserList(ctx context.Context, keyword string, limit, offset int) ([]*response.UserListRowResponse, int64, error)
+}
+
 type UserApi struct {
 	*BasicApi
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
-	service          *service.UserService
+	service          UserService
 }
 
 var (

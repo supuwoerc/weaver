@@ -13,9 +13,22 @@ var (
 	userRepositoryOnce sync.Once
 )
 
+type UserDAO interface {
+	Create(ctx context.Context, user *models.User) error
+	GetByEmail(ctx context.Context, email string, needRoles, needPermissions, needDepts bool) (*models.User, error)
+	GetById(ctx context.Context, uid uint, needRoles, needPermissions, needDepts bool) (*models.User, error)
+	GetByIds(ctx context.Context, ids []uint, needRoles, needPermissions, needDepts bool) ([]*models.User, error)
+	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error)
+	GetAll(ctx context.Context) ([]*models.User, error)
+}
+type UserCache interface {
+	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
+	GetTokenPairIsExist(ctx context.Context, email string) (bool, error)
+	GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error)
+}
 type UserRepository struct {
-	dao   *dao.UserDAO
-	cache *cache.UserCache
+	dao   UserDAO
+	cache UserCache
 }
 
 func NewUserRepository() *UserRepository {

@@ -1,15 +1,20 @@
 package v1
 
 import (
+	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
 	"sync"
 )
 
+type CaptchaService interface {
+	Generate(t constant.CaptchaType) (*response.GetCaptchaResponse, error)
+}
+
 type CaptchaApi struct {
 	*BasicApi
-	service *service.CaptchaService
+	service CaptchaService
 }
 
 var (
@@ -28,7 +33,7 @@ func NewCaptchaApi() *CaptchaApi {
 }
 
 func (c *CaptchaApi) GenerateCaptcha(ctx *gin.Context) {
-	res, err := c.service.Generate(service.SignUp)
+	res, err := c.service.Generate(constant.SignUp)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

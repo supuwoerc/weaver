@@ -12,8 +12,12 @@ var (
 	attachmentRepositoryOnce sync.Once
 )
 
+type AttachmentDAO interface {
+	Create(ctx context.Context, records []*models.Attachment) error
+}
+
 type AttachmentRepository struct {
-	dao *dao.AttachmentDAO
+	dao AttachmentDAO
 }
 
 func NewAttachmentRepository() *AttachmentRepository {

@@ -1,17 +1,24 @@
 package v1
 
 import (
+	"context"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"mime/multipart"
 	"sync"
 )
 
+type AttachmentService interface {
+	SaveFiles(ctx context.Context, files []*multipart.FileHeader, uid uint) ([]*response.UploadAttachmentResponse, error)
+	SaveFile(ctx context.Context, file *multipart.FileHeader, uid uint) (*response.UploadAttachmentResponse, error)
+}
+
 type AttachmentApi struct {
 	*BasicApi
-	service *service.AttachmentService
+	service AttachmentService
 }
 
 const (
