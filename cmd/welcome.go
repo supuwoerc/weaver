@@ -15,6 +15,7 @@ var welcomeCmd = &cobra.Command{
 	Short: "print welcome",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 		signalCh := make(chan os.Signal, 1)
 		signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
 		go func() {
@@ -22,7 +23,6 @@ var welcomeCmd = &cobra.Command{
 			cmd.Printf("\n监听到取消信号,取消执行")
 			cancel()
 		}()
-		defer cancel()
 		count := 10
 		bar := progressbar.NewOptions(count,
 			progressbar.OptionSetDescription("执行进度"),
