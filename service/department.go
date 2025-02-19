@@ -17,10 +17,21 @@ import (
 	"sync"
 )
 
+type DepartmentRepository interface {
+	Create(ctx context.Context, dept *models.Department) error
+	GetByName(ctx context.Context, name string) (*models.Department, error)
+	GetById(ctx context.Context, id uint) (*models.Department, error)
+	GetAll(ctx context.Context) ([]*models.Department, error)
+	GetAllUserDepartment(ctx context.Context) ([]*models.UserDepartment, error)
+	GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error)
+	CacheDepartment(ctx context.Context, key string, depts []*models.Department) error
+	GetDepartmentCache(ctx context.Context, key string) ([]*models.Department, error)
+}
+
 type DepartmentService struct {
 	*BasicService
-	departmentRepository *repository.DepartmentRepository
-	userRepository       *repository.UserRepository
+	departmentRepository DepartmentRepository
+	userRepository       UserRepository
 	deptTreeSfg          singleflight.Group
 }
 

@@ -24,9 +24,13 @@ import (
 	"time"
 )
 
+type AttachmentRepository interface {
+	Create(ctx context.Context, records []*models.Attachment) error
+}
+
 type AttachmentService struct {
 	*BasicService
-	repository *repository.AttachmentRepository
+	repository AttachmentRepository
 }
 
 var (

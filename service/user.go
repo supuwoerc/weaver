@@ -15,11 +15,23 @@ import (
 	"sync"
 )
 
+type UserRepository interface {
+	Create(ctx context.Context, user *models.User) error
+	GetByEmail(ctx context.Context, email string, needRoles, needPermissions, needDepts bool) (*models.User, error)
+	GetById(ctx context.Context, uid uint, needRoles, needPermissions, needDepts bool) (*models.User, error)
+	GetByIds(ctx context.Context, ids []uint, needRoles, needPermissions, needDepts bool) ([]*models.User, error)
+	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error)
+	GetAll(ctx context.Context) ([]*models.User, error)
+	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
+	GetTokenPairIsExist(ctx context.Context, email string) (bool, error)
+	GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error)
+}
+
 type UserService struct {
 	*BasicService
 	*CaptchaService
-	userRepository *repository.UserRepository
-	roleRepository *repository.RoleRepository
+	userRepository UserRepository
+	roleRepository RoleRepository
 }
 
 var (
