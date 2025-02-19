@@ -1,4 +1,4 @@
-create table gin_web.sys_attachment
+create table sys_attachment
 (
     id         bigint unsigned auto_increment comment '主键ID'
         primary key,
@@ -15,15 +15,15 @@ create table gin_web.sys_attachment
     comment '附件表';
 
 create index idx_sys_attachment_deleted_at
-    on gin_web.sys_attachment (deleted_at);
+    on sys_attachment (deleted_at);
 
 create index idx_sys_attachment_hash
-    on gin_web.sys_attachment (hash);
+    on sys_attachment (hash);
 
 create index idx_sys_attachment_uid_name_type
-    on gin_web.sys_attachment (creator_id, name, type);
+    on sys_attachment (creator_id, name, type);
 
-create table gin_web.sys_department
+create table sys_department
 (
     id         bigint unsigned auto_increment comment '主键ID'
         primary key,
@@ -40,12 +40,12 @@ create table gin_web.sys_department
 );
 
 create index idx_sys_department_deleted_at
-    on gin_web.sys_department (deleted_at);
+    on sys_department (deleted_at);
 
 create index idx_sys_department_parent_id
-    on gin_web.sys_department (parent_id);
+    on sys_department (parent_id);
 
-create table gin_web.sys_department_leader
+create table sys_department_leader
 (
     department_id bigint unsigned not null comment '部门ID',
     user_id       bigint unsigned not null comment '用户ID',
@@ -53,12 +53,12 @@ create table gin_web.sys_department_leader
 );
 
 create index idx_sys_department_leader_department_id
-    on gin_web.sys_department_leader (department_id);
+    on sys_department_leader (department_id);
 
 create index idx_sys_department_leader_user_id
-    on gin_web.sys_department_leader (user_id);
+    on sys_department_leader (user_id);
 
-create table gin_web.sys_permission
+create table sys_permission
 (
     id         bigint unsigned auto_increment comment '主键ID'
         primary key,
@@ -77,9 +77,9 @@ create table gin_web.sys_permission
     comment '权限表';
 
 create index idx_sys_permission_deleted_at
-    on gin_web.sys_permission (deleted_at);
+    on sys_permission (deleted_at);
 
-create table gin_web.sys_role
+create table sys_role
 (
     id         bigint unsigned auto_increment comment '主键ID'
         primary key,
@@ -95,9 +95,9 @@ create table gin_web.sys_role
     comment '角色表';
 
 create index idx_sys_role_deleted_at
-    on gin_web.sys_role (deleted_at);
+    on sys_role (deleted_at);
 
-create table gin_web.sys_role_permission
+create table sys_role_permission
 (
     role_id       bigint unsigned not null comment '角色ID',
     permission_id bigint unsigned not null comment '权限ID',
@@ -106,19 +106,19 @@ create table gin_web.sys_role_permission
     comment '角色-权限中间表';
 
 create index idx_sys_role_permission_permission_id
-    on gin_web.sys_role_permission (permission_id);
+    on sys_role_permission (permission_id);
 
 create index idx_sys_role_permission_role_id
-    on gin_web.sys_role_permission (role_id);
+    on sys_role_permission (role_id);
 
-create table gin_web.sys_user
+create table sys_user
 (
     id         bigint unsigned auto_increment comment '主键ID'
         primary key,
     email      varchar(50)      not null comment '邮箱',
     password   varchar(60)      not null comment '密码',
     nickname   varchar(20)      null comment '昵称',
-    avatar_id  bigint unsigned  null comment '头像文件ID',
+    avatar     varchar(255)     null comment '头像文件URL',
     gender     tinyint unsigned null comment '性别',
     about      varchar(100)     null comment '关于',
     birthday   datetime(3)      null comment '生日',
@@ -131,9 +131,9 @@ create table gin_web.sys_user
     comment '用户表';
 
 create index idx_sys_user_deleted_at
-    on gin_web.sys_user (deleted_at);
+    on sys_user (deleted_at);
 
-create table gin_web.sys_user_department
+create table sys_user_department
 (
     department_id bigint unsigned not null comment '部门ID',
     user_id       bigint unsigned not null comment '用户ID',
@@ -141,12 +141,12 @@ create table gin_web.sys_user_department
 );
 
 create index idx_sys_user_department_department_id
-    on gin_web.sys_user_department (department_id);
+    on sys_user_department (department_id);
 
 create index idx_sys_user_department_user_id
-    on gin_web.sys_user_department (user_id);
+    on sys_user_department (user_id);
 
-create table gin_web.sys_user_role
+create table sys_user_role
 (
     user_id bigint unsigned not null comment '用户ID',
     role_id bigint unsigned not null comment '角色ID',
@@ -155,8 +155,7 @@ create table gin_web.sys_user_role
     comment '用户-角色中间表';
 
 create index idx_sys_user_role_role_id
-    on gin_web.sys_user_role (role_id);
+    on sys_user_role (role_id);
 
 create index idx_sys_user_role_user_id
-    on gin_web.sys_user_role (user_id);
-
+    on sys_user_role (user_id);
