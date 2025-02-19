@@ -2,7 +2,7 @@ package captcha
 
 import "github.com/mojocn/base64Captcha"
 
-type CaptchaInfo struct {
+type CommonCaptchaInfo struct {
 	ID     string
 	Base64 string
 	Answer string
@@ -16,12 +16,12 @@ func NewCaptcha(height int, width int, length int, maxSkew float64, dotCount int
 	return &Captcha{captchaClient: base64Captcha.NewCaptcha(base64Captcha.NewDriverDigit(height, width, length, maxSkew, dotCount), &RedisStore{})}
 }
 
-func (c *Captcha) Generate() (*CaptchaInfo, error) {
+func (c *Captcha) Generate() (*CommonCaptchaInfo, error) {
 	id, b64s, answer, err := c.captchaClient.Generate()
 	if err != nil {
 		return nil, err
 	}
-	return &CaptchaInfo{
+	return &CommonCaptchaInfo{
 		ID:     id,
 		Base64: b64s,
 		Answer: answer,

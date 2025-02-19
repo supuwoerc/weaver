@@ -31,7 +31,7 @@ func NewCaptchaService() *CaptchaService {
 }
 
 func (c *CaptchaService) Generate(t constant.CaptchaType) (*response.GetCaptchaResponse, error) {
-	var info *captcha.CaptchaInfo
+	var info *captcha.CommonCaptchaInfo
 	var err error
 	if target, ok := c.clients[t]; ok {
 		info, err = target.Generate()

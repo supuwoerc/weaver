@@ -43,7 +43,7 @@ type RoleDetailPermission struct {
 	Updater any `json:"updater,omitempty"`
 }
 
-// ToPermissionDetailResponse 将permission转为响应
+// ToRoleDetailResponse ToPermissionDetailResponse 将permission转为响应
 func ToRoleDetailResponse(role *models.Role) *RoleDetailResponse {
 	return &RoleDetailResponse{
 		Role: role,

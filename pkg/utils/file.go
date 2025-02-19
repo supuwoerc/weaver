@@ -2,7 +2,7 @@ package utils
 
 import "os"
 
-// 判断所给路径文件/文件夹是否存在
+// PathExists 判断所给路径文件/文件夹是否存在
 func PathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -14,7 +14,7 @@ func PathExists(path string) (bool, error) {
 	return false, err
 }
 
-// 判断所给路径是否为文件夹
+// IsDir 判断所给路径是否为文件夹
 func IsDir(path string) bool {
 	s, err := os.Stat(path)
 	if err != nil {
@@ -23,7 +23,7 @@ func IsDir(path string) bool {
 	return s.IsDir()
 }
 
-// 判断所给路径是否为文件
+// IsFile 判断所给路径是否为文件
 func IsFile(path string) bool {
 	return !IsDir(path)
 }

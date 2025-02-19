@@ -30,7 +30,8 @@ const (
 	UserLoginFail              StatusCode = 20001 // userLoginFail
 	UserLoginTokenPairCacheErr StatusCode = 20002 // userLoginTokenPairCacheErr
 	PasswordValidErr           StatusCode = 20003 // passwordValidErr
-	UserNotExist               StatusCode = 20004 // userNotExist
+	EmailValidErr              StatusCode = 20004 // emailValidErr
+	UserNotExist               StatusCode = 20005 // userNotExist
 )
 
 const (

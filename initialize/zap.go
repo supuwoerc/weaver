@@ -55,7 +55,7 @@ func getWriterSyncer() zapcore.WriteSyncer {
 		MaxAge:     maxAge,     // 保留文件最大天数
 		Compress:   true,
 	}
-	var ws = []zapcore.WriteSyncer{}
+	var ws = make([]zapcore.WriteSyncer, 0)
 	if !colorful {
 		ws = append(ws, zapcore.AddSync(lumberjackLogger))
 	}

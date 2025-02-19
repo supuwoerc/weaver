@@ -69,10 +69,10 @@ func (u *UserRepository) GetTokenPair(ctx context.Context, email string) (*model
 	return u.cache.GetTokenPair(ctx, email)
 }
 
-func (r *UserRepository) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error) {
-	return r.dao.GetList(ctx, keyword, limit, offset)
+func (u *UserRepository) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error) {
+	return u.dao.GetList(ctx, keyword, limit, offset)
 }
 
-func (r *UserRepository) GetAll(ctx context.Context) ([]*models.User, error) {
-	return r.dao.GetAll(ctx)
+func (u *UserRepository) GetAll(ctx context.Context) ([]*models.User, error) {
+	return u.dao.GetAll(ctx)
 }

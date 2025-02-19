@@ -99,10 +99,10 @@ func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, needRoles, needPermi
 	return users, nil
 }
 
-func (r *UserDAO) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error) {
+func (u *UserDAO) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error) {
 	var users []*models.User
 	var total int64
-	query := r.Datasource(ctx).Model(&models.User{}).Order("updated_at desc,id desc")
+	query := u.Datasource(ctx).Model(&models.User{}).Order("updated_at desc,id desc")
 	if keyword != "" {
 		keyword = database.FuzzKeyword(keyword)
 		query = query.Where("nickname like ? or email like ?", keyword, keyword)
@@ -117,9 +117,9 @@ func (r *UserDAO) GetList(ctx context.Context, keyword string, limit, offset int
 	return users, total, nil
 }
 
-func (r *UserDAO) GetAll(ctx context.Context) ([]*models.User, error) {
+func (u *UserDAO) GetAll(ctx context.Context) ([]*models.User, error) {
 	var users []*models.User
-	err := r.Datasource(ctx).Model(&models.User{}).Find(&users).Error
+	err := u.Datasource(ctx).Model(&models.User{}).Find(&users).Error
 	if err != nil {
 		return nil, err
 	}

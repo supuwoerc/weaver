@@ -5,7 +5,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisClient struct {
+type CommonRedisClient struct {
 	Client  *redis.Client
 	Redsync *redsync.Redsync
 }

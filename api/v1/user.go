@@ -24,6 +24,7 @@ type UserApi struct {
 	*BasicApi
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
+	phoneRegexExp    *regexp.Regexp
 	service          UserService
 }
 
@@ -36,25 +37,32 @@ func NewUserApi() *UserApi {
 	userOnce.Do(func() {
 		userApi = &UserApi{
 			BasicApi:         NewBasicApi(),
+			emailRegexExp:    regexp.MustCompile(constant.EmailRegexPattern, regexp.None),
 			passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
+			phoneRegexExp:    regexp.MustCompile(constant.PhoneRegexPattern, regexp.None),
 			service:          service.NewUserService(),
 		}
 	})
 	return userApi
 }
 
-func (u *UserApi) SignUp(ctx *gin.Context) {
+func (r *UserApi) SignUp(ctx *gin.Context) {
 	var params request.SignUpRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	passwordValid, err := u.passwordRegexExp.MatchString(params.Password)
+	emailValid, err := r.emailRegexExp.MatchString(params.Email)
+	if err != nil || !emailValid {
+		response.HttpResponse[any](ctx, response.EmailValidErr, nil, nil, nil)
+		return
+	}
+	passwordValid, err := r.passwordRegexExp.MatchString(params.Password)
 	if err != nil || !passwordValid {
 		response.HttpResponse[any](ctx, response.PasswordValidErr, nil, nil, nil)
 		return
 	}
-	err = u.service.SignUp(ctx, params.ID, params.Code, &models.User{
+	err = r.service.SignUp(ctx, params.ID, params.Code, &models.User{
 		Email:    params.Email,
 		Password: params.Password,
 	})
@@ -65,13 +73,13 @@ func (u *UserApi) SignUp(ctx *gin.Context) {
 	response.Success(ctx)
 }
 
-func (u *UserApi) Login(ctx *gin.Context) {
+func (r *UserApi) Login(ctx *gin.Context) {
 	var params request.LoginRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	res, err := u.service.Login(ctx, params.Email, params.Password)
+	res, err := r.service.Login(ctx, params.Email, params.Password)
 	if err != nil {
 		response.FailWithCode(ctx, response.UserLoginFail)
 		return
@@ -79,13 +87,13 @@ func (u *UserApi) Login(ctx *gin.Context) {
 	response.SuccessWithData(ctx, res)
 }
 
-func (u *UserApi) Profile(ctx *gin.Context) {
+func (r *UserApi) Profile(ctx *gin.Context) {
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.UserNotExist)
 		return
 	}
-	detail, err := u.service.Profile(ctx, claims.User.ID)
+	detail, err := r.service.Profile(ctx, claims.User.ID)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

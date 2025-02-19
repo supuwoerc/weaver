@@ -12,7 +12,7 @@ var (
 )
 
 type BasicCache struct {
-	redis *redis.RedisClient
+	redis *redis.CommonRedisClient
 }
 
 func NewBasicCache() *BasicCache {

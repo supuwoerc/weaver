@@ -155,8 +155,8 @@ func (u *UserService) Profile(ctx context.Context, uid uint) (*response.ProfileR
 	}, nil
 }
 
-func (p *UserService) GetUserList(ctx context.Context, keyword string, limit, offset int) ([]*response.UserListRowResponse, int64, error) {
-	list, total, err := p.userRepository.GetList(ctx, keyword, limit, offset)
+func (u *UserService) GetUserList(ctx context.Context, keyword string, limit, offset int) ([]*response.UserListRowResponse, int64, error) {
+	list, total, err := u.userRepository.GetList(ctx, keyword, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}

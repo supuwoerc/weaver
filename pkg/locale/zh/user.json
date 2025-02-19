@@ -16,6 +16,10 @@
     "other": "密码格式错误"
   },
   {
+    "id": "emailValidErr",
+    "other": "邮箱格式错误"
+  },
+  {
     "id": "userNotExist",
     "other": "用户不存在"
   }

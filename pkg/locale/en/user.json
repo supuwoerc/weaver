@@ -16,6 +16,10 @@
     "other": "Illegal password format"
   },
   {
+    "id": "emailValidErr",
+    "other": "Illegal email format"
+  },
+  {
     "id": "userNotExist",
     "other": "The user does not exist"
   }

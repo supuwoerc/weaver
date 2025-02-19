@@ -73,7 +73,7 @@ func (r *RedisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) g
 	}
 }
 
-func InitRedis(logger io.Writer) *local.RedisClient {
+func InitRedis(logger io.Writer) *local.CommonRedisClient {
 	client := goredislib.NewClient(&goredislib.Options{
 		Addr:     viper.GetString("redis.addr"),
 		Password: viper.GetString("redis.password"),
@@ -87,5 +87,5 @@ func InitRedis(logger io.Writer) *local.RedisClient {
 		panic(err)
 	}
 	pool := goredis.NewPool(client)
-	return &local.RedisClient{Client: client, Redsync: redsync.New(pool)}
+	return &local.CommonRedisClient{Client: client, Redsync: redsync.New(pool)}
 }

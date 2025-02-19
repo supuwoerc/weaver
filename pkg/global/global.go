@@ -10,6 +10,6 @@ import (
 var (
 	Logger      *zap.SugaredLogger
 	DB          *gorm.DB
-	RedisClient *redis.RedisClient
+	RedisClient *redis.CommonRedisClient
 	Dialer      *gomail.Dialer
 )

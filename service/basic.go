@@ -14,7 +14,7 @@ import (
 
 type BasicService struct {
 	logger *zap.SugaredLogger
-	redis  *redis.RedisClient
+	redis  *redis.CommonRedisClient
 }
 
 var (
