@@ -46,7 +46,7 @@ func httpServer(srv *http.Server) {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go func() {
-		global.Logger.Infow("服务启动", "addr", srv.Addr, "PID", pid)
+		global.Logger.Infow("服务启动", "addr", srv.Addr, "pid", pid)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			global.Logger.Errorw("服务启动失败", "err", err.Error())
 			os.Exit(1)
