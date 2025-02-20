@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
@@ -20,10 +21,6 @@ type AttachmentApi struct {
 	*BasicApi
 	service AttachmentService
 }
-
-const (
-	defaultMaxLength = 50
-)
 
 var (
 	attachmentOnce sync.Once
@@ -50,7 +47,7 @@ func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 	fileLen := len(files)
 	maxUploadLength := viper.GetInt("system.maxUploadLength")
 	if maxUploadLength == 0 {
-		maxUploadLength = defaultMaxLength
+		maxUploadLength = constant.DefaultMaxLength
 	}
 	if fileLen == 0 || fileLen > maxUploadLength {
 		response.FailWithCode(ctx, response.InvalidAttachmentLength)

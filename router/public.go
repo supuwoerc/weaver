@@ -11,13 +11,13 @@ func InitPublicRouter(r *gin.RouterGroup) {
 		// 用户模块
 		userApi := v1.NewUserApi()
 		userGroup := group.Group("user")
-		userGroup.POST("/signup", userApi.SignUp)
-		userGroup.POST("/login", userApi.Login)
+		userGroup.POST("signup", userApi.SignUp)
+		userGroup.POST("login", userApi.Login)
 	}
 	{
 		// 验证码模块
 		captchaApi := v1.NewCaptchaApi()
 		captchaGroup := group.Group("captcha")
-		captchaGroup.GET("/generate", captchaApi.GenerateCaptcha)
+		captchaGroup.GET("generate", captchaApi.GenerateCaptcha)
 	}
 }
