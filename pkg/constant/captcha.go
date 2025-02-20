@@ -4,6 +4,6 @@ package constant
 type CaptchaType int
 
 const (
-	Default CaptchaType = iota + 1 // 默认验证码
-	SignUp                         // 注册验证码
+	Default CaptchaType = iota + 1 // defaultCaptcha
+	SignUp                         // signupCaptcha
 )

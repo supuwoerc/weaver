@@ -14,11 +14,11 @@ import (
 	"time"
 )
 
-type RedisLogger struct {
+type redisLogger struct {
 	logger io.Writer
 }
 
-func (r *RedisLogger) DialHook(next goredislib.DialHook) goredislib.DialHook {
+func (r *redisLogger) DialHook(next goredislib.DialHook) goredislib.DialHook {
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
 		_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Dialing to Redis at %s://%s\n", time.Now().Format(time.DateTime), network, addr))
 		conn, err := next(ctx, network, addr)
@@ -31,7 +31,7 @@ func (r *RedisLogger) DialHook(next goredislib.DialHook) goredislib.DialHook {
 	}
 }
 
-func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.ProcessHook {
+func (r *redisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.ProcessHook {
 	return func(ctx context.Context, cmd goredislib.Cmder) error {
 		builder := strings.Builder{}
 		for i, arg := range cmd.Args() {
@@ -51,7 +51,7 @@ func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.Proces
 	}
 }
 
-func (r *RedisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) goredislib.ProcessPipelineHook {
+func (r *redisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) goredislib.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []goredislib.Cmder) error {
 		for _, cmd := range cmds {
 			builder := strings.Builder{}
@@ -79,7 +79,7 @@ func InitRedis(logger io.Writer) *local.CommonRedisClient {
 		Password: viper.GetString("redis.password"),
 		DB:       viper.GetInt("redis.db"),
 	})
-	client.AddHook(&RedisLogger{
+	client.AddHook(&redisLogger{
 		logger: logger,
 	})
 	_, err := client.Ping(context.Background()).Result()

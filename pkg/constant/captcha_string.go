@@ -12,9 +12,9 @@ func _() {
 	_ = x[SignUp-2]
 }
 
-const _CaptchaType_name = "默认验证码注册验证码"
+const _CaptchaType_name = "defaultCaptchasignupCaptcha"
 
-var _CaptchaType_index = [...]uint8{0, 15, 30}
+var _CaptchaType_index = [...]uint8{0, 14, 27}
 
 func (i CaptchaType) String() string {
 	i -= 1
