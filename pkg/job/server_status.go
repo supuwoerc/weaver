@@ -33,5 +33,5 @@ func (s *ServerStatus) Handle() {
 }
 
 func bytes2MB(kbs uint64) string {
-	return fmt.Sprintf("%.2fMB", float64(kbs)/(1024))
+	return fmt.Sprintf("%.2fMB", float64(kbs)/(1024*1024))
 }
