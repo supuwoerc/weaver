@@ -64,7 +64,7 @@ func httpServer(srv *http.Server) {
 
 func graceHttpServe(srv *http.Server) {
 	pid := os.Getpid()
-	global.Logger.Infow("服务启动", "addr", srv.Addr, "PID", pid)
+	global.Logger.Infow("服务启动", "addr", srv.Addr, "pid", pid)
 	err := gracehttp.Serve(srv)
 	if err != nil {
 		global.Logger.Errorw("服务启动失败", "err", err.Error())
