@@ -1,9 +1,8 @@
 package constant
 
-//go:generate stringer -type=CaptchaType -linecomment -output captcha_string.go
-type CaptchaType int
+type CaptchaType string
 
 const (
-	Default CaptchaType = iota + 1 // defaultCaptcha
-	SignUp                         // signupCaptcha
+	Default CaptchaType = "defaultCaptcha"
+	SignUp  CaptchaType = "signupCaptcha"
 )

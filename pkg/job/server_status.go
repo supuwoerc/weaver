@@ -14,7 +14,7 @@ func NewServerStatus() *ServerStatus {
 }
 
 func (s *ServerStatus) Name() string {
-	return constant.ServerStatus.String()
+	return constant.ServerStatus
 }
 
 func (s *ServerStatus) Handle() {

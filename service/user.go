@@ -5,6 +5,7 @@ import (
 	"errors"
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/email"
 	"gin-web/pkg/global"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
@@ -27,11 +28,16 @@ type UserRepository interface {
 	GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error)
 }
 
+type UserEmailClient interface {
+	SendHTML(to string, subject constant.Subject, templatePath constant.Template, data any) error
+}
+
 type UserService struct {
 	*BasicService
 	*CaptchaService
 	userRepository UserRepository
 	roleRepository RoleRepository
+	emailClient    UserEmailClient
 }
 
 var (
@@ -46,6 +52,7 @@ func NewUserService() *UserService {
 			CaptchaService: NewCaptchaService(),
 			userRepository: repository.NewUserRepository(),
 			roleRepository: repository.NewRoleRepository(),
+			emailClient:    email.NewEmailClient(),
 		}
 	})
 	return userService
@@ -78,7 +85,15 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	if existUser != nil {
 		return response.UserCreateDuplicateEmail
 	}
-	return u.userRepository.Create(ctx, user)
+	return u.Transaction(ctx, false, func(ctx context.Context) error {
+		if err = u.userRepository.Create(ctx, user); err != nil {
+			return err
+		}
+		if err = u.emailClient.SendHTML(user.Email, constant.Signup, constant.SignupTemplate, user); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*response.LoginResponse, error) {

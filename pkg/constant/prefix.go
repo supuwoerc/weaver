@@ -1,15 +1,14 @@
 package constant
 
-//go:generate stringer -type=Prefix -linecomment -output prefix_string.go
-type Prefix int
+type Prefix string
 
 const (
-	PermissionIdPrefix       Prefix = iota + 1 // lock:permission:id
-	PermissionNamePrefix                       // lock:permission:name
-	PermissionResourcePrefix                   // lock:permission:resource
-	RoleIdPrefix                               // lock:role:id
-	RoleNamePrefix                             // lock:role:name
-	SignUpEmailPrefix                          // lock:signup:email
-	DepartmentIdPrefix                         // lock:department:id
-	DepartmentNamePrefix                       // lock:department:name
+	PermissionIdPrefix       Prefix = "lock:permission:id"
+	PermissionNamePrefix     Prefix = "lock:permission:name"
+	PermissionResourcePrefix Prefix = "lock:permission:resource"
+	RoleIdPrefix             Prefix = "lock:role:id"
+	RoleNamePrefix           Prefix = "lock:role:name"
+	SignUpEmailPrefix        Prefix = "lock:signup:email"
+	DepartmentIdPrefix       Prefix = "lock:department:id"
+	DepartmentNamePrefix     Prefix = "lock:department:name"
 )

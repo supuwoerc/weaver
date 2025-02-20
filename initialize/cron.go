@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"fmt"
+	"gin-web/pkg/constant"
 	"gin-web/pkg/email"
 	"gin-web/pkg/global"
 	"github.com/robfig/cron/v3"
@@ -35,7 +36,7 @@ func cronRecover(logger cron.Logger) cron.JobWrapper {
 					}
 					logger.Error(err, "panic", "stack", message)
 					go func() {
-						if e := email.SendText(adminEmail, "Recovery", message); e != nil {
+						if e := email.NewEmailClient().SendText(adminEmail, constant.CronRecover, message); e != nil {
 							global.Logger.Errorf("发送邮件失败,信息:%s", e.Error())
 						}
 					}()

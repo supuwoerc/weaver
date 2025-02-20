@@ -37,7 +37,7 @@ func NewLock[T uint | string](t constant.Prefix, object ...T) *RedisLock {
 	case []string:
 		temp = any(object).([]string)
 	}
-	name := fmt.Sprintf("%s:%s", t.String(), strings.Join(temp, "_"))
+	name := fmt.Sprintf("%s:%s", t, strings.Join(temp, "_"))
 	return &RedisLock{
 		Mutex:    global.RedisClient.Redsync.NewMutex(name, redsync.WithExpiry(defaultLockDuration), redsync.WithTries(defaultMaxRetries)),
 		duration: defaultLockDuration,
@@ -98,7 +98,7 @@ func autoExtend(ctx context.Context, lock *RedisLock) {
 			if err != nil {
 				go func() {
 					adminEmail := viper.GetString("system.admin.email")
-					if e := email.SendText(adminEmail, "Unlock Fail", fmt.Sprintf("%s unlock fail: %v", lock.Name(), err)); e != nil {
+					if e := email.NewEmailClient().SendText(adminEmail, constant.UnlockFail, fmt.Sprintf("%s unlock fail: %v", lock.Name(), err)); e != nil {
 						global.Logger.Errorf("发送邮件失败,信息:%s", e.Error())
 					}
 				}()
