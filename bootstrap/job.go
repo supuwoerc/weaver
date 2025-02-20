@@ -21,10 +21,12 @@ func init() {
 }
 
 func RegisterJobs(c *cron.Cron, logger *zap.SugaredLogger) error {
-	onLaunch := viper.GetStringSlice("system.hooks.launch")
-	if lo.Contains(onLaunch, constant.RegisterJobs.String()) {
+	key := "system.hooks.launch"
+	onLaunch := viper.GetStringSlice(key)
+	s := constant.RegisterJobs.String()
+	if lo.Contains(onLaunch, s) {
 		for _, j := range jobs {
-			if id, err := c.AddFunc("@every 10s", j.Handle); err != nil {
+			if id, err := c.AddFunc("@hourly", j.Handle); err != nil {
 				return err
 			} else {
 				name := j.Name()
@@ -32,6 +34,8 @@ func RegisterJobs(c *cron.Cron, logger *zap.SugaredLogger) error {
 				logger.Infow("Register job", "name", name)
 			}
 		}
+	} else {
+		logger.Infof("No [%s] found in [%s]", s, key)
 	}
 	c.Start()
 	return nil
