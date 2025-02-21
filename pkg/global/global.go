@@ -14,4 +14,5 @@ var (
 	RedisClient *redis.CommonRedisClient
 	Dialer      *gomail.Dialer
 	Cron        *cron.Cron
+	CronLogger  cron.Logger
 )

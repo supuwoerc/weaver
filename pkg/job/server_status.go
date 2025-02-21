@@ -4,34 +4,55 @@ import (
 	"fmt"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/global"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 	"runtime"
+	"time"
 )
 
-type ServerStatus struct{}
+type ServerStatus struct {
+	CpuStatisticalInterval time.Duration
+}
 
-func NewServerStatus() *ServerStatus {
-	return &ServerStatus{}
+func NewServerStatus(t time.Duration) *ServerStatus {
+	return &ServerStatus{
+		CpuStatisticalInterval: t,
+	}
 }
 
 func (s *ServerStatus) Name() string {
-	return constant.ServerStatus
+	return string(constant.ServerStatus)
+}
+func (s *ServerStatus) IfStillRunning() constant.JobStillMode {
+	return constant.Skip
 }
 
 func (s *ServerStatus) Handle() {
-	var memStats runtime.MemStats
-	runtime.ReadMemStats(&memStats)
+	memory, err := mem.VirtualMemory()
+	if err != nil {
+		panic(err)
+	}
+	percent, err := cpu.Percent(s.CpuStatisticalInterval, false)
+	if err != nil {
+		panic(err)
+	}
 	args := []any{
 		"CPU Number", runtime.NumCPU(),
 		"Goroutine Number", runtime.NumGoroutine(),
-		"System Memory", bytes2MB(memStats.Sys),
-		"Alloc Memory", bytes2MB(memStats.Alloc),
-		"Malloc Memory", bytes2MB(memStats.Mallocs),
 		"OS", runtime.GOOS,
 		"Architecture", runtime.GOARCH,
+		"Total Memory", bytes2MB(memory.Total),
+		"Available Memory", bytes2MB(memory.Available),
+		"Memory UsedPercent", float2Percent(memory.UsedPercent),
+		"CPU UsedPercent", float2Percent(percent[0]),
 	}
 	global.Logger.Infow("server status", args...)
 }
 
 func bytes2MB(kbs uint64) string {
 	return fmt.Sprintf("%.2fMB", float64(kbs)/(1024*1024))
+}
+
+func float2Percent(f float64) string {
+	return fmt.Sprintf("%.2f%%", f)
 }

@@ -23,7 +23,7 @@ func (c *cronLogger) Error(err error, msg string, keysAndValues ...interface{}) 
 	c.logger.Errorw(fmt.Sprintf("cron job:%s", msg), append([]interface{}{"error", err}, keysAndValues...)...)
 }
 
-func cronRecover(logger cron.Logger) cron.JobWrapper {
+func CronRecover(logger cron.Logger) cron.JobWrapper {
 	adminEmail := viper.GetString("system.admin.email")
 	return func(j cron.Job) cron.Job {
 		return cron.FuncJob(func() {
@@ -47,7 +47,7 @@ func cronRecover(logger cron.Logger) cron.JobWrapper {
 	}
 }
 
-func InitCron(logger *zap.SugaredLogger) *cron.Cron {
+func InitCron(logger *zap.SugaredLogger) (*cron.Cron, cron.Logger) {
 	l := &cronLogger{logger: logger}
-	return cron.New(cron.WithChain(cronRecover(l)), cron.WithLogger(l), cron.WithSeconds())
+	return cron.New(cron.WithLogger(l), cron.WithSeconds(), cron.WithChain(CronRecover(l))), l
 }

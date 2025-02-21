@@ -8,6 +8,7 @@ import (
 var isCli = false
 
 func main() {
+	defer bootstrap.Clean()
 	if isCli {
 		cmd.Execute()
 	} else {
