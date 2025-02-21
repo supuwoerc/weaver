@@ -20,6 +20,7 @@ func Start() {
 }
 
 func Clean() {
+	defer global.Logger.Info("Clean is executed")
 	group := sync.WaitGroup{}
 	group.Add(1)
 	go cleanCronJob(&group)
