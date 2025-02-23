@@ -3,5 +3,5 @@ package constant
 type Template string
 
 const (
-	SignupTemplate Template = "signup.html"
+	SignupTemplate Template = "register-activate-account.html"
 )

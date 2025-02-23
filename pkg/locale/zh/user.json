@@ -22,5 +22,13 @@
   {
     "id": "userNotExist",
     "other": "用户不存在"
+  },
+  {
+    "id": "userInactive",
+    "other": "用户未激活，请检查激活邮件"
+  },
+  {
+    "id": "userDisabled",
+    "other": "用户已禁用"
   }
 ]

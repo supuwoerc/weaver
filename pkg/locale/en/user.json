@@ -22,5 +22,13 @@
   {
     "id": "userNotExist",
     "other": "The user does not exist"
+  },
+  {
+    "id": "userInactive",
+    "other": "User not activated, please check activation email"
+  },
+  {
+    "id": "userDisabled",
+    "other": "User is disabled"
   }
 ]

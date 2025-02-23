@@ -7,3 +7,20 @@ const (
 	ClaimsContextKey   = "claims"
 	UserTokenPairKey   = "user_cache:token"
 )
+
+//go:generate stringer -type=UserStatus -linecomment -output user_status_string.go
+type UserStatus int
+
+const (
+	Inactive UserStatus = iota + 1 // inactive
+	Normal                         // normal
+	Disabled                       // disabled
+)
+
+//go:generate stringer -type=UserGender -linecomment -output user_gender_string.go
+type UserGender int
+
+const (
+	Male    UserGender = iota + 1 // male
+	Females                       // females
+)

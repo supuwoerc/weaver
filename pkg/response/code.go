@@ -32,6 +32,8 @@ const (
 	PasswordValidErr           StatusCode = 20003 // passwordValidErr
 	EmailValidErr              StatusCode = 20004 // emailValidErr
 	UserNotExist               StatusCode = 20005 // userNotExist
+	UserInactive               StatusCode = 20006 // userInactive
+	UserDisabled               StatusCode = 20007 // userDisabled
 )
 
 const (

@@ -69,6 +69,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	}
 	var pwd = string(password)
 	user.Password = pwd
+	user.Status = constant.Inactive
 	emailLock := utils.NewLock(constant.SignUpEmailPrefix, user.Email)
 	if err = utils.Lock(ctx, emailLock); err != nil {
 		return err
@@ -89,6 +90,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 		if err = u.userRepository.Create(ctx, user); err != nil {
 			return err
 		}
+		// TODO:生成唯一的激活链接 & 重新发送邮件的机制 & 激活账户的机制
 		if err = u.emailClient.SendHTML(user.Email, constant.Signup, constant.SignupTemplate, user); err != nil {
 			return err
 		}
@@ -98,8 +100,13 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*response.LoginResponse, error) {
 	user, err := u.userRepository.GetByEmail(ctx, email, true, false, false)
-	if err != nil {
+	switch {
+	case err != nil:
 		return nil, err
+	case user.Status == constant.Inactive:
+		return nil, response.UserInactive
+	case user.Status == constant.Disabled:
+		return nil, response.UserDisabled
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {

@@ -5,16 +5,20 @@ import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/global"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 	"html/template"
 	"path/filepath"
 )
 
 type EmailClient struct {
+	logger *zap.SugaredLogger
 }
 
 func NewEmailClient() *EmailClient {
-	return &EmailClient{}
+	return &EmailClient{
+		logger: global.Logger,
+	}
 }
 
 func (e *EmailClient) isProd() bool {
@@ -30,6 +34,8 @@ func (e *EmailClient) send(to string, subject constant.Subject, body string, c c
 		message.SetHeader("Subject", string(subject))
 		message.SetBody(string(c), body)
 		return dialer.DialAndSend(message)
+	} else {
+		e.logger.Debugw("Sending emails in non-production environments", "To", to, "Subject", string(subject))
 	}
 	return nil
 }
