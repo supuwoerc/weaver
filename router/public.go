@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitPublicRouter(r *gin.RouterGroup) {
+func InitPublicApiRouter(r *gin.RouterGroup) {
 	group := r.Group("public")
 	{
 		// 用户模块
@@ -19,5 +19,17 @@ func InitPublicRouter(r *gin.RouterGroup) {
 		captchaApi := v1.NewCaptchaApi()
 		captchaGroup := group.Group("captcha")
 		captchaGroup.GET("generate", captchaApi.GenerateCaptcha)
+	}
+}
+
+func InitPublicWebRouter(r *gin.RouterGroup) {
+	group := r.Group("public")
+	{
+		// 用户模块
+		userApi := v1.NewUserApi()
+		userGroup := group.Group("user")
+		userGroup.GET("active-success", userApi.ActiveSuccess)
+		userGroup.GET("active-failure", userApi.ActiveFailure)
+		//userGroup.POST("active-failure.html", userApi.SignUp)
 	}
 }

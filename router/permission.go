@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitPermissionRouter(r *gin.RouterGroup) {
+func InitPermissionApiRouter(r *gin.RouterGroup) {
 	permissionApi := v1.NewPermissionApi()
 	permissionAccessGroup := r.Group("permission")
 	{

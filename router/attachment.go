@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitAttachmentRouter(r *gin.RouterGroup) {
+func InitAttachmentApiRouter(r *gin.RouterGroup) {
 	attachmentApi := v1.NewAttachmentApi()
 	attachmentAccessGroup := r.Group("attachment")
 	{

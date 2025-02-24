@@ -38,7 +38,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
-          source: learn_gin_web,learn_gin_web_cli,run.sh,pkg/locale/,template/
+          source: learn_gin_web,learn_gin_web_cli,run.sh,pkg/locale/,templates/
           target: /var/www/learn-gin-web
 
       - name: Deploy-Application-To-Ubuntu

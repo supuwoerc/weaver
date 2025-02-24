@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitDepartmentRouter(r *gin.RouterGroup) {
+func InitDepartmentApiRouter(r *gin.RouterGroup) {
 	departmentApi := v1.NewDepartmentApi()
 	departmentAccessGroup := r.Group("department")
 	{

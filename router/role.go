@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRoleRouter(r *gin.RouterGroup) {
+func InitRoleApiRouter(r *gin.RouterGroup) {
 	roleApi := v1.NewRoleApi()
 	roleAccessGroup := r.Group("role")
 	{

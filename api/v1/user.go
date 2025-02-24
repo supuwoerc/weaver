@@ -11,6 +11,7 @@ import (
 	"gin-web/service"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"sync"
 )
 
@@ -118,4 +119,12 @@ func (r *UserApi) GetUserList(ctx *gin.Context) {
 		return
 	}
 	response.SuccessWithPageData(ctx, total, list)
+}
+
+func (r *UserApi) ActiveSuccess(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "active-success.html", nil)
+}
+
+func (r *UserApi) ActiveFailure(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "active-failure.html", nil)
 }

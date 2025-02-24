@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitUserRouter(r *gin.RouterGroup) {
+func InitUserApiRouter(r *gin.RouterGroup) {
 	userApi := v1.NewUserApi()
 	userAccessGroup := r.Group("user")
 	{

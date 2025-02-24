@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitPingRouter(r *gin.RouterGroup) {
+func InitPingApiRouter(r *gin.RouterGroup) {
 	group := r.Group("ping")
 	{
 		group.GET("", api.Ping)

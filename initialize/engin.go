@@ -26,7 +26,13 @@ func InitEngine(writer io.Writer) *gin.Engine {
 	r.Use(middleware.Recovery())
 	// 跨域中间件
 	r.Use(middleware.Cors())
-	// 注册路由
-	router.InitRouter(r)
+	// html 模板
+	r.LoadHTMLGlob(viper.GetString("system.templateDir"))
+	// 注册 API 路由
+	router.InitApiRouter(r)
+	// 注册 页面 路由
+	router.InitWebRouter(r)
+	// 系统路由
+	router.InitSystemWebRouter(r)
 	return r
 }
