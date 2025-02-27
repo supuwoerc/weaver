@@ -3,18 +3,15 @@ package captcha
 import (
 	"context"
 	"fmt"
+	"gin-web/pkg/constant"
 	"gin-web/pkg/global"
 	"github.com/spf13/viper"
 	"time"
 )
 
-type RedisStore struct {
-}
-
 var ctx = context.Background()
 
-func getKeyPrefix() string {
-	return viper.GetString("captcha.keyPrefix")
+type RedisStore struct {
 }
 
 func getExpiration() time.Duration {
@@ -23,16 +20,16 @@ func getExpiration() time.Duration {
 }
 
 func (r *RedisStore) Set(id string, value string) error {
-	return global.RedisClient.Client.Set(ctx, fmt.Sprintf("%s%s", getKeyPrefix(), id), value, getExpiration()).Err()
+	return global.RedisClient.Client.Set(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id), value, getExpiration()).Err()
 }
 
 func (r *RedisStore) Get(id string, clear bool) string {
-	result, err := global.RedisClient.Client.Get(ctx, fmt.Sprintf("%s%s", getKeyPrefix(), id)).Result()
+	result, err := global.RedisClient.Client.Get(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id)).Result()
 	if err != nil {
 		return ""
 	}
 	if clear {
-		delErr := global.RedisClient.Client.Del(ctx, fmt.Sprintf("%s%s", getKeyPrefix(), id)).Err()
+		delErr := global.RedisClient.Client.Del(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id)).Err()
 		if delErr != nil {
 			return ""
 		}

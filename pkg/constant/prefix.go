@@ -12,3 +12,8 @@ const (
 	DepartmentIdPrefix       Prefix = "lock:department:id"
 	DepartmentNamePrefix     Prefix = "lock:department:name"
 )
+
+const (
+	CaptchaCodePrefix   Prefix = "captcha:"
+	ActiveAccountPrefix Prefix = "active:account:"
+)

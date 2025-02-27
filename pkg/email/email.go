@@ -22,7 +22,7 @@ func NewEmailClient() *EmailClient {
 }
 
 func (e *EmailClient) isProd() bool {
-	return viper.Get("env") == "prod"
+	return viper.GetString("env") == "prod"
 }
 
 func (e *EmailClient) send(to string, subject constant.Subject, body string, c constant.MIME) error {

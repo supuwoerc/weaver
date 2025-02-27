@@ -28,8 +28,8 @@ func InitPublicWebRouter(r *gin.RouterGroup) {
 		// 用户模块
 		userApi := v1.NewUserApi()
 		userGroup := group.Group("user")
+		userGroup.GET("active", userApi.Active)
 		userGroup.GET("active-success", userApi.ActiveSuccess)
 		userGroup.GET("active-failure", userApi.ActiveFailure)
-		//userGroup.POST("active-failure.html", userApi.SignUp)
 	}
 }

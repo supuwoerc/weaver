@@ -6,6 +6,7 @@ import (
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
 	"sync"
+	"time"
 )
 
 var (
@@ -25,6 +26,7 @@ type UserCache interface {
 	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
 	GetTokenPairIsExist(ctx context.Context, email string) (bool, error)
 	GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error)
+	CacheActiveAccountCode(ctx context.Context, id uint, code string, duration time.Duration) error
 }
 type UserRepository struct {
 	dao   UserDAO
@@ -75,4 +77,8 @@ func (u *UserRepository) GetList(ctx context.Context, keyword string, limit, off
 
 func (u *UserRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 	return u.dao.GetAll(ctx)
+}
+
+func (u *UserRepository) CacheActiveAccountCode(ctx context.Context, id uint, code string, duration time.Duration) error {
+	return u.cache.CacheActiveAccountCode(ctx, id, code, duration)
 }

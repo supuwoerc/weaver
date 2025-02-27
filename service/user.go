@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/email"
@@ -12,8 +13,10 @@ import (
 	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"github.com/samber/lo"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"sync"
+	"time"
 )
 
 type UserRepository interface {
@@ -26,6 +29,7 @@ type UserRepository interface {
 	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
 	GetTokenPairIsExist(ctx context.Context, email string) (bool, error)
 	GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error)
+	CacheActiveAccountCode(ctx context.Context, id uint, code string, duration time.Duration) error
 }
 
 type UserEmailClient interface {
@@ -90,12 +94,25 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 		if err = u.userRepository.Create(ctx, user); err != nil {
 			return err
 		}
-		// TODO:生成唯一的激活链接 & 重新发送邮件的机制 & 激活账户的机制
-		if err = u.emailClient.SendHTML(user.Email, constant.Signup, constant.SignupTemplate, user); err != nil {
+		activeURL, makeErr := u.generateActiveURL(ctx, user.ID)
+		if makeErr != nil {
+			return makeErr
+		}
+		if err = u.emailClient.SendHTML(user.Email, constant.Signup, constant.SignupTemplate, models.SignUpVariable{ActiveURL: activeURL}); err != nil {
 			return err
 		}
 		return nil
 	})
+}
+
+func (u *UserService) generateActiveURL(ctx context.Context, uid uint) (string, error) {
+	activeCode := lo.RandomString(16, lo.LettersCharset)
+	baseURL := viper.GetString("system.baseURL")
+	expiration := viper.GetDuration("account.expiration")
+	if err := u.userRepository.CacheActiveAccountCode(ctx, uid, activeCode, expiration*time.Second); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/view/v1/public/user/active?active_code=%s&id=%d", baseURL, activeCode, uid), nil
 }
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*response.LoginResponse, error) {

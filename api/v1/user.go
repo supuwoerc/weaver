@@ -121,6 +121,9 @@ func (r *UserApi) GetUserList(ctx *gin.Context) {
 	response.SuccessWithPageData(ctx, total, list)
 }
 
+func (r *UserApi) Active(ctx *gin.Context) {
+	ctx.Redirect(http.StatusMovedPermanently, "/view/v1/public/user/active-success")
+}
 func (r *UserApi) ActiveSuccess(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "active-success.html", nil)
 }

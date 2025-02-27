@@ -3,10 +3,12 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"sync"
+	"time"
 )
 
 type UserCache struct {
@@ -52,4 +54,8 @@ func (u *UserCache) GetTokenPair(ctx context.Context, email string) (*models.Tok
 	var ret models.TokenPair
 	err = json.Unmarshal([]byte(result), &ret)
 	return &ret, err
+}
+
+func (u *UserCache) CacheActiveAccountCode(ctx context.Context, id uint, code string, duration time.Duration) error {
+	return u.redis.Client.Set(ctx, fmt.Sprintf("%s%d", constant.ActiveAccountPrefix, id), code, duration).Err()
 }
