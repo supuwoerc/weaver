@@ -20,12 +20,12 @@ type redisLogger struct {
 
 func (r *redisLogger) DialHook(next goredislib.DialHook) goredislib.DialHook {
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
-		_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Dialing to Redis at %s://%s\n", time.Now().Format(time.DateTime), network, addr))
+		_, _ = fmt.Fprint(r.logger, fmt.Sprintf("{\"caller\":Redis,\"event\":Dialing to Redis,\"time\":\"%s\",\"network\":\"%s\",\"address\":\"%s\"}\n", time.Now().Format(time.DateTime), network, addr))
 		conn, err := next(ctx, network, addr)
 		if err != nil {
-			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Error dialing Redis: %s\n", time.Now().Format(time.DateTime), err.Error()))
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("{\"caller\":Redis,\"event\":Dialing Error,\"time\":\"%s\",\"error\":\"%s\"}\n", time.Now().Format(time.DateTime), err.Error()))
 		} else {
-			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Successfully connected to Redis at %s://%s\n", time.Now().Format(time.DateTime), network, addr))
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("{\"caller\":Redis,\"event\":Successfully connected to Redis,\"time\":\"%s\",\"network\":\"%s\",\"address\":\"%s\"}\n", time.Now().Format(time.DateTime), network, addr))
 		}
 		return conn, err
 	}
@@ -40,12 +40,12 @@ func (r *redisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.Proces
 			}
 			builder.WriteString(fmt.Sprintf("%v", arg))
 		}
-		_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Preparing to execute command: %s, [Args]: %s\n", time.Now().Format(time.DateTime), cmd.Name(), builder.String()))
+		_, _ = fmt.Fprint(r.logger, fmt.Sprintf("{\"caller\":Redis,\"event\":Preparing to execute command,\"time\":\"%s\",\"command\":\"%s\",\"args\":\"%s\"}\n", time.Now().Format(time.DateTime), cmd.Name(), builder.String()))
 		err := next(ctx, cmd)
 		if err != nil {
-			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Error executing command %s: %s\n", time.Now().Format(time.DateTime), cmd.Name(), err.Error()))
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("{\"caller\":Redis,\"event\":Error executing command,\"time\":\"%s\",\"command\":\"%s\",\"args\":\"%s\"}\n", time.Now().Format(time.DateTime), cmd.Name(), err.Error()))
 		} else {
-			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Successfully executed command: %s\n", time.Now().Format(time.DateTime), cmd.Name()))
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("{\"caller\":Redis,\"event\":Successfully executed command,\"time\":\"%s\",\"command\":\"%s\"}\n", time.Now().Format(time.DateTime), cmd.Name()))
 		}
 		return err
 	}
@@ -61,13 +61,13 @@ func (r *redisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) g
 				}
 				builder.WriteString(fmt.Sprintf("%v", arg))
 			}
-			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Preparing to execute command in pipeline: %s, [Args]: %s\n", time.Now().Format(time.DateTime), cmd.Name(), builder.String()))
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("{\"caller\":Redis,\"event\":Preparing to execute command in pipeline,\"time\":\"%s\",\"command\":\"%s\",\"args\":\"%s\"}\n", time.Now().Format(time.DateTime), cmd.Name(), builder.String()))
 		}
 		err := next(ctx, cmds)
 		if err != nil {
-			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Error executing commands in pipeline: %s\n", time.Now().Format(time.DateTime), err.Error()))
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("{\"caller\":Redis,\"event\":Error executing commands in pipeline,\"time\":\"%s\",\"error\":\"%s\"}\n", time.Now().Format(time.DateTime), err.Error()))
 		} else {
-			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("[Redis] [%s] Successfully executed commands in pipeline", time.Now().Format(time.DateTime)))
+			_, _ = fmt.Fprint(r.logger, fmt.Sprintf("{\"caller\":Redis,\"event\":Successfully executed commands in pipeline,\"time\":\"%s\"}\n", time.Now().Format(time.DateTime)))
 		}
 		return err
 	}

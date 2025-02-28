@@ -19,16 +19,16 @@ func InitZapLogger() *zap.SugaredLogger {
 	logMode := level.(int)
 	LoggerSyncer = getWriterSyncer()
 	core := zapcore.NewCore(getEncoder(), LoggerSyncer, zapcore.Level(logMode))
-	return zap.New(core).Sugar()
+	return zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel)).Sugar()
 }
 
 func getEncoder() zapcore.Encoder {
 	config := zap.NewProductionEncoderConfig()
 	config.TimeKey = "time"
-	config.EncodeLevel = zapcore.CapitalLevelEncoder
 	config.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		enc.AppendString(t.Local().Format(time.DateTime))
 	}
+	config.EncodeLevel = zapcore.CapitalLevelEncoder
 	return zapcore.NewJSONEncoder(config)
 }
 
@@ -39,7 +39,6 @@ func getWriterSyncer() zapcore.WriteSyncer {
 	maxSize := viper.GetInt("logger.maxSize")
 	maxBackups := viper.GetInt("logger.maxBackups")
 	maxAge := viper.GetInt("logger.maxAge")
-	colorful := viper.GetBool("logger.colorful")
 	if err != nil {
 		panic(err)
 	}
@@ -56,9 +55,7 @@ func getWriterSyncer() zapcore.WriteSyncer {
 		Compress:   true,
 	}
 	var ws = make([]zapcore.WriteSyncer, 0)
-	if !colorful {
-		ws = append(ws, zapcore.AddSync(lumberjackLogger))
-	}
+	ws = append(ws, zapcore.AddSync(lumberjackLogger))
 	if write2Stdout {
 		ws = append(ws, zapcore.AddSync(os.Stdout))
 	}
