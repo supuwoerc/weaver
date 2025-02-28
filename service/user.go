@@ -7,7 +7,6 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/email"
-	"gin-web/pkg/global"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
@@ -84,7 +83,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := utils.Unlock(lock); e != nil {
-			global.Logger.Errorf("unlock fail %s", e.Error())
+			u.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(emailLock)
 	existUser, err := u.userRepository.GetByEmail(ctx, user.Email, false, false, false)

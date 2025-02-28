@@ -4,7 +4,6 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/global"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
@@ -75,7 +74,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	defer func() {
 		for _, l := range locks {
 			if e := utils.Unlock(l); e != nil {
-				global.Logger.Errorf("unlock fail %s", e.Error())
+				p.logger.Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()

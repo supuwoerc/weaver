@@ -6,7 +6,6 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/database"
-	"gin-web/pkg/global"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
@@ -76,7 +75,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, name string
 	defer func() {
 		for _, l := range locks {
 			if e := utils.Unlock(l); e != nil {
-				global.Logger.Errorf("unlock fail %s", e.Error())
+				r.logger.Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -146,7 +145,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, na
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := utils.Unlock(lock); e != nil {
-			global.Logger.Errorf("unlock fail %s", e.Error())
+			r.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
 	// 对 name & permissions 加锁
@@ -154,7 +153,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, na
 	defer func() {
 		for _, l := range locks {
 			if e := utils.Unlock(l); e != nil {
-				global.Logger.Errorf("unlock fail %s", e.Error())
+				r.logger.Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -214,7 +213,7 @@ func (r *RoleService) DeleteRole(ctx context.Context, id, operator uint) error {
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := utils.Unlock(lock); e != nil {
-			global.Logger.Errorf("unlock fail %s", e.Error())
+			r.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
 	permissionsCount := r.roleRepository.GetPermissionsCount(ctx, id)
