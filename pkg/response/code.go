@@ -34,6 +34,8 @@ const (
 	UserNotExist               StatusCode = 20005 // userNotExist
 	UserInactive               StatusCode = 20006 // userInactive
 	UserDisabled               StatusCode = 20007 // userDisabled
+	InvalidActiveCode          StatusCode = 20008 // invalidActiveCode
+	ReActiveErr                StatusCode = 20009 // reActiveErr
 )
 
 const (

@@ -29,7 +29,7 @@ const (
 )
 
 // NewLock 创建锁
-func NewLock[T uint | string](t constant.Prefix, object ...T) *RedisLock {
+func NewLock[T ~uint | string](t constant.Prefix, object ...T) *RedisLock {
 	var temp []string
 	switch any(object).(type) {
 	case []uint:

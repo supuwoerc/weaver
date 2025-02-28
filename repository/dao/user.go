@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gin-web/models"
+	"gin-web/pkg/constant"
 	"gin-web/pkg/database"
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
@@ -124,4 +125,8 @@ func (u *UserDAO) GetAll(ctx context.Context) ([]*models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+func (u *UserDAO) UpdateAccountStatus(ctx context.Context, id uint, status constant.UserStatus) error {
+	return u.Datasource(ctx).Model(&models.User{}).Where("id = ?", id).Update("status", status).Error
 }

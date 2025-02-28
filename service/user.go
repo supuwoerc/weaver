@@ -12,6 +12,7 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
+	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
@@ -30,6 +31,9 @@ type UserRepository interface {
 	GetTokenPairIsExist(ctx context.Context, email string) (bool, error)
 	GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error)
 	CacheActiveAccountCode(ctx context.Context, id uint, code string, duration time.Duration) error
+	GetActiveAccountCode(ctx context.Context, id uint) (string, error)
+	RemoveActiveAccountCode(ctx context.Context, id uint) error
+	UpdateAccountStatus(ctx context.Context, id uint, status constant.UserStatus) error
 }
 
 type UserEmailClient interface {
@@ -94,19 +98,23 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 		if err = u.userRepository.Create(ctx, user); err != nil {
 			return err
 		}
-		activeURL, makeErr := u.generateActiveURL(ctx, user.ID)
-		if makeErr != nil {
-			return makeErr
-		}
-		if err = u.emailClient.SendHTML(user.Email, constant.Signup, constant.SignupTemplate, models.SignUpVariable{ActiveURL: activeURL}); err != nil {
-			return err
-		}
-		return nil
+		return u.sendActiveEmail(ctx, user.ID, user.Email)
 	})
 }
 
+func (u *UserService) sendActiveEmail(ctx context.Context, uid uint, email string) error {
+	activeURL, makeErr := u.generateActiveURL(ctx, uid)
+	if makeErr != nil {
+		return makeErr
+	}
+	if err := u.emailClient.SendHTML(email, constant.Signup, constant.SignupTemplate, models.SignUpVariable{ActiveURL: activeURL}); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (u *UserService) generateActiveURL(ctx context.Context, uid uint) (string, error) {
-	activeCode := lo.RandomString(16, lo.LettersCharset)
+	activeCode := lo.RandomString(constant.UserActiveCodeLength, lo.LettersCharset)
 	baseURL := viper.GetString("system.baseURL")
 	expiration := viper.GetDuration("account.expiration")
 	if err := u.userRepository.CacheActiveAccountCode(ctx, uid, activeCode, expiration*time.Second); err != nil {
@@ -202,4 +210,66 @@ func (u *UserService) GetUserList(ctx context.Context, keyword string, limit, of
 	return lo.Map(list, func(item *models.User, _ int) *response.UserListRowResponse {
 		return response.ToUserListRowResponse(item)
 	}), total, nil
+}
+
+func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode string) error {
+	userLock := utils.NewLock(constant.UserIdPrefix, uid)
+	if lockErr := utils.Lock(ctx, userLock); lockErr != nil {
+		return lockErr
+	}
+	defer func() {
+		if e := utils.Unlock(userLock); e != nil {
+			u.logger.Errorf("unlock fail %s", e.Error())
+		}
+	}()
+	code, err := u.userRepository.GetActiveAccountCode(ctx, uid)
+	if err != nil {
+		// key 过期的情况需要重新发送邮件
+		if errors.Is(err, redis.Nil) {
+			var user *models.User
+			user, err = u.userRepository.GetById(ctx, uid, false, false, false)
+			if err == nil && user.Status == constant.Inactive {
+				go func() {
+					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
+						u.logger.Errorf("send active email fail %s", err.Error())
+					}
+				}()
+			}
+		}
+		return err
+	}
+	if activeCode != code {
+		return response.InvalidActiveCode
+	} else {
+		return u.Transaction(ctx, false, func(ctx context.Context) error {
+			var user *models.User
+			user, err = u.userRepository.GetById(ctx, uid, false, false, false)
+			if err != nil {
+				return err
+			}
+			if user.Status == constant.Normal {
+				return response.ReActiveErr
+			}
+			if user.Status == constant.Disabled {
+				return response.UserDisabled
+			}
+			if err = u.userRepository.UpdateAccountStatus(ctx, uid, constant.Normal); err != nil {
+				go func() {
+					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
+						u.logger.Errorf("send active email fail %s", err.Error())
+					}
+				}()
+				return err
+			}
+			if err = u.userRepository.RemoveActiveAccountCode(ctx, uid); err != nil {
+				go func() {
+					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
+						u.logger.Errorf("send active email fail %s", err.Error())
+					}
+				}()
+				return err
+			}
+			return nil
+		})
+	}
 }

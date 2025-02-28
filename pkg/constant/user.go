@@ -8,6 +8,10 @@ const (
 	UserTokenPairKey   = "user_cache:token"
 )
 
+const (
+	UserActiveCodeLength = 16 // 账户激活码长度
+)
+
 //go:generate stringer -type=UserStatus -linecomment -output user_status_string.go
 type UserStatus int
 

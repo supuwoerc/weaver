@@ -20,6 +20,7 @@ type UserService interface {
 	Login(ctx context.Context, email string, password string) (*response.LoginResponse, error)
 	Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error)
 	GetUserList(ctx context.Context, keyword string, limit, offset int) ([]*response.UserListRowResponse, int64, error)
+	ActiveAccount(ctx context.Context, uid uint, activeCode string) error
 }
 
 type UserApi struct {
@@ -122,7 +123,17 @@ func (r *UserApi) GetUserList(ctx *gin.Context) {
 }
 
 func (r *UserApi) Active(ctx *gin.Context) {
-	ctx.Redirect(http.StatusMovedPermanently, "/view/v1/public/user/active-success")
+	var params request.ActiveAccountRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.Redirect(http.StatusMovedPermanently, "/view/v1/public/user/active-failure")
+		return
+	}
+	err := r.service.ActiveAccount(ctx, params.ID, params.ActiveCode)
+	if err != nil {
+		ctx.Redirect(http.StatusMovedPermanently, "/view/v1/public/user/active-failure")
+	} else {
+		ctx.Redirect(http.StatusMovedPermanently, "/view/v1/public/user/active-success")
+	}
 }
 func (r *UserApi) ActiveSuccess(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "active-success.html", nil)

@@ -20,3 +20,9 @@ type GetUserListRequest struct {
 	Limit   int    `json:"limit" form:"limit" binding:"required,min=1,max=200"`
 	Offset  int    `json:"offset"  form:"offset" binding:"min=0"`
 }
+
+// ActiveAccountRequest 激活账户的请求参数
+type ActiveAccountRequest struct {
+	ActiveCode string `json:"active_code" form:"active_code" binding:"required,len=16"`
+	ID         uint   `json:"id" form:"id" binding:"required,min=1"`
+}

@@ -11,6 +11,7 @@ const (
 	SignUpEmailPrefix        Prefix = "lock:signup:email"
 	DepartmentIdPrefix       Prefix = "lock:department:id"
 	DepartmentNamePrefix     Prefix = "lock:department:name"
+	UserIdPrefix             Prefix = "lock:user:id"
 )
 
 const (
