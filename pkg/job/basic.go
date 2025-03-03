@@ -6,4 +6,5 @@ type SystemJob interface {
 	Name() string
 	IfStillRunning() constant.JobStillMode
 	Handle()
+	Interval() string
 }

@@ -18,7 +18,7 @@ var (
 
 func init() {
 	jobs = []job.SystemJob{
-		job.NewServerStatus(12 * time.Second),
+		job.NewServerStatus(10 * time.Second),
 	}
 }
 
@@ -45,20 +45,20 @@ func RegisterJobs() error {
 			var err error
 			switch mode {
 			case constant.Skip:
-				id, err = global.Cron.AddJob("@hourly", skip(j.Handle))
+				id, err = global.Cron.AddJob(j.Interval(), skip(j.Handle))
 			case constant.Delay:
-				id, err = global.Cron.AddJob("@hourly", delay(j.Handle))
+				id, err = global.Cron.AddJob(j.Interval(), delay(j.Handle))
 			case constant.None:
 				fallthrough
 			default:
-				id, err = global.Cron.AddFunc("@hourly", j.Handle)
+				id, err = global.Cron.AddFunc(j.Interval(), j.Handle)
 			}
 			if err != nil {
 				return err
 			}
 			name := j.Name()
 			mapping[name] = id
-			global.Logger.Infow("Register job", "name", name)
+			global.Logger.Infow("Register job", "name", name, "interval", j.Interval(), "id", id)
 		}
 	} else {
 		global.Logger.Infof("No [%s] found in [%s]", constant.RegisterJobs, key)

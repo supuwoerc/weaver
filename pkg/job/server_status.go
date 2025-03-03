@@ -26,6 +26,9 @@ func (s *ServerStatus) Name() string {
 func (s *ServerStatus) IfStillRunning() constant.JobStillMode {
 	return constant.Skip
 }
+func (s *ServerStatus) Interval() string {
+	return "0 0 * * * *"
+}
 
 func (s *ServerStatus) Handle() {
 	memory, err := mem.VirtualMemory()
