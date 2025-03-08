@@ -3,13 +3,12 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"log"
 	"os"
 )
 
 var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("CLI is called!")
+		cmd.Println("cli is called!")
 	},
 }
 

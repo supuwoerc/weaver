@@ -10,3 +10,4 @@ upload/
 /config/test.yml
 /learn_gin_web
 /learn_gin_web.pid
+/learn_gin_web_cli
