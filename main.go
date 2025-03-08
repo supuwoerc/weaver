@@ -11,7 +11,7 @@ func main() {
 	if isCli {
 		cmd.Execute()
 	} else {
-		defer bootstrap.Clean()
-		bootstrap.Start()
+		defer bootstrap.CleanApp()
+		bootstrap.RunApp()
 	}
 }

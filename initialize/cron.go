@@ -2,29 +2,24 @@ package initialize
 
 import (
 	"fmt"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/email"
-	"gin-web/pkg/global"
 	"github.com/robfig/cron/v3"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"runtime/debug"
 )
 
-type cronLogger struct {
+type CronLogger struct {
 	logger *zap.SugaredLogger
 }
 
-func (c *cronLogger) Info(msg string, keysAndValues ...interface{}) {
+func (c *CronLogger) Info(msg string, keysAndValues ...interface{}) {
 	c.logger.Infow(fmt.Sprintf("cron job:%s", msg), keysAndValues...)
 }
 
-func (c *cronLogger) Error(err error, msg string, keysAndValues ...interface{}) {
+func (c *CronLogger) Error(err error, msg string, keysAndValues ...interface{}) {
 	c.logger.Errorw(fmt.Sprintf("cron job:%s", msg), append([]interface{}{"error", err}, keysAndValues...)...)
 }
-
-func CronRecover(logger cron.Logger) cron.JobWrapper {
-	adminEmail := viper.GetString("system.admin.email")
+func (c *CronLogger) CronRecover() cron.JobWrapper {
+	//adminEmail := viper.GetString("system.admin.email")
 	return func(j cron.Job) cron.Job {
 		return cron.FuncJob(func() {
 			defer func() {
@@ -34,12 +29,14 @@ func CronRecover(logger cron.Logger) cron.JobWrapper {
 					if !ok {
 						err = fmt.Errorf("%v", r)
 					}
-					logger.Error(err, "panic", "stack", message)
-					go func() {
-						if e := email.NewEmailClient().SendText(adminEmail, constant.CronRecover, message); e != nil {
-							global.Logger.Errorf("发送邮件失败,信息:%s", e.Error())
-						}
-					}()
+					c.logger.Error(err, "panic", "stack", message)
+					// FIXME:全局通用的邮件告警方法
+					// TODO
+					//go func() {
+					//	if e := email.NewEmailClient().SendText(adminEmail, constant.CronRecover, message); e != nil {
+					//		global.Logger.Errorf("发送邮件失败,信息:%s", e.Error())
+					//	}
+					//}()
 				}
 			}()
 			j.Run()
@@ -47,7 +44,8 @@ func CronRecover(logger cron.Logger) cron.JobWrapper {
 	}
 }
 
-func InitCron(logger *zap.SugaredLogger) (*cron.Cron, cron.Logger) {
-	l := &cronLogger{logger: logger}
-	return cron.New(cron.WithLogger(l), cron.WithSeconds(), cron.WithChain(CronRecover(l))), l
-}
+// TODO:废弃
+//func InitCron(logger *zap.SugaredLogger) (*cron.Cron, cron.Logger) {
+//	l := &CronLogger{logger: logger}
+//	return cron.New(cron.WithLogger(l), cron.WithSeconds(), cron.WithChain(CronRecover(l))), l
+//}

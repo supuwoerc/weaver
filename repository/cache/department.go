@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"gin-web/models"
+	"gin-web/pkg/redis"
 	"sync"
 )
 
@@ -16,9 +17,11 @@ var (
 	departmentCacheOnce sync.Once
 )
 
-func NewDepartmentCache() *DepartmentCache {
+func NewDepartmentCache(r *redis.CommonRedisClient) *DepartmentCache {
 	departmentCacheOnce.Do(func() {
-		departmentCache = &DepartmentCache{BasicCache: NewBasicCache()}
+		departmentCache = &DepartmentCache{
+			BasicCache: NewBasicCache(r),
+		}
 	})
 	return departmentCache
 }

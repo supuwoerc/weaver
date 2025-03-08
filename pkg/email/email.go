@@ -3,7 +3,6 @@ package email
 import (
 	"bytes"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/global"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
@@ -13,11 +12,13 @@ import (
 
 type EmailClient struct {
 	logger *zap.SugaredLogger
+	dialer *gomail.Dialer
 }
 
-func NewEmailClient() *EmailClient {
+func NewEmailClient(logger *zap.SugaredLogger, dialer *gomail.Dialer) *EmailClient {
 	return &EmailClient{
-		logger: global.Logger,
+		logger: logger,
+		dialer: dialer,
 	}
 }
 
@@ -27,13 +28,12 @@ func (e *EmailClient) isProd() bool {
 
 func (e *EmailClient) send(to string, subject constant.Subject, body string, c constant.MIME) error {
 	if e.isProd() {
-		dialer := global.Dialer
 		message := gomail.NewMessage()
-		message.SetHeader("From", dialer.Username)
+		message.SetHeader("From", e.dialer.Username)
 		message.SetHeader("To", to)
 		message.SetHeader("Subject", string(subject))
 		message.SetBody(string(c), body)
-		return dialer.DialAndSend(message)
+		return e.dialer.DialAndSend(message)
 	} else {
 		e.logger.Debugw("Sending emails in non-production environments", "To", to, "Subject", string(subject))
 	}

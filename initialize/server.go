@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gin-web/pkg/global"
 	"github.com/facebookgo/grace/gracehttp"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,9 +23,15 @@ var (
 	isLinux = false
 )
 
-// InitServer 创建http服务器
-func InitServer(handle http.Handler) {
-	port := viper.GetInt("server.port")
+type HttpServer struct {
+	httpServer *http.Server
+	logger     *zap.SugaredLogger
+	isLinux    bool
+}
+
+// NewServer 创建http服务器
+func NewServer(v *viper.Viper, handle http.Handler, logger *zap.SugaredLogger) *HttpServer {
+	port := v.GetInt("server.port")
 	if port == 0 {
 		port = defaultPort
 	}
@@ -33,22 +39,30 @@ func InitServer(handle http.Handler) {
 		Addr:    fmt.Sprintf("%s:%d", host, port),
 		Handler: handle,
 	}
-	if isLinux {
-		graceHttpServe(srv)
-	} else {
-		httpServer(srv)
+	return &HttpServer{
+		httpServer: srv,
+		logger:     logger,
+		isLinux:    isLinux,
 	}
 }
 
-func httpServer(srv *http.Server) {
+func (s *HttpServer) Run() {
+	if s.isLinux {
+		s.graceRunServe(s.httpServer, s.logger)
+	} else {
+		s.runServer(s.httpServer, s.logger)
+	}
+}
+
+func (s *HttpServer) runServer(srv *http.Server, logger *zap.SugaredLogger) {
 	pid := os.Getpid()
 	// 参考地址:https://github.com/gin-gonic/examples/blob/master/graceful-shutdown/graceful-shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go func() {
-		global.Logger.Infow("服务启动", "addr", srv.Addr, "pid", pid)
+		logger.Infow("服务启动", "addr", srv.Addr, "pid", pid)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			global.Logger.Errorw("服务启动失败", "err", err.Error())
+			logger.Errorw("服务启动失败", "err", err.Error())
 			os.Exit(1)
 		}
 	}()
@@ -56,19 +70,19 @@ func httpServer(srv *http.Server) {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(timeoutContext); err != nil {
-		global.Logger.Errorw("服务关闭", "pid", pid, "err", err.Error())
+		logger.Errorw("服务关闭", "pid", pid, "err", err.Error())
 		return
 	}
-	global.Logger.Infow("服务关闭", "pid", pid)
+	logger.Infow("服务关闭", "pid", pid)
 }
 
-func graceHttpServe(srv *http.Server) {
+func (s *HttpServer) graceRunServe(srv *http.Server, logger *zap.SugaredLogger) {
 	pid := os.Getpid()
-	global.Logger.Infow("服务启动", "addr", srv.Addr, "pid", pid)
+	logger.Infow("服务启动", "addr", srv.Addr, "pid", pid)
 	err := gracehttp.Serve(srv)
 	if err != nil {
-		global.Logger.Errorw("服务启动失败", "err", err.Error())
+		logger.Errorw("服务启动失败", "err", err.Error())
 		os.Exit(1)
 	}
-	global.Logger.Infow("服务关闭", "pid", pid)
+	logger.Infow("服务关闭", "pid", pid)
 }

@@ -21,9 +21,9 @@ type PermissionDAO struct {
 	*BasicDAO
 }
 
-func NewPermissionDAO() *PermissionDAO {
+func NewPermissionDAO(db *gorm.DB) *PermissionDAO {
 	permissionDAOOnce.Do(func() {
-		permissionDAO = &PermissionDAO{BasicDAO: NewBasicDao()}
+		permissionDAO = &PermissionDAO{BasicDAO: NewBasicDao(db)}
 	})
 	return permissionDAO
 }

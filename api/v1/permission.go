@@ -2,11 +2,15 @@ package v1
 
 import (
 	"context"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -28,11 +32,21 @@ var (
 	permissionApi  *PermissionApi
 )
 
-func NewPermissionApi() *PermissionApi {
+func NewPermissionApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
+	locksmith *utils.RedisLocksmith, v *viper.Viper) *PermissionApi {
 	permissionOnce.Do(func() {
 		permissionApi = &PermissionApi{
-			BasicApi: NewBasicApi(),
-			service:  service.NewPermissionService(),
+			BasicApi: NewBasicApi(logger, v),
+			service:  service.NewPermissionService(logger, db, r, locksmith, v),
+		}
+		// 挂载路由
+		permissionAccessGroup := route.Group("permission")
+		{
+			permissionAccessGroup.POST("create", permissionApi.CreatePermission)
+			permissionAccessGroup.GET("list", permissionApi.GetPermissionList)
+			permissionAccessGroup.GET("detail", permissionApi.GetPermissionDetail)
+			permissionAccessGroup.POST("update", permissionApi.UpdatePermission)
+			permissionAccessGroup.POST("delete", permissionApi.DeletePermission)
 		}
 	})
 	return permissionApi

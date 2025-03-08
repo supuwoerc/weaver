@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"gin-web/models"
+	"gin-web/pkg/redis"
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -32,11 +34,11 @@ type DepartmentRepository struct {
 	cache DepartmentCache
 }
 
-func NewDepartmentRepository() *DepartmentRepository {
+func NewDepartmentRepository(db *gorm.DB, r *redis.CommonRedisClient) *DepartmentRepository {
 	departmentRepositoryOnce.Do(func() {
 		departmentRepository = &DepartmentRepository{
-			dao:   dao.NewDepartmentDAO(),
-			cache: cache.NewDepartmentCache(),
+			dao:   dao.NewDepartmentDAO(db),
+			cache: cache.NewDepartmentCache(r),
 		}
 	})
 	return departmentRepository

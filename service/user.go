@@ -8,13 +8,17 @@ import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/email"
 	"gin-web/pkg/jwt"
+	pkgRedis "gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/gomail.v2"
+	"gorm.io/gorm"
 	"sync"
 	"time"
 )
@@ -52,14 +56,15 @@ var (
 	userService *UserService
 )
 
-func NewUserService() *UserService {
+func NewUserService(logger *zap.SugaredLogger, r *pkgRedis.CommonRedisClient, db *gorm.DB, dialer *gomail.Dialer,
+	locksmith *utils.RedisLocksmith, v *viper.Viper) *UserService {
 	userOnce.Do(func() {
 		userService = &UserService{
-			BasicService:   NewBasicService(),
-			CaptchaService: NewCaptchaService(),
-			userRepository: repository.NewUserRepository(),
-			roleRepository: repository.NewRoleRepository(),
-			emailClient:    email.NewEmailClient(),
+			BasicService:   NewBasicService(logger, r, db, locksmith, v),
+			CaptchaService: NewCaptchaService(logger, r, db, locksmith, v),
+			userRepository: repository.NewUserRepository(db, r),
+			roleRepository: repository.NewRoleRepository(db),
+			emailClient:    email.NewEmailClient(logger, dialer),
 		}
 	})
 	return userService
@@ -77,12 +82,12 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	var pwd = string(password)
 	user.Password = pwd
 	user.Status = constant.Inactive
-	emailLock := utils.NewLock(constant.SignUpEmailPrefix, user.Email)
-	if err = utils.Lock(ctx, emailLock); err != nil {
+	emailLock := u.locksmith.NewLock(constant.SignUpEmailPrefix, user.Email)
+	if err = emailLock.Lock(ctx, true); err != nil {
 		return err
 	}
 	defer func(lock *utils.RedisLock) {
-		if e := utils.Unlock(lock); e != nil {
+		if e := lock.Unlock(); e != nil {
 			u.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(emailLock)
@@ -137,7 +142,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 		return nil, response.UserLoginFail
 	}
 	pair, err := u.userRepository.GetTokenPair(ctx, email)
-	builder := jwt.NewJwtBuilder()
+	builder := jwt.NewJwtBuilder(u.db, u.redisClient)
 	if err == nil && pair != nil {
 		claims, parseErr := builder.ParseToken(pair.AccessToken)
 		if parseErr == nil && claims != nil {
@@ -212,15 +217,15 @@ func (u *UserService) GetUserList(ctx context.Context, keyword string, limit, of
 }
 
 func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode string) error {
-	userLock := utils.NewLock(constant.UserIdPrefix, uid)
-	if lockErr := utils.Lock(ctx, userLock); lockErr != nil {
+	userLock := u.locksmith.NewLock(constant.UserIdPrefix, uid)
+	if lockErr := userLock.Lock(ctx, true); lockErr != nil {
 		return lockErr
 	}
-	defer func() {
-		if e := utils.Unlock(userLock); e != nil {
+	defer func(lock *utils.RedisLock) {
+		if e := lock.Unlock(); e != nil {
 			u.logger.Errorf("unlock fail %s", e.Error())
 		}
-	}()
+	}(userLock)
 	code, err := u.userRepository.GetActiveAccountCode(ctx, uid)
 	if err != nil {
 		// key 过期的情况需要重新发送邮件

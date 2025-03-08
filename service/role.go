@@ -6,10 +6,14 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/database"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"github.com/samber/lo"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -39,30 +43,32 @@ var (
 	roleService *RoleService
 )
 
-func NewRoleService() *RoleService {
+func NewRoleService(logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
+	locksmith *utils.RedisLocksmith, v *viper.Viper) *RoleService {
 	roleOnce.Do(func() {
 		roleService = &RoleService{
-			BasicService:         NewBasicService(),
-			roleRepository:       repository.NewRoleRepository(),
-			userRepository:       repository.NewUserRepository(),
-			permissionRepository: repository.NewPermissionRepository(),
+			BasicService:         NewBasicService(logger, r, db, locksmith, v),
+			roleRepository:       repository.NewRoleRepository(db),
+			userRepository:       repository.NewUserRepository(db, r),
+			permissionRepository: repository.NewPermissionRepository(db),
 		}
 	})
 	return roleService
 }
 
-func lockRoleField(ctx context.Context, name string, permissionIds []uint) ([]*utils.RedisLock, error) {
+func (r *RoleService) lockRoleField(ctx context.Context, name string, permissionIds []uint) ([]*utils.RedisLock, error) {
 	locks := make([]*utils.RedisLock, 0, len(permissionIds)+1)
 	// 角色名称锁
-	roleNameLock := utils.NewLock(constant.RoleNamePrefix, name)
-	if err := utils.Lock(ctx, roleNameLock); err != nil {
+	locksmith := utils.NewRedisLocksmith(r.logger, r.redisClient)
+	roleNameLock := locksmith.NewLock(constant.RoleNamePrefix, name)
+	if err := roleNameLock.Lock(ctx, true); err != nil {
 		return locks, err
 	}
 	locks = append(locks, roleNameLock)
 	// 角色权限锁
 	for _, permissionId := range permissionIds {
-		roleIdLock := utils.NewLock(constant.PermissionIdPrefix, permissionId)
-		if err := utils.Lock(ctx, roleIdLock); err != nil {
+		roleIdLock := locksmith.NewLock(constant.PermissionIdPrefix, permissionId)
+		if err := roleIdLock.Lock(ctx, true); err != nil {
 			return locks, err
 		}
 		locks = append(locks, roleIdLock)
@@ -71,10 +77,10 @@ func lockRoleField(ctx context.Context, name string, permissionIds []uint) ([]*u
 }
 
 func (r *RoleService) CreateRole(ctx context.Context, operator uint, name string, userIds, permissionIds []uint) error {
-	locks, err := lockRoleField(ctx, name, permissionIds)
+	locks, err := r.lockRoleField(ctx, name, permissionIds)
 	defer func() {
 		for _, l := range locks {
-			if e := utils.Unlock(l); e != nil {
+			if e := l.Unlock(); e != nil {
 				r.logger.Errorf("unlock fail %s", e.Error())
 			}
 		}
@@ -139,20 +145,21 @@ func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*response.Rol
 
 func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, name string, userIds, permissionIds []uint) error {
 	// 对角色自身加锁
-	roleLock := utils.NewLock(constant.RoleIdPrefix, id)
-	if err := utils.Lock(ctx, roleLock); err != nil {
+	locksmith := utils.NewRedisLocksmith(r.logger, r.redisClient)
+	roleLock := locksmith.NewLock(constant.RoleIdPrefix, id)
+	if err := roleLock.Lock(ctx, true); err != nil {
 		return err
 	}
 	defer func(lock *utils.RedisLock) {
-		if e := utils.Unlock(lock); e != nil {
+		if e := lock.Unlock(); e != nil {
 			r.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
 	// 对 name & permissions 加锁
-	locks, err := lockRoleField(ctx, name, permissionIds)
+	locks, err := r.lockRoleField(ctx, name, permissionIds)
 	defer func() {
 		for _, l := range locks {
-			if e := utils.Unlock(l); e != nil {
+			if e := l.Unlock(); e != nil {
 				r.logger.Errorf("unlock fail %s", e.Error())
 			}
 		}
@@ -207,12 +214,13 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, na
 
 func (r *RoleService) DeleteRole(ctx context.Context, id, operator uint) error {
 	// 对角色自身加锁
-	roleLock := utils.NewLock(constant.RoleIdPrefix, id)
-	if err := utils.Lock(ctx, roleLock); err != nil {
+	locksmith := utils.NewRedisLocksmith(r.logger, r.redisClient)
+	roleLock := locksmith.NewLock(constant.RoleIdPrefix, id)
+	if err := roleLock.Lock(ctx, true); err != nil {
 		return err
 	}
 	defer func(lock *utils.RedisLock) {
-		if e := utils.Unlock(lock); e != nil {
+		if e := lock.Unlock(); e != nil {
 			r.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func InitDialer() *gomail.Dialer {
+func NewDialer() *gomail.Dialer {
 	h := viper.GetString("system.email.host")
 	p := viper.GetInt("system.email.port")
 	u := viper.GetString("system.email.user")

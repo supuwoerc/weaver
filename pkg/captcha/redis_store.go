@@ -4,14 +4,28 @@ import (
 	"context"
 	"fmt"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/global"
+	"gin-web/pkg/redis"
 	"github.com/spf13/viper"
+	"sync"
 	"time"
 )
 
 var ctx = context.Background()
 
 type RedisStore struct {
+	redisClient *redis.CommonRedisClient
+}
+
+var (
+	redisStoreOnce sync.Once
+	redisStore     *RedisStore
+)
+
+func NewRedisStore(r *redis.CommonRedisClient) *RedisStore {
+	redisStoreOnce.Do(func() {
+		redisStore = &RedisStore{redisClient: r}
+	})
+	return redisStore
 }
 
 func getExpiration() time.Duration {
@@ -20,16 +34,16 @@ func getExpiration() time.Duration {
 }
 
 func (r *RedisStore) Set(id string, value string) error {
-	return global.RedisClient.Client.Set(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id), value, getExpiration()).Err()
+	return r.redisClient.Client.Set(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id), value, getExpiration()).Err()
 }
 
 func (r *RedisStore) Get(id string, clear bool) string {
-	result, err := global.RedisClient.Client.Get(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id)).Result()
+	result, err := r.redisClient.Client.Get(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id)).Result()
 	if err != nil {
 		return ""
 	}
 	if clear {
-		delErr := global.RedisClient.Client.Del(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id)).Err()
+		delErr := r.redisClient.Client.Del(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id)).Err()
 		if delErr != nil {
 			return ""
 		}

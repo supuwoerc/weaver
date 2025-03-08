@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"gin-web/models"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
@@ -15,6 +16,8 @@ import (
 	"github.com/h2non/filetype"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"io"
 	"mime/multipart"
 	"os"
@@ -38,11 +41,13 @@ var (
 	attachmentService *AttachmentService
 )
 
-func NewAttachmentService() *AttachmentService {
+func NewAttachmentService(logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
+	locksmith *utils.RedisLocksmith,
+	v *viper.Viper) *AttachmentService {
 	attachmentOnce.Do(func() {
 		attachmentService = &AttachmentService{
-			BasicService: NewBasicService(),
-			repository:   repository.NewAttachmentRepository(),
+			BasicService: NewBasicService(logger, r, db, locksmith, v),
+			repository:   repository.NewAttachmentRepository(db),
 		}
 	})
 	return attachmentService

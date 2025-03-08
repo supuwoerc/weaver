@@ -21,9 +21,9 @@ type UserDAO struct {
 	*BasicDAO
 }
 
-func NewUserDAO() *UserDAO {
+func NewUserDAO(db *gorm.DB) *UserDAO {
 	userDAOOnce.Do(func() {
-		userDAO = &UserDAO{BasicDAO: NewBasicDao()}
+		userDAO = &UserDAO{BasicDAO: NewBasicDao(db)}
 	})
 	return userDAO
 }

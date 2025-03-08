@@ -3,15 +3,16 @@ package job
 import (
 	"fmt"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/global"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
+	"go.uber.org/zap"
 	"runtime"
 	"time"
 )
 
 type ServerStatus struct {
 	CpuStatisticalInterval time.Duration
+	logger                 *zap.SugaredLogger
 }
 
 func NewServerStatus(t time.Duration) *ServerStatus {
@@ -49,7 +50,7 @@ func (s *ServerStatus) Handle() {
 		"Memory UsedPercent", float2Percent(memory.UsedPercent),
 		"CPU UsedPercent", float2Percent(percent[0]),
 	}
-	global.Logger.Infow("server status", args...)
+	s.logger.Infow("server status", args...)
 }
 
 func bytes2MB(kbs uint64) string {

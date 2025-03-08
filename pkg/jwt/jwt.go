@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"gin-web/models"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/repository"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -23,17 +25,24 @@ type TokenClaims struct {
 }
 
 type TokenBuilder struct {
+	db          *gorm.DB
+	redisClient *redis.CommonRedisClient
+	viper       *viper.Viper
 }
 
-func NewJwtBuilder() *TokenBuilder {
-	return &TokenBuilder{}
+func NewJwtBuilder(db *gorm.DB, r *redis.CommonRedisClient, v *viper.Viper) *TokenBuilder {
+	return &TokenBuilder{
+		db:          db,
+		redisClient: r,
+		viper:       v,
+	}
 }
 
 // 生成token
 func (j *TokenBuilder) generateToken(user *TokenClaimsBasic, createAt time.Time, duration time.Duration) (string, error) {
 	claims := TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    viper.GetString("jwt.issuer"),
+			Issuer:    j.viper.GetString("jwt.issuer"),
 			IssuedAt:  jwt.NewNumericDate(createAt),
 			ExpiresAt: jwt.NewNumericDate(createAt.Add(duration)),
 		},
@@ -120,6 +129,6 @@ func (j *TokenBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 
 // GetCacheToken 获取缓存的Token对
 func (j *TokenBuilder) GetCacheToken(ctx context.Context, email string) (*models.TokenPair, error) {
-	userRepository := repository.NewUserRepository()
+	userRepository := repository.NewUserRepository(j.db, j.redisClient)
 	return userRepository.GetTokenPair(ctx, email)
 }

@@ -2,11 +2,15 @@ package v1
 
 import (
 	"context"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -25,11 +29,18 @@ var (
 	departmentApi  *DepartmentApi
 )
 
-func NewDepartmentApi() *DepartmentApi {
+func NewDepartmentApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
+	locksmith *utils.RedisLocksmith, v *viper.Viper) *DepartmentApi {
 	departmentOnce.Do(func() {
 		departmentApi = &DepartmentApi{
-			BasicApi: NewBasicApi(),
-			service:  service.NewDepartmentService(),
+			BasicApi: NewBasicApi(logger, v),
+			service:  service.NewDepartmentService(logger, db, r, locksmith, v),
+		}
+		// 挂载路由
+		departmentAccessGroup := route.Group("department")
+		{
+			departmentAccessGroup.POST("create", departmentApi.CreateDepartment)
+			departmentAccessGroup.GET("tree", departmentApi.GetDepartmentTree)
 		}
 	})
 	return departmentApi

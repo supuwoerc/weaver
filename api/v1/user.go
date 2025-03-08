@@ -3,14 +3,20 @@ package v1
 import (
 	"context"
 	"errors"
+	"gin-web/middleware"
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gopkg.in/gomail.v2"
+	"gorm.io/gorm"
 	"net/http"
 	"sync"
 )
@@ -36,14 +42,30 @@ var (
 	userApi  *UserApi
 )
 
-func NewUserApi() *UserApi {
+func NewUserApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
+	dialer *gomail.Dialer, locksmith *utils.RedisLocksmith, v *viper.Viper) *UserApi {
 	userOnce.Do(func() {
 		userApi = &UserApi{
-			BasicApi:         NewBasicApi(),
+			BasicApi:         NewBasicApi(logger, v),
 			emailRegexExp:    regexp.MustCompile(constant.EmailRegexPattern, regexp.None),
 			passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
 			phoneRegexExp:    regexp.MustCompile(constant.PhoneRegexPattern, regexp.None),
-			service:          service.NewUserService(),
+			service:          service.NewUserService(logger, r, db, dialer, locksmith, v),
+		}
+		// 挂载路由
+		userPublicGroup := route.Group("public/user")
+		{
+			userPublicGroup.POST("signup", userApi.SignUp)
+			userPublicGroup.POST("login", userApi.Login)
+			userPublicGroup.GET("active", userApi.Active)
+			userPublicGroup.GET("active-success", userApi.ActiveSuccess)
+			userPublicGroup.GET("active-failure", userApi.ActiveFailure)
+		}
+		userAccessGroup := route.Group("user").Use(middleware.NewAuthMiddleware(db, r).LoginRequired())
+		{
+			userAccessGroup.GET("refresh-token")
+			userAccessGroup.GET("profile", userApi.Profile)
+			userAccessGroup.GET("list", userApi.GetUserList)
 		}
 	})
 	return userApi

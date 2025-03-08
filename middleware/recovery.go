@@ -3,22 +3,43 @@ package middleware
 import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/email"
-	"gin-web/pkg/global"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"runtime/debug"
+	"sync"
 )
 
-func Recovery() gin.HandlerFunc {
+type RecoveryMiddle struct {
+	emailClient *email.EmailClient
+	logger      *zap.SugaredLogger
+}
+
+var (
+	recoveryOnce   sync.Once
+	recoveryMiddle *RecoveryMiddle
+)
+
+func NewRecoveryMiddleware(emailClient *email.EmailClient, logger *zap.SugaredLogger) *RecoveryMiddle {
+	recoveryOnce.Do(func() {
+		recoveryMiddle = &RecoveryMiddle{
+			emailClient: emailClient,
+			logger:      logger,
+		}
+	})
+	return recoveryMiddle
+}
+
+func (r *RecoveryMiddle) Recovery() gin.HandlerFunc {
 	adminEmail := viper.GetString("system.admin.email")
-	client := email.NewEmailClient()
 	return gin.CustomRecovery(func(c *gin.Context, err any) {
 		message := string(debug.Stack())
-		global.Logger.Errorf("Recovery panic,堆栈信息:%s", message)
+		r.logger.Errorf("Recovery panic,堆栈信息:%s", message)
+		// TODO:全局通用的告警方法
 		go func() {
-			if e := client.SendText(adminEmail, constant.Recover, message); e != nil {
-				global.Logger.Errorf("发送邮件失败,信息:%s", e.Error())
+			if e := r.emailClient.SendText(adminEmail, constant.Recover, message); e != nil {
+				r.logger.Errorf("发送邮件失败,信息:%s", e.Error())
 			}
 		}()
 		response.HttpResponse[any](c, response.RecoveryError, nil, nil, nil)

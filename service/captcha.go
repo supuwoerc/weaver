@@ -3,7 +3,12 @@ package service
 import (
 	"gin-web/pkg/captcha"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
+	"gin-web/pkg/utils"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -17,10 +22,11 @@ var (
 	captchaService *CaptchaService
 )
 
-func NewCaptchaService() *CaptchaService {
+func NewCaptchaService(logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB, locksmith *utils.RedisLocksmith,
+	v *viper.Viper) *CaptchaService {
 	captchaOnce.Do(func() {
 		captchaService = &CaptchaService{
-			BasicService: NewBasicService(),
+			BasicService: NewBasicService(logger, r, db, locksmith, v),
 			clients: map[constant.CaptchaType]*captcha.Captcha{
 				constant.Default: captcha.NewCaptcha(100, 200, 6, 0.3, 80), // 默认验证码
 				constant.SignUp:  captcha.NewCaptcha(100, 348, 6, 0.3, 80), // 注册验证码

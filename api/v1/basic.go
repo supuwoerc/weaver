@@ -1,13 +1,14 @@
 package v1
 
 import (
-	"gin-web/pkg/global"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"sync"
 )
 
 type BasicApi struct {
 	logger *zap.SugaredLogger
+	viper  *viper.Viper
 }
 
 var (
@@ -15,10 +16,11 @@ var (
 	basicApi  *BasicApi
 )
 
-func NewBasicApi() *BasicApi {
+func NewBasicApi(logger *zap.SugaredLogger, v *viper.Viper) *BasicApi {
 	basicOnce.Do(func() {
 		basicApi = &BasicApi{
-			logger: global.Logger,
+			logger: logger,
+			viper:  v,
 		}
 	})
 	return basicApi

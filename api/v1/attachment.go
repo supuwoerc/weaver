@@ -3,11 +3,14 @@ package v1
 import (
 	"context"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"mime/multipart"
 	"sync"
 )
@@ -27,11 +30,19 @@ var (
 	attachmentApi  *AttachmentApi
 )
 
-func NewAttachmentApi() *AttachmentApi {
+func NewAttachmentApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
+	locksmith *utils.RedisLocksmith, v *viper.Viper) *AttachmentApi {
 	attachmentOnce.Do(func() {
+		// 初始化controller
 		attachmentApi = &AttachmentApi{
-			BasicApi: NewBasicApi(),
-			service:  service.NewAttachmentService(),
+			BasicApi: NewBasicApi(logger, v),
+			service:  service.NewAttachmentService(logger, r, db, locksmith, v),
+		}
+		// 挂载路由
+		attachmentAccessGroup := route.Group("attachment")
+		{
+			attachmentAccessGroup.POST("multiple-upload", attachmentApi.MultipleUpload)
+			attachmentAccessGroup.POST("upload", attachmentApi.Upload)
 		}
 	})
 	return attachmentApi

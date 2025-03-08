@@ -4,8 +4,10 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/redis"
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
+	"gorm.io/gorm"
 	"sync"
 	"time"
 )
@@ -37,11 +39,11 @@ type UserRepository struct {
 	cache UserCache
 }
 
-func NewUserRepository() *UserRepository {
+func NewUserRepository(db *gorm.DB, r *redis.CommonRedisClient) *UserRepository {
 	userRepositoryOnce.Do(func() {
 		userRepository = &UserRepository{
-			dao:   dao.NewUserDAO(),
-			cache: cache.NewUserCache(),
+			dao:   dao.NewUserDAO(db),
+			cache: cache.NewUserCache(r),
 		}
 	})
 	return userRepository

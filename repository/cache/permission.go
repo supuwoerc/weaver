@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"gin-web/pkg/redis"
 	"sync"
 )
 
@@ -13,9 +14,9 @@ var (
 	permissionCacheOnce sync.Once
 )
 
-func NewPermissionCache() *PermissionCache {
+func NewPermissionCache(r *redis.CommonRedisClient) *PermissionCache {
 	permissionCacheOnce.Do(func() {
-		permissionCache = &PermissionCache{BasicCache: NewBasicCache()}
+		permissionCache = &PermissionCache{BasicCache: NewBasicCache(r)}
 	})
 	return permissionCache
 }

@@ -5,16 +5,21 @@ import (
 	"database/sql"
 	"errors"
 	"gin-web/pkg/database"
-	"gin-web/pkg/global"
 	"gin-web/pkg/redis"
+	"gin-web/pkg/utils"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"runtime/debug"
 	"sync"
 )
 
 type BasicService struct {
-	logger *zap.SugaredLogger
-	redis  *redis.CommonRedisClient
+	logger      *zap.SugaredLogger
+	redisClient *redis.CommonRedisClient
+	db          *gorm.DB
+	locksmith   *utils.RedisLocksmith
+	viper       *viper.Viper
 }
 
 var (
@@ -22,11 +27,15 @@ var (
 	basic     *BasicService
 )
 
-func NewBasicService() *BasicService {
+func NewBasicService(logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB, locksmith *utils.RedisLocksmith,
+	v *viper.Viper) *BasicService {
 	basicOnce.Do(func() {
 		basic = &BasicService{
-			logger: global.Logger,
-			redis:  global.RedisClient,
+			logger:      logger,
+			redisClient: r,
+			db:          db,
+			locksmith:   locksmith,
+			viper:       v,
 		}
 	})
 	return basic
@@ -36,7 +45,7 @@ func NewBasicService() *BasicService {
 func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.Action, options ...*sql.TxOptions) error {
 	isStarter := false // 是否是事务开启者
 	manager := &database.TransactionManager{
-		DB:                           global.DB,
+		DB:                           s.db,
 		AlreadyCommittedOrRolledBack: false,
 	}
 	if join {

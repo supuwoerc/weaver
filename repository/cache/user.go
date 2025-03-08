@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"sync"
 	"time"
@@ -20,9 +21,9 @@ var (
 	userCacheOnce sync.Once
 )
 
-func NewUserCache() *UserCache {
+func NewUserCache(r *redis.CommonRedisClient) *UserCache {
 	userCacheOnce.Do(func() {
-		userCache = &UserCache{BasicCache: NewBasicCache()}
+		userCache = &UserCache{BasicCache: NewBasicCache(r)}
 	})
 	return userCache
 }

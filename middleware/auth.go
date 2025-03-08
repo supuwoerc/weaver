@@ -5,12 +5,15 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 const (
@@ -29,13 +32,33 @@ func unnecessaryRefreshResponse(ctx *gin.Context) {
 	response.FailWithError(ctx, response.UnnecessaryRefreshToken)
 }
 
+type AuthMiddleware struct {
+	db          *gorm.DB
+	redisClient *redis.CommonRedisClient
+}
+
+var (
+	authMiddlewareOnce sync.Once
+	authMiddleware     *AuthMiddleware
+)
+
+func NewAuthMiddleware(db *gorm.DB, redisClient *redis.CommonRedisClient) *AuthMiddleware {
+	authMiddlewareOnce.Do(func() {
+		authMiddleware = &AuthMiddleware{
+			db:          db,
+			redisClient: redisClient,
+		}
+	})
+	return authMiddleware
+}
+
 // LoginRequired 检查token和refresh_token的有效性
-func LoginRequired() gin.HandlerFunc {
+func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 	tokenKey := viper.GetString("jwt.tokenKey")
 	refreshTokenKey := viper.GetString("jwt.refreshTokenKey")
 	prefix := viper.GetString("jwt.tokenPrefix")
-	jwtBuilder := jwt.NewJwtBuilder()
-	userRepository := repository.NewUserRepository()
+	jwtBuilder := jwt.NewJwtBuilder(l.db, l.redisClient)
+	userRepository := repository.NewUserRepository(l.db, l.redisClient)
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader(tokenKey)
 		if token == "" || !strings.HasPrefix(token, prefix) {
@@ -98,7 +121,7 @@ func LoginRequired() gin.HandlerFunc {
 	}
 }
 
-func PermissionRequired() gin.HandlerFunc {
+func (l *AuthMiddleware) PermissionRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 请求资源路径
 		//obj := c.Request.URL.Path

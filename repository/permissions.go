@@ -4,6 +4,7 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/repository/dao"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -28,10 +29,10 @@ type PermissionRepository struct {
 	dao PermissionDAO
 }
 
-func NewPermissionRepository() *PermissionRepository {
+func NewPermissionRepository(db *gorm.DB) *PermissionRepository {
 	permissionRepositoryOnce.Do(func() {
 		permissionRepository = &PermissionRepository{
-			dao: dao.NewPermissionDAO(),
+			dao: dao.NewPermissionDAO(db),
 		}
 	})
 	return permissionRepository

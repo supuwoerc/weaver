@@ -4,6 +4,7 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/repository/dao"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -31,10 +32,10 @@ type RoleRepository struct {
 	dao RoleDAO
 }
 
-func NewRoleRepository() *RoleRepository {
+func NewRoleRepository(db *gorm.DB) *RoleRepository {
 	roleRepositoryOnce.Do(func() {
 		roleRepository = &RoleRepository{
-			dao: dao.NewRoleDAO(),
+			dao: dao.NewRoleDAO(db),
 		}
 	})
 	return roleRepository

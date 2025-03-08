@@ -2,9 +2,14 @@ package v1
 
 import (
 	"gin-web/pkg/constant"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
+	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -22,11 +27,17 @@ var (
 	captchaApi  *CaptchaApi
 )
 
-func NewCaptchaApi() *CaptchaApi {
+func NewCaptchaApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
+	locksmith *utils.RedisLocksmith, v *viper.Viper) *CaptchaApi {
 	captchaOnce.Do(func() {
 		captchaApi = &CaptchaApi{
-			BasicApi: NewBasicApi(),
-			service:  service.NewCaptchaService(),
+			BasicApi: NewBasicApi(logger, v),
+			service:  service.NewCaptchaService(logger, r, db, locksmith, v),
+		}
+		// 挂载路由
+		captchaGroup := route.Group("captcha")
+		{
+			captchaGroup.GET("generate", captchaApi.GenerateCaptcha)
 		}
 	})
 	return captchaApi

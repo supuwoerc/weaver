@@ -4,13 +4,17 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	pkgRedis "gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
+	"gorm.io/gorm"
 	"strconv"
 	"strings"
 	"sync"
@@ -39,29 +43,31 @@ var (
 	departmentService *DepartmentService
 )
 
-func NewDepartmentService() *DepartmentService {
+func NewDepartmentService(logger *zap.SugaredLogger, db *gorm.DB, r *pkgRedis.CommonRedisClient,
+	locksmith *utils.RedisLocksmith, v *viper.Viper) *DepartmentService {
 	departmentOnce.Do(func() {
 		departmentService = &DepartmentService{
-			BasicService:         NewBasicService(),
-			departmentRepository: repository.NewDepartmentRepository(),
-			userRepository:       repository.NewUserRepository(),
+			BasicService:         NewBasicService(logger, r, db, locksmith, v),
+			departmentRepository: repository.NewDepartmentRepository(db, r),
+			userRepository:       repository.NewUserRepository(db, r),
 		}
 	})
 	return departmentService
 }
 
-func lockDepartmentField(ctx context.Context, name string, parentId *uint) ([]*utils.RedisLock, error) {
+func (p *DepartmentService) lockDepartmentField(ctx context.Context, name string, parentId *uint) ([]*utils.RedisLock, error) {
 	locks := make([]*utils.RedisLock, 0)
 	// 名称锁
-	deptNameLock := utils.NewLock(constant.DepartmentNamePrefix, name)
-	if err := utils.Lock(ctx, deptNameLock); err != nil {
+	locksmith := utils.NewRedisLocksmith(p.logger, p.redisClient)
+	deptNameLock := locksmith.NewLock(constant.DepartmentNamePrefix, name)
+	if err := deptNameLock.Lock(ctx, true); err != nil {
 		return locks, err
 	}
 	locks = append(locks, deptNameLock)
 	if parentId != nil {
 		// 父部门锁
-		parentLock := utils.NewLock(constant.DepartmentIdPrefix, *parentId)
-		if err := utils.Lock(ctx, parentLock); err != nil {
+		parentLock := locksmith.NewLock(constant.DepartmentIdPrefix, *parentId)
+		if err := parentLock.Lock(ctx, true); err != nil {
 			return locks, err
 		}
 		locks = append(locks, parentLock)
@@ -70,10 +76,10 @@ func lockDepartmentField(ctx context.Context, name string, parentId *uint) ([]*u
 }
 
 func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint, name string, parentId *uint, leaderIds, userIds []uint) error {
-	locks, err := lockDepartmentField(ctx, name, parentId)
+	locks, err := p.lockDepartmentField(ctx, name, parentId)
 	defer func() {
 		for _, l := range locks {
-			if e := utils.Unlock(l); e != nil {
+			if e := l.Unlock(); e != nil {
 				p.logger.Errorf("unlock fail %s", e.Error())
 			}
 		}

@@ -1,7 +1,6 @@
 package initialize
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"os"
@@ -12,7 +11,7 @@ const (
 	configPath = "./config"
 )
 
-func InitConfig() {
+func NewViper() *viper.Viper {
 	v := viper.New()
 	v.SetConfigType(configType)
 	v.AddConfigPath(configPath)
@@ -25,21 +24,25 @@ func InitConfig() {
 	for key, val := range defaultConfig {
 		viper.SetDefault(key, val)
 	}
-	env := os.Getenv("GIN_MODE")
-	if env == "" || env == gin.DebugMode {
-		env = "dev"
-	} else if env == gin.TestMode {
-		env = "test"
-	} else if env == gin.ReleaseMode {
-		env = "prod"
-	} else {
-		panic(errors.New("读取配置文件出错,请检查环境变量:GIN_MODE"))
-	}
+	env := determineEnvironment()
 	viper.SetConfigName(env)
 	viper.SetConfigType(configType)
 	viper.AddConfigPath(configPath)
 	e := viper.ReadInConfig()
 	if e != nil {
 		panic(e)
+	}
+	return v
+}
+
+// 辅助函数判断环境
+func determineEnvironment() string {
+	switch mode := os.Getenv("GIN_MODE"); mode {
+	case gin.ReleaseMode:
+		return "prod"
+	case gin.TestMode:
+		return "test"
+	default: // 包含空字符串和 DebugMode
+		return "dev"
 	}
 }

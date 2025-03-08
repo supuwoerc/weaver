@@ -5,10 +5,14 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/database"
+	pkgRedis "gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"github.com/samber/lo"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -35,35 +39,37 @@ var (
 	permissionService *PermissionService
 )
 
-func NewPermissionService() *PermissionService {
+// TODO:包装一个基础的参数结构体,wire注入这个Value
+func NewPermissionService(logger *zap.SugaredLogger, db *gorm.DB, r *pkgRedis.CommonRedisClient,
+	locksmith *utils.RedisLocksmith, v *viper.Viper) *PermissionService {
 	permissionOnce.Do(func() {
 		permissionService = &PermissionService{
-			BasicService:         NewBasicService(),
-			permissionRepository: repository.NewPermissionRepository(),
-			roleRepository:       repository.NewRoleRepository(),
+			BasicService:         NewBasicService(logger, r, db, locksmith, v),
+			permissionRepository: repository.NewPermissionRepository(db),
+			roleRepository:       repository.NewRoleRepository(db),
 		}
 	})
 	return permissionService
 }
 
-func lockPermissionField(ctx context.Context, name, resource string, roleIds []uint) ([]*utils.RedisLock, error) {
+func (p *PermissionService) lockPermissionField(ctx context.Context, name, resource string, roleIds []uint) ([]*utils.RedisLock, error) {
 	locks := make([]*utils.RedisLock, 0, len(roleIds)+2)
 	// 权限名称锁
-	permissionNameLock := utils.NewLock(constant.PermissionNamePrefix, name)
-	if err := utils.Lock(ctx, permissionNameLock); err != nil {
+	permissionNameLock := p.locksmith.NewLock(constant.PermissionNamePrefix, name)
+	if err := permissionNameLock.Lock(ctx, true); err != nil {
 		return locks, err
 	}
 	locks = append(locks, permissionNameLock)
 	// 权限资源锁
-	permissionResourceLock := utils.NewLock(constant.PermissionResourcePrefix, resource)
-	if err := utils.Lock(ctx, permissionResourceLock); err != nil {
+	permissionResourceLock := p.locksmith.NewLock(constant.PermissionResourcePrefix, resource)
+	if err := permissionResourceLock.Lock(ctx, true); err != nil {
 		return locks, err
 	}
 	locks = append(locks, permissionResourceLock)
 	// 角色锁
 	for _, roleId := range roleIds {
-		roleIdLock := utils.NewLock(constant.RoleIdPrefix, roleId)
-		if err := utils.Lock(ctx, roleIdLock); err != nil {
+		roleIdLock := p.locksmith.NewLock(constant.RoleIdPrefix, roleId)
+		if err := roleIdLock.Lock(ctx, true); err != nil {
 			return locks, err
 		}
 		locks = append(locks, roleIdLock)
@@ -72,10 +78,10 @@ func lockPermissionField(ctx context.Context, name, resource string, roleIds []u
 }
 
 func (p *PermissionService) CreatePermission(ctx context.Context, operator uint, name, resource string, roleIds []uint) error {
-	locks, err := lockPermissionField(ctx, name, resource, roleIds)
+	locks, err := p.lockPermissionField(ctx, name, resource, roleIds)
 	defer func() {
 		for _, l := range locks {
-			if e := utils.Unlock(l); e != nil {
+			if e := l.Unlock(); e != nil {
 				p.logger.Errorf("unlock fail %s", e.Error())
 			}
 		}
@@ -131,20 +137,21 @@ func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*
 
 func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint, id uint, name, resource string, roleIds []uint) error {
 	// 对权限自身加锁
-	permissionLock := utils.NewLock(constant.PermissionIdPrefix, id)
-	if err := utils.Lock(ctx, permissionLock); err != nil {
+	locksmith := utils.NewRedisLocksmith(p.logger, p.redisClient)
+	permissionLock := locksmith.NewLock(constant.PermissionIdPrefix, id)
+	if err := permissionLock.Lock(ctx, true); err != nil {
 		return err
 	}
 	defer func(lock *utils.RedisLock) {
-		if e := utils.Unlock(lock); e != nil {
+		if e := lock.Unlock(); e != nil {
 			p.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(permissionLock)
 	// 对 name & resource & roleIds 加锁
-	locks, err := lockPermissionField(ctx, name, resource, roleIds)
+	locks, err := p.lockPermissionField(ctx, name, resource, roleIds)
 	defer func() {
 		for _, l := range locks {
-			if e := utils.Unlock(l); e != nil {
+			if e := l.Unlock(); e != nil {
 				p.logger.Errorf("unlock fail %s", e.Error())
 			}
 		}
@@ -189,12 +196,12 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 
 func (p *PermissionService) DeletePermission(ctx context.Context, id, operator uint) error {
 	// 对权限自身加锁
-	permissionLock := utils.NewLock(constant.PermissionIdPrefix, id)
-	if err := utils.Lock(ctx, permissionLock); err != nil {
+	permissionLock := p.locksmith.NewLock(constant.PermissionIdPrefix, id)
+	if err := permissionLock.Lock(ctx, true); err != nil {
 		return err
 	}
 	defer func(lock *utils.RedisLock) {
-		if e := utils.Unlock(lock); e != nil {
+		if e := lock.Unlock(); e != nil {
 			p.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(permissionLock)

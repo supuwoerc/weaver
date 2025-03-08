@@ -2,11 +2,15 @@ package v1
 
 import (
 	"context"
+	"gin-web/pkg/redis"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"gin-web/service"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -28,11 +32,21 @@ var (
 	roleApi  *RoleApi
 )
 
-func NewRoleApi() *RoleApi {
+func NewRoleApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
+	locksmith *utils.RedisLocksmith, v *viper.Viper) *RoleApi {
 	roleOnce.Do(func() {
 		roleApi = &RoleApi{
-			BasicApi: NewBasicApi(),
-			service:  service.NewRoleService(),
+			BasicApi: NewBasicApi(logger, v),
+			service:  service.NewRoleService(logger, r, db, locksmith, v),
+		}
+		// 挂载路由
+		roleAccessGroup := route.Group("role")
+		{
+			roleAccessGroup.POST("create", roleApi.CreateRole)
+			roleAccessGroup.GET("list", roleApi.GetRoleList)
+			roleAccessGroup.GET("detail", roleApi.GetRoleDetail)
+			roleAccessGroup.POST("update", roleApi.UpdateRole)
+			roleAccessGroup.POST("delete", roleApi.DeleteRole)
 		}
 	})
 	return roleApi

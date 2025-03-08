@@ -12,33 +12,19 @@ import (
 	"time"
 )
 
-var LoggerSyncer zapcore.WriteSyncer
-
-func InitZapLogger() *zap.SugaredLogger {
-	level := viper.Get("logger.level")
+func NewZapLogger(v *viper.Viper, sync zapcore.WriteSyncer) *zap.SugaredLogger {
+	level := v.Get("logger.level")
 	logMode := level.(int)
-	LoggerSyncer = getWriterSyncer()
-	core := zapcore.NewCore(getEncoder(), LoggerSyncer, zapcore.Level(logMode))
+	core := zapcore.NewCore(getEncoder(), sync, zapcore.Level(logMode))
 	return zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel)).Sugar()
 }
-
-func getEncoder() zapcore.Encoder {
-	config := zap.NewProductionEncoderConfig()
-	config.TimeKey = "time"
-	config.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-		enc.AppendString(t.Local().Format(time.DateTime))
-	}
-	config.EncodeLevel = zapcore.CapitalLevelEncoder
-	return zapcore.NewJSONEncoder(config)
-}
-
-func getWriterSyncer() zapcore.WriteSyncer {
+func NewWriterSyncer(v *viper.Viper) zapcore.WriteSyncer {
 	projectDir, err := os.Getwd()
-	write2Stdout := viper.GetBool("logger.stdout")
-	targetDir := viper.GetString("logger.dir")
-	maxSize := viper.GetInt("logger.maxSize")
-	maxBackups := viper.GetInt("logger.maxBackups")
-	maxAge := viper.GetInt("logger.maxAge")
+	write2Stdout := v.GetBool("logger.stdout")
+	targetDir := v.GetString("logger.dir")
+	maxSize := v.GetInt("logger.maxSize")
+	maxBackups := v.GetInt("logger.maxBackups")
+	maxAge := v.GetInt("logger.maxAge")
 	if err != nil {
 		panic(err)
 	}
@@ -63,4 +49,14 @@ func getWriterSyncer() zapcore.WriteSyncer {
 		panic("缺少日志输出配置信息")
 	}
 	return zapcore.NewMultiWriteSyncer(ws...)
+}
+
+func getEncoder() zapcore.Encoder {
+	config := zap.NewProductionEncoderConfig()
+	config.TimeKey = "time"
+	config.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Local().Format(time.DateTime))
+	}
+	config.EncodeLevel = zapcore.CapitalLevelEncoder
+	return zapcore.NewJSONEncoder(config)
 }
