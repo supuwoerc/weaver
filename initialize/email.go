@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-func NewDialer() *gomail.Dialer {
-	h := viper.GetString("system.email.host")
-	p := viper.GetInt("system.email.port")
-	u := viper.GetString("system.email.user")
-	pwd := viper.GetString("system.email.password")
+func NewDialer(v *viper.Viper) *gomail.Dialer {
+	h := v.GetString("system.email.host")
+	p := v.GetInt("system.email.port")
+	u := v.GetString("system.email.user")
+	pwd := v.GetString("system.email.password")
 	if strings.TrimSpace(h) == "" {
 		panic("email.host is required")
 	}

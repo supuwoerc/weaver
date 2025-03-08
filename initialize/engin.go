@@ -34,27 +34,27 @@ func getEnginLoggerConfig(output io.Writer) gin.LoggerConfig {
 
 type EngineLoggerWriter io.Writer
 
-func NewEngine(writer EngineLoggerWriter, emailClient *email.EmailClient, logger *zap.SugaredLogger) *gin.Engine {
+func NewEngine(writer EngineLoggerWriter, emailClient *email.EmailClient, logger *zap.SugaredLogger, v *viper.Viper) *gin.Engine {
 	initDebugPrinter(writer)
 	// 不携带日志和Recovery中间件，自己添加中间件，为了方便收集Recovery日志
 	r := gin.New()
 	// html 模板
-	r.LoadHTMLGlob(viper.GetString("system.templateDir"))
+	r.LoadHTMLGlob(v.GetString("system.templateDir"))
 	// 开启ContextWithFallback
 	r.ContextWithFallback = true
 	// 设置上传文件的最大字节数,Gin默认为32Mb
-	maxMultipartMemory := viper.GetInt64("system.maxMultipartMemory")
+	maxMultipartMemory := v.GetInt64("system.maxMultipartMemory")
 	if maxMultipartMemory > 0 {
 		r.MaxMultipartMemory = maxMultipartMemory
 	}
 	// logger中间件,输出到控制台和zap的日志文件中
 	r.Use(gin.LoggerWithConfig(getEnginLoggerConfig(writer)))
 	// recovery中间件
-	r.Use(middleware.NewRecoveryMiddleware(emailClient, logger).Recovery())
+	r.Use(middleware.NewRecoveryMiddleware(emailClient, logger, v).Recovery())
 	// 跨域中间件
-	r.Use(middleware.Cors())
+	r.Use(middleware.NewCorsMiddleware(v).Cors())
 	// 注册 API 路由
-	router.InitApiRouter(r)
+	router.InitApiRouter(r, v)
 	// 系统路由
 	router.InitSystemWebRouter(r)
 	return r

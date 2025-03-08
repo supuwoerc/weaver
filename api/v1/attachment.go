@@ -56,7 +56,7 @@ func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 	}
 	files := form.File["files"]
 	fileLen := len(files)
-	maxUploadLength := viper.GetInt("system.maxUploadLength")
+	maxUploadLength := a.viper.GetInt("system.maxUploadLength")
 	if maxUploadLength == 0 {
 		maxUploadLength = constant.DefaultMaxLength
 	}

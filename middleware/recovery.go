@@ -14,6 +14,7 @@ import (
 type RecoveryMiddle struct {
 	emailClient *email.EmailClient
 	logger      *zap.SugaredLogger
+	viper       *viper.Viper
 }
 
 var (
@@ -21,18 +22,19 @@ var (
 	recoveryMiddle *RecoveryMiddle
 )
 
-func NewRecoveryMiddleware(emailClient *email.EmailClient, logger *zap.SugaredLogger) *RecoveryMiddle {
+func NewRecoveryMiddleware(emailClient *email.EmailClient, logger *zap.SugaredLogger, v *viper.Viper) *RecoveryMiddle {
 	recoveryOnce.Do(func() {
 		recoveryMiddle = &RecoveryMiddle{
 			emailClient: emailClient,
 			logger:      logger,
+			viper:       v,
 		}
 	})
 	return recoveryMiddle
 }
 
 func (r *RecoveryMiddle) Recovery() gin.HandlerFunc {
-	adminEmail := viper.GetString("system.admin.email")
+	adminEmail := r.viper.GetString("system.admin.email")
 	return gin.CustomRecovery(func(c *gin.Context, err any) {
 		message := string(debug.Stack())
 		r.logger.Errorf("Recovery panic,堆栈信息:%s", message)

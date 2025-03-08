@@ -35,6 +35,7 @@ func unnecessaryRefreshResponse(ctx *gin.Context) {
 type AuthMiddleware struct {
 	db          *gorm.DB
 	redisClient *redis.CommonRedisClient
+	viper       *viper.Viper
 }
 
 var (
@@ -42,11 +43,12 @@ var (
 	authMiddleware     *AuthMiddleware
 )
 
-func NewAuthMiddleware(db *gorm.DB, redisClient *redis.CommonRedisClient) *AuthMiddleware {
+func NewAuthMiddleware(db *gorm.DB, redisClient *redis.CommonRedisClient, v *viper.Viper) *AuthMiddleware {
 	authMiddlewareOnce.Do(func() {
 		authMiddleware = &AuthMiddleware{
 			db:          db,
 			redisClient: redisClient,
+			viper:       v,
 		}
 	})
 	return authMiddleware
@@ -54,10 +56,10 @@ func NewAuthMiddleware(db *gorm.DB, redisClient *redis.CommonRedisClient) *AuthM
 
 // LoginRequired 检查token和refresh_token的有效性
 func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
-	tokenKey := viper.GetString("jwt.tokenKey")
-	refreshTokenKey := viper.GetString("jwt.refreshTokenKey")
-	prefix := viper.GetString("jwt.tokenPrefix")
-	jwtBuilder := jwt.NewJwtBuilder(l.db, l.redisClient)
+	tokenKey := l.viper.GetString("jwt.tokenKey")
+	refreshTokenKey := l.viper.GetString("jwt.refreshTokenKey")
+	prefix := l.viper.GetString("jwt.tokenPrefix")
+	jwtBuilder := jwt.NewJwtBuilder(l.db, l.redisClient, l.viper)
 	userRepository := repository.NewUserRepository(l.db, l.redisClient)
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader(tokenKey)

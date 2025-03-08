@@ -14,6 +14,7 @@ var ctx = context.Background()
 
 type RedisStore struct {
 	redisClient *redis.CommonRedisClient
+	viper       *viper.Viper
 }
 
 var (
@@ -21,20 +22,23 @@ var (
 	redisStore     *RedisStore
 )
 
-func NewRedisStore(r *redis.CommonRedisClient) *RedisStore {
+func NewRedisStore(r *redis.CommonRedisClient, v *viper.Viper) *RedisStore {
 	redisStoreOnce.Do(func() {
-		redisStore = &RedisStore{redisClient: r}
+		redisStore = &RedisStore{
+			redisClient: r,
+			viper:       v,
+		}
 	})
 	return redisStore
 }
 
-func getExpiration() time.Duration {
-	expiration := viper.GetDuration("captcha.expiration")
+func (r *RedisStore) getExpiration() time.Duration {
+	expiration := r.viper.GetDuration("captcha.expiration")
 	return expiration * time.Second
 }
 
 func (r *RedisStore) Set(id string, value string) error {
-	return r.redisClient.Client.Set(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id), value, getExpiration()).Err()
+	return r.redisClient.Client.Set(ctx, fmt.Sprintf("%s%s", constant.CaptchaCodePrefix, id), value, r.getExpiration()).Err()
 }
 
 func (r *RedisStore) Get(id string, clear bool) string {

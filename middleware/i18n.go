@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 const (
@@ -50,7 +51,25 @@ func loadJsonFiles(dir string) ([]*i18n.Message, error) {
 	return m, err
 }
 
-func I18N() gin.HandlerFunc {
+type I18NMiddleware struct {
+	viper *viper.Viper
+}
+
+var (
+	i18nMiddlewareOnce sync.Once
+	i18nMiddleware     *I18NMiddleware
+)
+
+func NewI18NMiddleware(v *viper.Viper) *I18NMiddleware {
+	i18nMiddlewareOnce.Do(func() {
+		i18nMiddleware = &I18NMiddleware{
+			viper: v,
+		}
+	})
+	return i18nMiddleware
+}
+
+func (i *I18NMiddleware) I18N() gin.HandlerFunc {
 	// 创建一个新的Bundle指定默认语言
 	bundle := i18n.NewBundle(language.Chinese)
 	// 注册一个JSON加载器
@@ -72,10 +91,10 @@ func I18N() gin.HandlerFunc {
 	if err != nil {
 		panic(err)
 	}
-	defaultLang := viper.GetString("system.defaultLang")
+	defaultLang := i.viper.GetString("system.defaultLang")
 	cnLocalizer := i18n.NewLocalizer(bundle, language.Chinese.String())
 	enLocalizer := i18n.NewLocalizer(bundle, language.English.String())
-	localeKey := viper.GetString("system.defaultLocaleKey")
+	localeKey := i.viper.GetString("system.defaultLocaleKey")
 	if strings.TrimSpace(localeKey) == "" {
 		panic("locale key未配置")
 	}
@@ -100,14 +119,14 @@ func I18N() gin.HandlerFunc {
 	}
 }
 
-func InjectTranslator() gin.HandlerFunc {
+func (i *I18NMiddleware) InjectTranslator() gin.HandlerFunc {
 	zhTans := zh.New()
 	enTans := en.New()
 	uni := ut.New(enTans, enTans, zhTans)
-	defaultLang := viper.GetString("system.defaultLang")
+	defaultLang := i.viper.GetString("system.defaultLang")
 	zhTrans, _ := uni.GetTranslator("zh")
 	enTrans, _ := uni.GetTranslator("en")
-	localeKey := viper.GetString("system.defaultLocaleKey")
+	localeKey := i.viper.GetString("system.defaultLocaleKey")
 	if strings.TrimSpace(localeKey) == "" {
 		panic("locale key未配置")
 	}

@@ -16,21 +16,16 @@ func NewViper() *viper.Viper {
 	v.SetConfigType(configType)
 	v.AddConfigPath(configPath)
 	v.SetConfigName("default")
-	err := v.ReadInConfig()
-	if err != nil {
+	// 读取默认配置
+	if err := v.ReadInConfig(); err != nil {
 		panic(err)
 	}
-	defaultConfig := v.AllSettings()
-	for key, val := range defaultConfig {
-		viper.SetDefault(key, val)
-	}
+	// 设置当前配置环境
 	env := determineEnvironment()
-	viper.SetConfigName(env)
-	viper.SetConfigType(configType)
-	viper.AddConfigPath(configPath)
-	e := viper.ReadInConfig()
-	if e != nil {
-		panic(e)
+	v.SetConfigName(env)
+	// 合并配置
+	if err := v.MergeInConfig(); err != nil {
+		panic(err)
 	}
 	return v
 }

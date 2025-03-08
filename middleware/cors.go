@@ -5,10 +5,29 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"strings"
+	"sync"
 )
 
-func Cors() gin.HandlerFunc {
-	originPrefix := viper.GetStringSlice("cors.originPrefix")
+type CorsMiddleware struct {
+	viper *viper.Viper
+}
+
+var (
+	corsMiddlewareOnce sync.Once
+	corsMiddleware     *CorsMiddleware
+)
+
+func NewCorsMiddleware(v *viper.Viper) *CorsMiddleware {
+	corsMiddlewareOnce.Do(func() {
+		corsMiddleware = &CorsMiddleware{
+			viper: v,
+		}
+	})
+	return corsMiddleware
+}
+
+func (c *CorsMiddleware) Cors() gin.HandlerFunc {
+	originPrefix := c.viper.GetStringSlice("cors.originPrefix")
 	return cors.New(cors.Config{
 		AllowOriginFunc: func(origin string) bool {
 			for _, val := range originPrefix {

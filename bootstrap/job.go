@@ -27,6 +27,7 @@ type JobRegisterer struct {
 	cronLogger *initialize.CronLogger
 	cronClient *cron.Cron
 	logger     *zap.SugaredLogger
+	viper      *viper.Viper
 }
 
 var (
@@ -34,12 +35,13 @@ var (
 	jobRegisterer     *JobRegisterer
 )
 
-func NewJobRegisterer(cl *initialize.CronLogger, c *cron.Cron, logger *zap.SugaredLogger) *JobRegisterer {
+func NewJobRegisterer(cl *initialize.CronLogger, c *cron.Cron, logger *zap.SugaredLogger, v *viper.Viper) *JobRegisterer {
 	jobRegistererOnce.Do(func() {
 		jobRegisterer = &JobRegisterer{
 			cronLogger: cl,
 			cronClient: c,
 			logger:     logger,
+			viper:      v,
 		}
 	})
 	return jobRegisterer
@@ -60,7 +62,7 @@ func (jr *JobRegisterer) delay(f func()) cron.Job {
 
 func (jr *JobRegisterer) RegisterJobsAndStart() error {
 	key := "system.hooks.launch"
-	onLaunch := viper.GetStringSlice(key)
+	onLaunch := jr.viper.GetStringSlice(key)
 	if lo.Contains(onLaunch, constant.RegisterJobs) {
 		for _, j := range jobs {
 			mode := j.IfStillRunning()

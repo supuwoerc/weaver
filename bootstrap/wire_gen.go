@@ -17,9 +17,9 @@ func wireApp() *App {
 	viper := initialize.NewViper()
 	writeSyncer := initialize.NewWriterSyncer(viper)
 	sugaredLogger := initialize.NewZapLogger(viper, writeSyncer)
-	dialer := initialize.NewDialer()
-	emailClient := email.NewEmailClient(sugaredLogger, dialer)
-	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger)
+	dialer := initialize.NewDialer(viper)
+	emailClient := email.NewEmailClient(sugaredLogger, dialer, viper)
+	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger, viper)
 	httpServer := initialize.NewServer(viper, engine, sugaredLogger)
 	app := &App{
 		logger:     sugaredLogger,

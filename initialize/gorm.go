@@ -11,9 +11,9 @@ import (
 
 const TablePrefix = "sys_"
 
-func InitGORM() *gorm.DB {
-	dsn := viper.GetString("mysql.dsn")
-	logLevel := viper.Get("gorm.logLevel")
+func NewGORM(v *viper.Viper) *gorm.DB {
+	dsn := v.GetString("mysql.dsn")
+	logLevel := v.Get("gorm.logLevel")
 	level := logLevel.(int)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
@@ -29,9 +29,9 @@ func InitGORM() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	maxIdleConn := viper.GetInt("mysql.maxIdleConn")
-	maxOpenConn := viper.GetInt("mysql.maxOpenConn")
-	maxLifetime := viper.GetDuration("mysql.maxLifetime")
+	maxIdleConn := v.GetInt("mysql.maxIdleConn")
+	maxOpenConn := v.GetInt("mysql.maxOpenConn")
+	maxLifetime := v.GetDuration("mysql.maxLifetime")
 	link.SetMaxIdleConns(maxIdleConn)
 	link.SetMaxOpenConns(maxOpenConn)
 	link.SetConnMaxLifetime(time.Minute * maxLifetime)
