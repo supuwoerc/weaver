@@ -7,12 +7,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"sync"
-)
-
-var (
-	departmentDAO     *DepartmentDAO
-	departmentDAOOnce sync.Once
 )
 
 type DepartmentDAO struct {
@@ -20,12 +14,9 @@ type DepartmentDAO struct {
 }
 
 func NewDepartmentDAO(basicDAO *BasicDAO) *DepartmentDAO {
-	departmentDAOOnce.Do(func() {
-		departmentDAO = &DepartmentDAO{
-			BasicDAO: basicDAO,
-		}
-	})
-	return departmentDAO
+	return &DepartmentDAO{
+		BasicDAO: basicDAO,
+	}
 }
 
 func (r *DepartmentDAO) Create(ctx context.Context, dept *models.Department) error {

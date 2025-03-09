@@ -3,12 +3,6 @@ package repository
 import (
 	"context"
 	"gin-web/models"
-	"sync"
-)
-
-var (
-	departmentRepository     *DepartmentRepository
-	departmentRepositoryOnce sync.Once
 )
 
 type DepartmentDAO interface {
@@ -31,13 +25,10 @@ type DepartmentRepository struct {
 }
 
 func NewDepartmentRepository(dao DepartmentDAO, cache DepartmentCache) *DepartmentRepository {
-	departmentRepositoryOnce.Do(func() {
-		departmentRepository = &DepartmentRepository{
-			dao:   dao,
-			cache: cache,
-		}
-	})
-	return departmentRepository
+	return &DepartmentRepository{
+		dao:   dao,
+		cache: cache,
+	}
 }
 
 func (r *DepartmentRepository) Create(ctx context.Context, dept *models.Department) error {

@@ -18,7 +18,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -31,19 +30,11 @@ type AttachmentService struct {
 	repository AttachmentRepository
 }
 
-var (
-	attachmentOnce    sync.Once
-	attachmentService *AttachmentService
-)
-
 func NewAttachmentService(basic *BasicService, repo AttachmentRepository) *AttachmentService {
-	attachmentOnce.Do(func() {
-		attachmentService = &AttachmentService{
-			BasicService: basic,
-			repository:   repo,
-		}
-	})
-	return attachmentService
+	return &AttachmentService{
+		BasicService: basic,
+		repository:   repo,
+	}
 }
 
 // https://github.com/h2non/filetype

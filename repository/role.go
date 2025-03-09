@@ -3,12 +3,6 @@ package repository
 import (
 	"context"
 	"gin-web/models"
-	"sync"
-)
-
-var (
-	roleRepository     *RoleRepository
-	roleRepositoryOnce sync.Once
 )
 
 type RoleDAO interface {
@@ -31,12 +25,9 @@ type RoleRepository struct {
 }
 
 func NewRoleRepository(dao RoleDAO) *RoleRepository {
-	roleRepositoryOnce.Do(func() {
-		roleRepository = &RoleRepository{
-			dao: dao,
-		}
-	})
-	return roleRepository
+	return &RoleRepository{
+		dao: dao,
+	}
 }
 
 func (r *RoleRepository) Create(ctx context.Context, role *models.Role) error {

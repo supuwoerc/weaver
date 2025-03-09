@@ -3,12 +3,6 @@ package repository
 import (
 	"context"
 	"gin-web/models"
-	"sync"
-)
-
-var (
-	permissionRepository     *PermissionRepository
-	permissionRepositoryOnce sync.Once
 )
 
 type PermissionDAO interface {
@@ -28,12 +22,9 @@ type PermissionRepository struct {
 }
 
 func NewPermissionRepository(dao PermissionDAO) *PermissionRepository {
-	permissionRepositoryOnce.Do(func() {
-		permissionRepository = &PermissionRepository{
-			dao: dao,
-		}
-	})
-	return permissionRepository
+	return &PermissionRepository{
+		dao: dao,
+	}
 }
 
 func (r *PermissionRepository) Create(ctx context.Context, permission *models.Permission) error {

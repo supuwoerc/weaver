@@ -7,7 +7,6 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/gin-gonic/gin"
-	"sync"
 )
 
 type PermissionService interface {
@@ -22,30 +21,23 @@ type PermissionApi struct {
 	service PermissionService
 }
 
-var (
-	permissionOnce sync.Once
-	permissionApi  *PermissionApi
-)
-
 func NewPermissionApi(
 	route *gin.RouterGroup,
 	service PermissionService,
 	authMiddleware *middleware.AuthMiddleware,
 ) *PermissionApi {
-	permissionOnce.Do(func() {
-		permissionApi = &PermissionApi{
-			service: service,
-		}
-		// 挂载路由
-		permissionAccessGroup := route.Group("permission").Use(authMiddleware.PermissionRequired())
-		{
-			permissionAccessGroup.POST("create", permissionApi.CreatePermission)
-			permissionAccessGroup.GET("list", permissionApi.GetPermissionList)
-			permissionAccessGroup.GET("detail", permissionApi.GetPermissionDetail)
-			permissionAccessGroup.POST("update", permissionApi.UpdatePermission)
-			permissionAccessGroup.POST("delete", permissionApi.DeletePermission)
-		}
-	})
+	permissionApi := &PermissionApi{
+		service: service,
+	}
+	// 挂载路由
+	permissionAccessGroup := route.Group("permission").Use(authMiddleware.PermissionRequired())
+	{
+		permissionAccessGroup.POST("create", permissionApi.CreatePermission)
+		permissionAccessGroup.GET("list", permissionApi.GetPermissionList)
+		permissionAccessGroup.GET("detail", permissionApi.GetPermissionDetail)
+		permissionAccessGroup.POST("update", permissionApi.UpdatePermission)
+		permissionAccessGroup.POST("delete", permissionApi.DeletePermission)
+	}
 	return permissionApi
 }
 

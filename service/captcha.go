@@ -4,28 +4,19 @@ import (
 	"gin-web/pkg/captcha"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
-	"sync"
 )
 
 type CaptchaService struct {
 	clients map[constant.CaptchaType]*captcha.Captcha // 不同业务使用不同参数的验证码生成器
 }
 
-var (
-	captchaOnce    sync.Once
-	captchaService *CaptchaService
-)
-
 func NewCaptchaService() *CaptchaService {
-	captchaOnce.Do(func() {
-		captchaService = &CaptchaService{
-			clients: map[constant.CaptchaType]*captcha.Captcha{
-				constant.Default: captcha.NewCaptcha(100, 200, 6, 0.3, 80), // 默认验证码
-				constant.SignUp:  captcha.NewCaptcha(100, 348, 6, 0.3, 80), // 注册验证码
-			},
-		}
-	})
-	return captchaService
+	return &CaptchaService{
+		clients: map[constant.CaptchaType]*captcha.Captcha{
+			constant.Default: captcha.NewCaptcha(100, 200, 6, 0.3, 80), // 默认验证码
+			constant.SignUp:  captcha.NewCaptcha(100, 348, 6, 0.3, 80), // 注册验证码
+		},
+	}
 }
 
 func (c *CaptchaService) Generate(t constant.CaptchaType) (*response.GetCaptchaResponse, error) {

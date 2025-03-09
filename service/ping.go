@@ -4,7 +4,6 @@ import (
 	"context"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/utils"
-	"sync"
 	"time"
 )
 
@@ -12,18 +11,10 @@ type PingService struct {
 	*BasicService
 }
 
-var (
-	pingServiceOnce sync.Once
-	pingService     *PingService
-)
-
 func NewPingService(basic *BasicService) *PingService {
-	pingServiceOnce.Do(func() {
-		pingService = &PingService{
-			BasicService: basic,
-		}
-	})
-	return pingService
+	return &PingService{
+		BasicService: basic,
+	}
 }
 
 func (p *PingService) LockPermissionField(ctx context.Context) error {

@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"runtime/debug"
-	"sync"
 )
 
 type BasicService struct {
@@ -20,26 +19,18 @@ type BasicService struct {
 	viper     *viper.Viper
 }
 
-var (
-	basicOnce sync.Once
-	basic     *BasicService
-)
-
 func NewBasicService(
 	logger *zap.SugaredLogger,
 	db *gorm.DB,
 	locksmith *utils.RedisLocksmith,
 	viper *viper.Viper,
 ) *BasicService {
-	basicOnce.Do(func() {
-		basic = &BasicService{
-			logger:    logger,
-			db:        db,
-			locksmith: locksmith,
-			viper:     viper,
-		}
-	})
-	return basic
+	return &BasicService{
+		logger:    logger,
+		db:        db,
+		locksmith: locksmith,
+		viper:     viper,
+	}
 }
 
 // Transaction 开启事务,join为true则加入上下文中的事务,如果上下文中没有事务则开启新事务,join为false时直接开启新事务

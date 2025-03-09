@@ -7,7 +7,6 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/gin-gonic/gin"
-	"sync"
 )
 
 type DepartmentService interface {
@@ -19,27 +18,20 @@ type DepartmentApi struct {
 	service DepartmentService
 }
 
-var (
-	departmentOnce sync.Once
-	departmentApi  *DepartmentApi
-)
-
 func NewDepartmentApi(
 	route *gin.RouterGroup,
 	service DepartmentService,
 	authMiddleware *middleware.AuthMiddleware,
 ) *DepartmentApi {
-	departmentOnce.Do(func() {
-		departmentApi = &DepartmentApi{
-			service: service,
-		}
-		// 挂载路由
-		departmentAccessGroup := route.Group("department").Use(authMiddleware.LoginRequired())
-		{
-			departmentAccessGroup.POST("create", authMiddleware.PermissionRequired(), departmentApi.CreateDepartment)
-			departmentAccessGroup.GET("tree", departmentApi.GetDepartmentTree)
-		}
-	})
+	departmentApi := &DepartmentApi{
+		service: service,
+	}
+	// 挂载路由
+	departmentAccessGroup := route.Group("department").Use(authMiddleware.LoginRequired())
+	{
+		departmentAccessGroup.POST("create", authMiddleware.PermissionRequired(), departmentApi.CreateDepartment)
+		departmentAccessGroup.GET("tree", departmentApi.GetDepartmentTree)
+	}
 	return departmentApi
 }
 

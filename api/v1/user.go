@@ -12,7 +12,6 @@ import (
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"sync"
 )
 
 type UserService interface {
@@ -30,39 +29,32 @@ type UserApi struct {
 	service          UserService
 }
 
-var (
-	userOnce sync.Once
-	userApi  *UserApi
-)
-
 func NewUserApi(
 	route *gin.RouterGroup,
 	service UserService,
 	authMiddleware *middleware.AuthMiddleware,
 ) *UserApi {
-	userOnce.Do(func() {
-		userApi = &UserApi{
-			emailRegexExp:    regexp.MustCompile(constant.EmailRegexPattern, regexp.None),
-			passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
-			phoneRegexExp:    regexp.MustCompile(constant.PhoneRegexPattern, regexp.None),
-			service:          service,
-		}
-		// 挂载路由
-		userPublicGroup := route.Group("public/user")
-		{
-			userPublicGroup.POST("signup", userApi.SignUp)
-			userPublicGroup.POST("login", userApi.Login)
-			userPublicGroup.GET("active", userApi.Active)
-			userPublicGroup.GET("active-success", userApi.ActiveSuccess)
-			userPublicGroup.GET("active-failure", userApi.ActiveFailure)
-		}
-		userAccessGroup := route.Group("user").Use(authMiddleware.LoginRequired())
-		{
-			userAccessGroup.GET("refresh-token")
-			userAccessGroup.GET("profile", userApi.Profile)
-			userAccessGroup.GET("list", userApi.GetUserList)
-		}
-	})
+	userApi := &UserApi{
+		emailRegexExp:    regexp.MustCompile(constant.EmailRegexPattern, regexp.None),
+		passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
+		phoneRegexExp:    regexp.MustCompile(constant.PhoneRegexPattern, regexp.None),
+		service:          service,
+	}
+	// 挂载路由
+	userPublicGroup := route.Group("public/user")
+	{
+		userPublicGroup.POST("signup", userApi.SignUp)
+		userPublicGroup.POST("login", userApi.Login)
+		userPublicGroup.GET("active", userApi.Active)
+		userPublicGroup.GET("active-success", userApi.ActiveSuccess)
+		userPublicGroup.GET("active-failure", userApi.ActiveFailure)
+	}
+	userAccessGroup := route.Group("user").Use(authMiddleware.LoginRequired())
+	{
+		userAccessGroup.GET("refresh-token")
+		userAccessGroup.GET("profile", userApi.Profile)
+		userAccessGroup.GET("list", userApi.GetUserList)
+	}
 	return userApi
 }
 

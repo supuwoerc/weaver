@@ -12,7 +12,6 @@ import (
 	"golang.org/x/sync/singleflight"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type DepartmentRepository interface {
@@ -33,20 +32,12 @@ type DepartmentService struct {
 	deptTreeSfg          singleflight.Group
 }
 
-var (
-	departmentOnce    sync.Once
-	departmentService *DepartmentService
-)
-
 func NewDepartmentService(basic *BasicService, deptRepo DepartmentRepository, userRepo UserRepository) *DepartmentService {
-	departmentOnce.Do(func() {
-		departmentService = &DepartmentService{
-			BasicService:         basic,
-			departmentRepository: deptRepo,
-			userRepository:       userRepo,
-		}
-	})
-	return departmentService
+	return &DepartmentService{
+		BasicService:         basic,
+		departmentRepository: deptRepo,
+		userRepository:       userRepo,
+	}
 }
 
 func (p *DepartmentService) lockDepartmentField(ctx context.Context, name string, parentId *uint) ([]*utils.RedisLock, error) {

@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -32,19 +31,11 @@ const (
 	defaultLockDuration = 10 * time.Second
 )
 
-var (
-	redisLocksmith     *RedisLocksmith
-	redisLocksmithOnce sync.Once
-)
-
 func NewRedisLocksmith(logger *zap.SugaredLogger, redisClient *redis.CommonRedisClient) *RedisLocksmith {
-	redisLocksmithOnce.Do(func() {
-		redisLocksmith = &RedisLocksmith{
-			logger:      logger,
-			redisClient: redisClient,
-		}
-	})
-	return redisLocksmith
+	return &RedisLocksmith{
+		logger:      logger,
+		redisClient: redisClient,
+	}
 }
 
 // NewLock 创建锁

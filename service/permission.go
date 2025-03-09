@@ -8,7 +8,6 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/samber/lo"
-	"sync"
 )
 
 type PermissionRepository interface {
@@ -29,21 +28,12 @@ type PermissionService struct {
 	roleRepository       RoleRepository
 }
 
-var (
-	permissionOnce    sync.Once
-	permissionService *PermissionService
-)
-
-// TODO:包装一个基础的参数结构体,wire注入这个Value
 func NewPermissionService(basic *BasicService, permissionRepo PermissionRepository, roleRepository RoleRepository) *PermissionService {
-	permissionOnce.Do(func() {
-		permissionService = &PermissionService{
-			BasicService:         basic,
-			permissionRepository: permissionRepo,
-			roleRepository:       roleRepository,
-		}
-	})
-	return permissionService
+	return &PermissionService{
+		BasicService:         basic,
+		permissionRepository: permissionRepo,
+		roleRepository:       roleRepository,
+	}
 }
 
 func (p *PermissionService) lockPermissionField(ctx context.Context, name, resource string, roleIds []uint) ([]*utils.RedisLock, error) {

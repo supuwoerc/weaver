@@ -8,7 +8,6 @@ import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
-	"sync"
 	"time"
 )
 
@@ -16,16 +15,8 @@ type UserCache struct {
 	redis *redis.CommonRedisClient
 }
 
-var (
-	userCache     *UserCache
-	userCacheOnce sync.Once
-)
-
 func NewUserCache(r *redis.CommonRedisClient) *UserCache {
-	userCacheOnce.Do(func() {
-		userCache = &UserCache{redis: r}
-	})
-	return userCache
+	return &UserCache{redis: r}
 }
 
 func (u *UserCache) CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {

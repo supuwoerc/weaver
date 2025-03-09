@@ -5,25 +5,16 @@ import (
 	"encoding/json"
 	"gin-web/models"
 	"gin-web/pkg/redis"
-	"sync"
 )
 
 type DepartmentCache struct {
 	redis *redis.CommonRedisClient
 }
 
-var (
-	departmentCache     *DepartmentCache
-	departmentCacheOnce sync.Once
-)
-
 func NewDepartmentCache(r *redis.CommonRedisClient) *DepartmentCache {
-	departmentCacheOnce.Do(func() {
-		departmentCache = &DepartmentCache{
-			redis: r,
-		}
-	})
-	return departmentCache
+	return &DepartmentCache{
+		redis: r,
+	}
 }
 
 func (d *DepartmentCache) CacheDepartment(ctx context.Context, key string, depts []*models.Department) error {

@@ -4,13 +4,7 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/pkg/constant"
-	"sync"
 	"time"
-)
-
-var (
-	userRepository     *UserRepository
-	userRepositoryOnce sync.Once
 )
 
 type UserDAO interface {
@@ -36,13 +30,10 @@ type UserRepository struct {
 }
 
 func NewUserRepository(dao UserDAO, cache UserCache) *UserRepository {
-	userRepositoryOnce.Do(func() {
-		userRepository = &UserRepository{
-			dao:   dao,
-			cache: cache,
-		}
-	})
-	return userRepository
+	return &UserRepository{
+		dao:   dao,
+		cache: cache,
+	}
 }
 
 func (u *UserRepository) Create(ctx context.Context, user *models.User) error {

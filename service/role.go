@@ -9,7 +9,6 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/samber/lo"
-	"sync"
 )
 
 type RoleRepository interface {
@@ -33,21 +32,13 @@ type RoleService struct {
 	permissionRepository PermissionRepository
 }
 
-var (
-	roleOnce    sync.Once
-	roleService *RoleService
-)
-
 func NewRoleService(basic *BasicService, roleRepository RoleRepository, userRepo UserRepository, permissionRepo PermissionRepository) *RoleService {
-	roleOnce.Do(func() {
-		roleService = &RoleService{
-			BasicService:         basic,
-			roleRepository:       roleRepository,
-			userRepository:       userRepo,
-			permissionRepository: permissionRepo,
-		}
-	})
-	return roleService
+	return &RoleService{
+		BasicService:         basic,
+		roleRepository:       roleRepository,
+		userRepository:       userRepo,
+		permissionRepository: permissionRepo,
+	}
 }
 
 func (r *RoleService) lockRoleField(ctx context.Context, name string, permissionIds []uint) ([]*utils.RedisLock, error) {

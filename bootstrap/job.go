@@ -8,7 +8,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"sync"
 	"time"
 )
 
@@ -30,21 +29,13 @@ type JobRegisterer struct {
 	viper      *viper.Viper
 }
 
-var (
-	jobRegistererOnce sync.Once
-	jobRegisterer     *JobRegisterer
-)
-
 func NewJobRegisterer(cl *initialize.CronLogger, c *cron.Cron, logger *zap.SugaredLogger, v *viper.Viper) *JobRegisterer {
-	jobRegistererOnce.Do(func() {
-		jobRegisterer = &JobRegisterer{
-			cronLogger: cl,
-			cronClient: c,
-			logger:     logger,
-			viper:      v,
-		}
-	})
-	return jobRegisterer
+	return &JobRegisterer{
+		cronLogger: cl,
+		cronClient: c,
+		logger:     logger,
+		viper:      v,
+	}
 }
 
 func (jr *JobRegisterer) skip(f func()) cron.Job {

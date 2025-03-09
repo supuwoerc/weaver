@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -20,26 +19,19 @@ type PingApi struct {
 	service PingService
 }
 
-var (
-	pingOnce sync.Once
-	pinApi   *PingApi
-)
-
 func NewPingApi(route *gin.RouterGroup, service PingService, authMiddleware *middleware.AuthMiddleware) *PingApi {
-	pingOnce.Do(func() {
-		pinApi = &PingApi{
-			service: service,
-		}
-		// 挂载路由
-		group := route.Group("ping")
-		{
-			group.GET("", pinApi.Ping)
-			group.GET("exception", pinApi.Exception)
-			group.GET("check-permission", authMiddleware.PermissionRequired(), pinApi.CheckPermission)
-			group.GET("slow", pinApi.SlowResponse)
-			group.GET("check-lock", pinApi.LockResponse)
-		}
-	})
+	pinApi := &PingApi{
+		service: service,
+	}
+	// 挂载路由
+	group := route.Group("ping")
+	{
+		group.GET("", pinApi.Ping)
+		group.GET("exception", pinApi.Exception)
+		group.GET("check-permission", authMiddleware.PermissionRequired(), pinApi.CheckPermission)
+		group.GET("slow", pinApi.SlowResponse)
+		group.GET("check-lock", pinApi.LockResponse)
+	}
 	return pinApi
 }
 

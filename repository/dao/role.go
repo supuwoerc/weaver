@@ -8,13 +8,7 @@ import (
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
-	"sync"
 	"time"
-)
-
-var (
-	roleDAO     *RoleDAO
-	roleDAOOnce sync.Once
 )
 
 type RoleDAO struct {
@@ -22,12 +16,9 @@ type RoleDAO struct {
 }
 
 func NewRoleDAO(basicDAO *BasicDAO) *RoleDAO {
-	roleDAOOnce.Do(func() {
-		roleDAO = &RoleDAO{
-			BasicDAO: basicDAO,
-		}
-	})
-	return roleDAO
+	return &RoleDAO{
+		BasicDAO: basicDAO,
+	}
 }
 
 func (r *RoleDAO) Create(ctx context.Context, role *models.Role) error {

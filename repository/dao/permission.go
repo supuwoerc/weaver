@@ -8,13 +8,7 @@ import (
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
-	"sync"
 	"time"
-)
-
-var (
-	permissionDAO     *PermissionDAO
-	permissionDAOOnce sync.Once
 )
 
 type PermissionDAO struct {
@@ -22,12 +16,9 @@ type PermissionDAO struct {
 }
 
 func NewPermissionDAO(basicDAO *BasicDAO) *PermissionDAO {
-	permissionDAOOnce.Do(func() {
-		permissionDAO = &PermissionDAO{
-			BasicDAO: basicDAO,
-		}
-	})
-	return permissionDAO
+	return &PermissionDAO{
+		BasicDAO: basicDAO,
+	}
 }
 
 func (r *PermissionDAO) Create(ctx context.Context, permission *models.Permission) error {

@@ -3,12 +3,6 @@ package repository
 import (
 	"context"
 	"gin-web/models"
-	"sync"
-)
-
-var (
-	attachmentRepository     *AttachmentRepository
-	attachmentRepositoryOnce sync.Once
 )
 
 type AttachmentDAO interface {
@@ -20,12 +14,9 @@ type AttachmentRepository struct {
 }
 
 func NewAttachmentRepository(dao AttachmentDAO) *AttachmentRepository {
-	attachmentRepositoryOnce.Do(func() {
-		attachmentRepository = &AttachmentRepository{
-			dao: dao,
-		}
-	})
-	return attachmentRepository
+	return &AttachmentRepository{
+		dao: dao,
+	}
 }
 
 func (r *AttachmentRepository) Create(ctx context.Context, records []*models.Attachment) error {

@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"mime/multipart"
-	"sync"
 )
 
 type AttachmentService interface {
@@ -22,30 +21,23 @@ type AttachmentApi struct {
 	service AttachmentService
 }
 
-var (
-	attachmentOnce sync.Once
-	attachmentApi  *AttachmentApi
-)
-
 func NewAttachmentApi(
 	route *gin.RouterGroup,
 	service AttachmentService,
 	authMiddleware *middleware.AuthMiddleware,
 	viper *viper.Viper,
 ) *AttachmentApi {
-	attachmentOnce.Do(func() {
-		// 初始化controller
-		attachmentApi = &AttachmentApi{
-			viper:   viper,
-			service: service,
-		}
-		// 挂载路由
-		attachmentAccessGroup := route.Group("attachment").Use(authMiddleware.LoginRequired())
-		{
-			attachmentAccessGroup.POST("multiple-upload", attachmentApi.MultipleUpload)
-			attachmentAccessGroup.POST("upload", attachmentApi.Upload)
-		}
-	})
+	// 初始化controller
+	attachmentApi := &AttachmentApi{
+		viper:   viper,
+		service: service,
+	}
+	// 挂载路由
+	attachmentAccessGroup := route.Group("attachment").Use(authMiddleware.LoginRequired())
+	{
+		attachmentAccessGroup.POST("multiple-upload", attachmentApi.MultipleUpload)
+		attachmentAccessGroup.POST("upload", attachmentApi.Upload)
+	}
 	return attachmentApi
 }
 

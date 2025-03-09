@@ -13,7 +13,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
 	"golang.org/x/crypto/bcrypt"
-	"sync"
 	"time"
 )
 
@@ -46,11 +45,6 @@ type UserService struct {
 	tokenBuilder   *jwt.TokenBuilder
 }
 
-var (
-	userOnce    sync.Once
-	userService *UserService
-)
-
 func NewUserService(
 	basic *BasicService,
 	captchaService *CaptchaService,
@@ -59,17 +53,14 @@ func NewUserService(
 	ec *email.EmailClient,
 	tb *jwt.TokenBuilder,
 ) *UserService {
-	userOnce.Do(func() {
-		userService = &UserService{
-			BasicService:   basic,
-			CaptchaService: captchaService,
-			userRepository: userRepo,
-			roleRepository: roleRepository,
-			emailClient:    ec,
-			tokenBuilder:   tb,
-		}
-	})
-	return userService
+	return &UserService{
+		BasicService:   basic,
+		CaptchaService: captchaService,
+		userRepository: userRepo,
+		roleRepository: roleRepository,
+		emailClient:    ec,
+		tokenBuilder:   tb,
+	}
 }
 
 func (u *UserService) SignUp(ctx context.Context, id string, code string, user *models.User) error {

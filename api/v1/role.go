@@ -7,7 +7,6 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/gin-gonic/gin"
-	"sync"
 )
 
 type RoleService interface {
@@ -22,30 +21,23 @@ type RoleApi struct {
 	service RoleService
 }
 
-var (
-	roleOnce sync.Once
-	roleApi  *RoleApi
-)
-
 func NewRoleApi(
 	route *gin.RouterGroup,
 	service RoleService,
 	authMiddleware *middleware.AuthMiddleware,
 ) *RoleApi {
-	roleOnce.Do(func() {
-		roleApi = &RoleApi{
-			service: service,
-		}
-		// 挂载路由
-		roleAccessGroup := route.Group("role").Use(authMiddleware.PermissionRequired())
-		{
-			roleAccessGroup.POST("create", roleApi.CreateRole)
-			roleAccessGroup.GET("list", roleApi.GetRoleList)
-			roleAccessGroup.GET("detail", roleApi.GetRoleDetail)
-			roleAccessGroup.POST("update", roleApi.UpdateRole)
-			roleAccessGroup.POST("delete", roleApi.DeleteRole)
-		}
-	})
+	roleApi := &RoleApi{
+		service: service,
+	}
+	// 挂载路由
+	roleAccessGroup := route.Group("role").Use(authMiddleware.PermissionRequired())
+	{
+		roleAccessGroup.POST("create", roleApi.CreateRole)
+		roleAccessGroup.GET("list", roleApi.GetRoleList)
+		roleAccessGroup.GET("detail", roleApi.GetRoleDetail)
+		roleAccessGroup.POST("update", roleApi.UpdateRole)
+		roleAccessGroup.POST("delete", roleApi.DeleteRole)
+	}
 	return roleApi
 }
 

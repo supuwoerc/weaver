@@ -6,7 +6,6 @@ import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/redis"
 	"github.com/spf13/viper"
-	"sync"
 	"time"
 )
 
@@ -17,19 +16,11 @@ type RedisStore struct {
 	viper       *viper.Viper
 }
 
-var (
-	redisStoreOnce sync.Once
-	redisStore     *RedisStore
-)
-
 func NewRedisStore(r *redis.CommonRedisClient, v *viper.Viper) *RedisStore {
-	redisStoreOnce.Do(func() {
-		redisStore = &RedisStore{
-			redisClient: r,
-			viper:       v,
-		}
-	})
-	return redisStore
+	return &RedisStore{
+		redisClient: r,
+		viper:       v,
+	}
 }
 
 func (r *RedisStore) getExpiration() time.Duration {
