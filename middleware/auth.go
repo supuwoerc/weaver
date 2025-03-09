@@ -6,11 +6,9 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
-	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"gorm.io/gorm"
 	"net/http"
 	"strings"
 	"sync"
@@ -32,15 +30,14 @@ func unnecessaryRefreshResponse(ctx *gin.Context) {
 	response.FailWithError(ctx, response.UnnecessaryRefreshToken)
 }
 
-type TokenRepo interface {
+type AuthMiddlewareTokenRepo interface {
 	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
 }
 
 type AuthMiddleware struct {
-	db          *gorm.DB
-	redisClient *redis.CommonRedisClient
-	viper       *viper.Viper
-	tokenRepo   TokenRepo
+	viper      *viper.Viper
+	tokenRepo  AuthMiddlewareTokenRepo
+	jwtBuilder *jwt.TokenBuilder
 }
 
 var (
@@ -48,13 +45,12 @@ var (
 	authMiddleware     *AuthMiddleware
 )
 
-func NewAuthMiddleware(db *gorm.DB, redisClient *redis.CommonRedisClient, v *viper.Viper, tokenRepo TokenRepo) *AuthMiddleware {
+func NewAuthMiddleware(v *viper.Viper, tokenRepo AuthMiddlewareTokenRepo, jwtBuilder *jwt.TokenBuilder) *AuthMiddleware {
 	authMiddlewareOnce.Do(func() {
 		authMiddleware = &AuthMiddleware{
-			db:          db,
-			redisClient: redisClient,
-			viper:       v,
-			tokenRepo:   tokenRepo,
+			viper:      v,
+			tokenRepo:  tokenRepo,
+			jwtBuilder: jwtBuilder,
 		}
 	})
 	return authMiddleware
@@ -65,7 +61,6 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 	tokenKey := l.viper.GetString("jwt.tokenKey")
 	refreshTokenKey := l.viper.GetString("jwt.refreshTokenKey")
 	prefix := l.viper.GetString("jwt.tokenPrefix")
-	jwtBuilder := jwt.NewJwtBuilder(l.db, l.redisClient, l.viper)
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader(tokenKey)
 		if token == "" || !strings.HasPrefix(token, prefix) {
@@ -73,10 +68,10 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 			return
 		}
 		token = strings.TrimPrefix(token, prefix)
-		claims, err := jwtBuilder.ParseToken(token)
+		claims, err := l.jwtBuilder.ParseToken(token)
 		if err == nil {
 			// token解析正常,判断是不是在不redis中
-			pair, tempErr := jwtBuilder.GetCacheToken(ctx, claims.User.Email)
+			pair, tempErr := l.jwtBuilder.GetCacheToken(ctx, claims.User.Email)
 			if pair == nil || tempErr != nil || pair.AccessToken != token {
 				tokenInvalidResponse(ctx)
 				return
@@ -93,12 +88,12 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 				refreshTokenInvalidResponse(ctx)
 				return
 			}
-			pair, tempErr := jwtBuilder.GetCacheToken(ctx, claims.User.Email)
+			pair, tempErr := l.jwtBuilder.GetCacheToken(ctx, claims.User.Email)
 			if pair == nil || tempErr != nil || pair.RefreshToken != refreshToken {
 				refreshTokenInvalidResponse(ctx)
 				return
 			}
-			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateTokenPairs(token, refreshToken, func(claims *jwt.TokenClaims, newToken, newRefreshToken string) error {
+			newToken, newRefreshToken, refreshErr := l.jwtBuilder.ReGenerateTokenPairs(token, refreshToken, func(claims *jwt.TokenClaims, newToken, newRefreshToken string) error {
 				return l.tokenRepo.CacheTokenPair(ctx, claims.User.Email, &models.TokenPair{
 					AccessToken:  newToken,
 					RefreshToken: newRefreshToken,

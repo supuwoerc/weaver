@@ -44,8 +44,7 @@ func (c *CronLogger) CronRecover() cron.JobWrapper {
 	}
 }
 
-// TODO:废弃
-//func InitCron(logger *zap.SugaredLogger) (*cron.Cron, cron.Logger) {
-//	l := &CronLogger{logger: logger}
-//	return cron.New(cron.WithLogger(l), cron.WithSeconds(), cron.WithChain(CronRecover(l))), l
-//}
+func NewCron(logger *zap.SugaredLogger) *cron.Cron {
+	l := &CronLogger{logger: logger}
+	return cron.New(cron.WithLogger(l), cron.WithSeconds(), cron.WithChain(l.CronRecover()))
+}

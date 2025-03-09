@@ -9,9 +9,15 @@ package bootstrap
 import (
 	"gin-web/api/v1"
 	"gin-web/initialize"
+	"gin-web/middleware"
 	"gin-web/pkg/email"
+	"gin-web/pkg/jwt"
 	"gin-web/pkg/utils"
+	"gin-web/repository"
+	"gin-web/repository/cache"
+	"gin-web/repository/dao"
 	"gin-web/router"
+	"gin-web/service"
 )
 
 // Injectors from wire.go:
@@ -25,10 +31,20 @@ func wireApp() *App {
 	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger, viper)
 	httpServer := initialize.NewServer(viper, engine, sugaredLogger)
 	routerGroup := router.NewRouter(engine, viper)
-	commonRedisClient := initialize.NewRedisClient(writeSyncer, viper)
 	db := initialize.NewGORM(viper)
+	commonRedisClient := initialize.NewRedisClient(writeSyncer, viper)
 	redisLocksmith := utils.NewRedisLocksmith(sugaredLogger, commonRedisClient)
-	attachmentApi := v1.NewAttachmentApi(routerGroup, sugaredLogger, commonRedisClient, db, redisLocksmith, viper)
+	basicService := service.NewBasicService(sugaredLogger, db, redisLocksmith, viper)
+	basicDAO := dao.NewBasicDao(db)
+	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
+	attachmentRepository := repository.NewAttachmentRepository(attachmentDAO)
+	attachmentService := service.NewAttachmentService(basicService, attachmentRepository)
+	userDAO := dao.NewUserDAO(basicDAO)
+	userCache := cache.NewUserCache(commonRedisClient)
+	userRepository := repository.NewUserRepository(userDAO, userCache)
+	tokenBuilder := jwt.NewJwtBuilder(db, commonRedisClient, viper, userRepository)
+	authMiddleware := middleware.NewAuthMiddleware(viper, userRepository, tokenBuilder)
+	attachmentApi := v1.NewAttachmentApi(routerGroup, attachmentService, authMiddleware, viper)
 	app := &App{
 		logger:        sugaredLogger,
 		viper:         viper,
