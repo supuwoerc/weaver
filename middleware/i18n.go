@@ -60,6 +60,7 @@ var (
 	i18nMiddleware     *I18NMiddleware
 )
 
+// TODO:确认是否需要单例
 func NewI18NMiddleware(v *viper.Viper) *I18NMiddleware {
 	i18nMiddlewareOnce.Do(func() {
 		i18nMiddleware = &I18NMiddleware{

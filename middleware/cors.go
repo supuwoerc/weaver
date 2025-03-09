@@ -17,6 +17,7 @@ var (
 	corsMiddleware     *CorsMiddleware
 )
 
+// TODO:确认是否需要单例
 func NewCorsMiddleware(v *viper.Viper) *CorsMiddleware {
 	corsMiddlewareOnce.Do(func() {
 		corsMiddleware = &CorsMiddleware{

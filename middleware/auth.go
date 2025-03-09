@@ -45,6 +45,7 @@ var (
 	authMiddleware     *AuthMiddleware
 )
 
+// TODO:确认是否需要单例
 func NewAuthMiddleware(v *viper.Viper, tokenRepo AuthMiddlewareTokenRepo, jwtBuilder *jwt.TokenBuilder) *AuthMiddleware {
 	authMiddlewareOnce.Do(func() {
 		authMiddleware = &AuthMiddleware{

@@ -22,6 +22,7 @@ var (
 	recoveryMiddle *RecoveryMiddle
 )
 
+// TODO:确认是否需要单例
 func NewRecoveryMiddleware(emailClient *email.EmailClient, logger *zap.SugaredLogger, v *viper.Viper) *RecoveryMiddle {
 	recoveryOnce.Do(func() {
 		recoveryMiddle = &RecoveryMiddle{
