@@ -5,26 +5,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"strings"
-	"sync"
 )
 
 type CorsMiddleware struct {
 	viper *viper.Viper
 }
 
-var (
-	corsMiddlewareOnce sync.Once
-	corsMiddleware     *CorsMiddleware
-)
-
-// TODO:确认是否需要单例
 func NewCorsMiddleware(v *viper.Viper) *CorsMiddleware {
-	corsMiddlewareOnce.Do(func() {
-		corsMiddleware = &CorsMiddleware{
-			viper: v,
-		}
-	})
-	return corsMiddleware
+	return &CorsMiddleware{
+		viper: v,
+	}
 }
 
 func (c *CorsMiddleware) Cors() gin.HandlerFunc {

@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/viper"
 	"net/http"
 	"strings"
-	"sync"
 )
 
 const (
@@ -40,21 +39,12 @@ type AuthMiddleware struct {
 	jwtBuilder *jwt.TokenBuilder
 }
 
-var (
-	authMiddlewareOnce sync.Once
-	authMiddleware     *AuthMiddleware
-)
-
-// TODO:确认是否需要单例
 func NewAuthMiddleware(v *viper.Viper, tokenRepo AuthMiddlewareTokenRepo, jwtBuilder *jwt.TokenBuilder) *AuthMiddleware {
-	authMiddlewareOnce.Do(func() {
-		authMiddleware = &AuthMiddleware{
-			viper:      v,
-			tokenRepo:  tokenRepo,
-			jwtBuilder: jwtBuilder,
-		}
-	})
-	return authMiddleware
+	return &AuthMiddleware{
+		viper:      v,
+		tokenRepo:  tokenRepo,
+		jwtBuilder: jwtBuilder,
+	}
 }
 
 // LoginRequired 检查token和refresh_token的有效性

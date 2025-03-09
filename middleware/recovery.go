@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"runtime/debug"
-	"sync"
 )
 
 type RecoveryMiddle struct {
@@ -17,21 +16,12 @@ type RecoveryMiddle struct {
 	viper       *viper.Viper
 }
 
-var (
-	recoveryOnce   sync.Once
-	recoveryMiddle *RecoveryMiddle
-)
-
-// TODO:确认是否需要单例
 func NewRecoveryMiddleware(emailClient *email.EmailClient, logger *zap.SugaredLogger, v *viper.Viper) *RecoveryMiddle {
-	recoveryOnce.Do(func() {
-		recoveryMiddle = &RecoveryMiddle{
-			emailClient: emailClient,
-			logger:      logger,
-			viper:       v,
-		}
-	})
-	return recoveryMiddle
+	return &RecoveryMiddle{
+		emailClient: emailClient,
+		logger:      logger,
+		viper:       v,
+	}
 }
 
 func (r *RecoveryMiddle) Recovery() gin.HandlerFunc {

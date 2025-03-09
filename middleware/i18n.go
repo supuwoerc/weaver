@@ -19,7 +19,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-	"sync"
 )
 
 const (
@@ -55,19 +54,10 @@ type I18NMiddleware struct {
 	viper *viper.Viper
 }
 
-var (
-	i18nMiddlewareOnce sync.Once
-	i18nMiddleware     *I18NMiddleware
-)
-
-// TODO:确认是否需要单例
 func NewI18NMiddleware(v *viper.Viper) *I18NMiddleware {
-	i18nMiddlewareOnce.Do(func() {
-		i18nMiddleware = &I18NMiddleware{
-			viper: v,
-		}
-	})
-	return i18nMiddleware
+	return &I18NMiddleware{
+		viper: v,
+	}
 }
 
 func (i *I18NMiddleware) I18N() gin.HandlerFunc {
