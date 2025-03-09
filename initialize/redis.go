@@ -73,7 +73,9 @@ func (r *redisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) g
 	}
 }
 
-func NewRedisClient(logger io.Writer, v *viper.Viper) *local.CommonRedisClient {
+type RedisClientLogger io.Writer
+
+func NewRedisClient(logger RedisClientLogger, v *viper.Viper) *local.CommonRedisClient {
 	client := goredislib.NewClient(&goredislib.Options{
 		Addr:     v.GetString("redis.addr"),
 		Password: v.GetString("redis.password"),

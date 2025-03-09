@@ -1,16 +1,17 @@
 package bootstrap
 
 import (
+	v1 "gin-web/api/v1"
 	"gin-web/initialize"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 type App struct {
-	logger     *zap.SugaredLogger
-	viper      *viper.Viper
-	httpServer *initialize.HttpServer
-	//attachmentApi *v1.AttachmentApi
+	logger        *zap.SugaredLogger
+	viper         *viper.Viper
+	httpServer    *initialize.HttpServer
+	attachmentApi *v1.AttachmentApi
 }
 
 func RunApp() {

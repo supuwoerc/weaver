@@ -44,7 +44,7 @@ func NewPingApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.Comm
 		{
 			group.GET("", pinApi.Ping)
 			group.GET("exception", pinApi.Exception)
-			group.GET("check-permission", middleware.NewAuthMiddleware(db, redisClient).PermissionRequired(), pinApi.CheckPermission)
+			group.GET("check-permission", middleware.NewAuthMiddleware(db, redisClient, v).PermissionRequired(), pinApi.CheckPermission)
 			group.GET("slow", pinApi.SlowResponse)
 			group.GET("check-lock", pinApi.LockResponse)
 		}

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"gin-web/middleware"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
@@ -39,7 +40,7 @@ func NewAttachmentApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redi
 			service:  service.NewAttachmentService(logger, r, db, locksmith, v),
 		}
 		// 挂载路由
-		attachmentAccessGroup := route.Group("attachment")
+		attachmentAccessGroup := route.Group("attachment").Use(middleware.NewAuthMiddleware(db, r, v).LoginRequired())
 		{
 			attachmentAccessGroup.POST("multiple-upload", attachmentApi.MultipleUpload)
 			attachmentAccessGroup.POST("upload", attachmentApi.Upload)

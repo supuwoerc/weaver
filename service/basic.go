@@ -96,3 +96,8 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 	}
 	return nil
 }
+
+// TODO:通用的告警方法
+func (s *BasicService) Alarm() {
+
+}

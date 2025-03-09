@@ -61,7 +61,7 @@ func NewUserApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.Comm
 			userPublicGroup.GET("active-success", userApi.ActiveSuccess)
 			userPublicGroup.GET("active-failure", userApi.ActiveFailure)
 		}
-		userAccessGroup := route.Group("user").Use(middleware.NewAuthMiddleware(db, r).LoginRequired())
+		userAccessGroup := route.Group("user").Use(middleware.NewAuthMiddleware(db, r, v).LoginRequired())
 		{
 			userAccessGroup.GET("refresh-token")
 			userAccessGroup.GET("profile", userApi.Profile)

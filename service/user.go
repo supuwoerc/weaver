@@ -64,7 +64,7 @@ func NewUserService(logger *zap.SugaredLogger, r *pkgRedis.CommonRedisClient, db
 			CaptchaService: NewCaptchaService(logger, r, db, locksmith, v),
 			userRepository: repository.NewUserRepository(db, r),
 			roleRepository: repository.NewRoleRepository(db),
-			emailClient:    email.NewEmailClient(logger, dialer),
+			emailClient:    email.NewEmailClient(logger, dialer, v),
 		}
 	})
 	return userService
@@ -142,7 +142,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 		return nil, response.UserLoginFail
 	}
 	pair, err := u.userRepository.GetTokenPair(ctx, email)
-	builder := jwt.NewJwtBuilder(u.db, u.redisClient)
+	builder := jwt.NewJwtBuilder(u.db, u.redisClient, u.viper)
 	if err == nil && pair != nil {
 		claims, parseErr := builder.ParseToken(pair.AccessToken)
 		if parseErr == nil && claims != nil {

@@ -7,8 +7,11 @@
 package bootstrap
 
 import (
+	"gin-web/api/v1"
 	"gin-web/initialize"
 	"gin-web/pkg/email"
+	"gin-web/pkg/utils"
+	"gin-web/router"
 )
 
 // Injectors from wire.go:
@@ -21,10 +24,16 @@ func wireApp() *App {
 	emailClient := email.NewEmailClient(sugaredLogger, dialer, viper)
 	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger, viper)
 	httpServer := initialize.NewServer(viper, engine, sugaredLogger)
+	routerGroup := router.NewApiRouter(engine, viper)
+	commonRedisClient := initialize.NewRedisClient(writeSyncer, viper)
+	db := initialize.NewGORM(viper)
+	redisLocksmith := utils.NewRedisLocksmith(sugaredLogger, commonRedisClient)
+	attachmentApi := v1.NewAttachmentApi(routerGroup, sugaredLogger, commonRedisClient, db, redisLocksmith, viper)
 	app := &App{
-		logger:     sugaredLogger,
-		viper:      viper,
-		httpServer: httpServer,
+		logger:        sugaredLogger,
+		viper:         viper,
+		httpServer:    httpServer,
+		attachmentApi: attachmentApi,
 	}
 	return app
 }

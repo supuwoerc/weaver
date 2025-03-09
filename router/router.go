@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func InitApiRouter(r *gin.Engine, v *viper.Viper) *gin.RouterGroup {
+func NewApiRouter(r *gin.Engine, v *viper.Viper) *gin.RouterGroup {
 	group := r.Group("api/v1")
 	// 国际化中间件
 	i18n := middleware.NewI18NMiddleware(v)
