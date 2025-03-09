@@ -2,14 +2,8 @@ package v1
 
 import (
 	"gin-web/pkg/constant"
-	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
-	"gin-web/pkg/utils"
-	"gin-web/service"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"sync"
 )
 
@@ -18,7 +12,6 @@ type CaptchaService interface {
 }
 
 type CaptchaApi struct {
-	*BasicApi
 	service CaptchaService
 }
 
@@ -27,12 +20,10 @@ var (
 	captchaApi  *CaptchaApi
 )
 
-func NewCaptchaApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *CaptchaApi {
+func NewCaptchaApi(route *gin.RouterGroup, service CaptchaService) *CaptchaApi {
 	captchaOnce.Do(func() {
 		captchaApi = &CaptchaApi{
-			BasicApi: NewBasicApi(logger, v),
-			service:  service.NewCaptchaService(logger, r, db, locksmith, v),
+			service: service,
 		}
 		// 挂载路由
 		captchaGroup := route.Group("captcha")

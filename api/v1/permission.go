@@ -2,15 +2,11 @@ package v1
 
 import (
 	"context"
-	"gin-web/pkg/redis"
+	"gin-web/middleware"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"gin-web/service"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"sync"
 )
 
@@ -23,7 +19,6 @@ type PermissionService interface {
 }
 
 type PermissionApi struct {
-	*BasicApi
 	service PermissionService
 }
 
@@ -32,15 +27,17 @@ var (
 	permissionApi  *PermissionApi
 )
 
-func NewPermissionApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *PermissionApi {
+func NewPermissionApi(
+	route *gin.RouterGroup,
+	service PermissionService,
+	authMiddleware *middleware.AuthMiddleware,
+) *PermissionApi {
 	permissionOnce.Do(func() {
 		permissionApi = &PermissionApi{
-			BasicApi: NewBasicApi(logger, v),
-			service:  service.NewPermissionService(logger, db, r, locksmith, v),
+			service: service,
 		}
 		// 挂载路由
-		permissionAccessGroup := route.Group("permission")
+		permissionAccessGroup := route.Group("permission").Use(authMiddleware.PermissionRequired())
 		{
 			permissionAccessGroup.POST("create", permissionApi.CreatePermission)
 			permissionAccessGroup.GET("list", permissionApi.GetPermissionList)

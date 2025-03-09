@@ -6,7 +6,7 @@ import (
 )
 
 type PermissionCache struct {
-	*BasicCache
+	redis *redis.CommonRedisClient
 }
 
 var (
@@ -16,7 +16,7 @@ var (
 
 func NewPermissionCache(r *redis.CommonRedisClient) *PermissionCache {
 	permissionCacheOnce.Do(func() {
-		permissionCache = &PermissionCache{BasicCache: NewBasicCache(r)}
+		permissionCache = &PermissionCache{redis: r}
 	})
 	return permissionCache
 }

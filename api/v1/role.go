@@ -2,15 +2,11 @@ package v1
 
 import (
 	"context"
-	"gin-web/pkg/redis"
+	"gin-web/middleware"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"gin-web/service"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"sync"
 )
 
@@ -23,7 +19,6 @@ type RoleService interface {
 }
 
 type RoleApi struct {
-	*BasicApi
 	service RoleService
 }
 
@@ -32,15 +27,17 @@ var (
 	roleApi  *RoleApi
 )
 
-func NewRoleApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *RoleApi {
+func NewRoleApi(
+	route *gin.RouterGroup,
+	service RoleService,
+	authMiddleware *middleware.AuthMiddleware,
+) *RoleApi {
 	roleOnce.Do(func() {
 		roleApi = &RoleApi{
-			BasicApi: NewBasicApi(logger, v),
-			service:  service.NewRoleService(logger, r, db, locksmith, v),
+			service: service,
 		}
 		// 挂载路由
-		roleAccessGroup := route.Group("role")
+		roleAccessGroup := route.Group("role").Use(authMiddleware.PermissionRequired())
 		{
 			roleAccessGroup.POST("create", roleApi.CreateRole)
 			roleAccessGroup.GET("list", roleApi.GetRoleList)

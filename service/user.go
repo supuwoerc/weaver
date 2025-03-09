@@ -8,17 +8,11 @@ import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/email"
 	"gin-web/pkg/jwt"
-	pkgRedis "gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"gin-web/repository"
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/gomail.v2"
-	"gorm.io/gorm"
 	"sync"
 	"time"
 )
@@ -49,6 +43,7 @@ type UserService struct {
 	userRepository UserRepository
 	roleRepository RoleRepository
 	emailClient    UserEmailClient
+	tokenBuilder   *jwt.TokenBuilder
 }
 
 var (
@@ -56,15 +51,22 @@ var (
 	userService *UserService
 )
 
-func NewUserService(logger *zap.SugaredLogger, r *pkgRedis.CommonRedisClient, db *gorm.DB, dialer *gomail.Dialer,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *UserService {
+func NewUserService(
+	basic *BasicService,
+	captchaService *CaptchaService,
+	roleRepository RoleRepository,
+	userRepo UserRepository,
+	ec *email.EmailClient,
+	tb *jwt.TokenBuilder,
+) *UserService {
 	userOnce.Do(func() {
 		userService = &UserService{
-			BasicService:   NewBasicService(logger, r, db, locksmith, v),
-			CaptchaService: NewCaptchaService(logger, r, db, locksmith, v),
-			userRepository: repository.NewUserRepository(db, r),
-			roleRepository: repository.NewRoleRepository(db),
-			emailClient:    email.NewEmailClient(logger, dialer, v),
+			BasicService:   basic,
+			CaptchaService: captchaService,
+			userRepository: userRepo,
+			roleRepository: roleRepository,
+			emailClient:    ec,
+			tokenBuilder:   tb,
 		}
 	})
 	return userService
@@ -142,9 +144,8 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 		return nil, response.UserLoginFail
 	}
 	pair, err := u.userRepository.GetTokenPair(ctx, email)
-	builder := jwt.NewJwtBuilder(u.db, u.redisClient, u.viper)
 	if err == nil && pair != nil {
-		claims, parseErr := builder.ParseToken(pair.AccessToken)
+		claims, parseErr := u.tokenBuilder.ParseToken(pair.AccessToken)
 		if parseErr == nil && claims != nil {
 			// 如果缓存的token还未过期,直接返回缓存中的记录
 			return &response.LoginResponse{
@@ -158,7 +159,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 			}, nil
 		}
 	}
-	accessToken, refreshToken, err := builder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
+	accessToken, refreshToken, err := u.tokenBuilder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
 		ID:       user.ID,
 		Email:    user.Email,
 		Nickname: user.Nickname,

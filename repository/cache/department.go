@@ -9,7 +9,7 @@ import (
 )
 
 type DepartmentCache struct {
-	*BasicCache
+	redis *redis.CommonRedisClient
 }
 
 var (
@@ -20,7 +20,7 @@ var (
 func NewDepartmentCache(r *redis.CommonRedisClient) *DepartmentCache {
 	departmentCacheOnce.Do(func() {
 		departmentCache = &DepartmentCache{
-			BasicCache: NewBasicCache(r),
+			redis: r,
 		}
 	})
 	return departmentCache

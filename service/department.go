@@ -4,17 +4,12 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/pkg/constant"
-	pkgRedis "gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"gin-web/repository"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
-	"gorm.io/gorm"
 	"strconv"
 	"strings"
 	"sync"
@@ -43,13 +38,12 @@ var (
 	departmentService *DepartmentService
 )
 
-func NewDepartmentService(logger *zap.SugaredLogger, db *gorm.DB, r *pkgRedis.CommonRedisClient,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *DepartmentService {
+func NewDepartmentService(basic *BasicService, deptRepo DepartmentRepository, userRepo UserRepository) *DepartmentService {
 	departmentOnce.Do(func() {
 		departmentService = &DepartmentService{
-			BasicService:         NewBasicService(logger, r, db, locksmith, v),
-			departmentRepository: repository.NewDepartmentRepository(db, r),
-			userRepository:       repository.NewUserRepository(db, r),
+			BasicService:         basic,
+			departmentRepository: deptRepo,
+			userRepository:       userRepo,
 		}
 	})
 	return departmentService
@@ -58,15 +52,14 @@ func NewDepartmentService(logger *zap.SugaredLogger, db *gorm.DB, r *pkgRedis.Co
 func (p *DepartmentService) lockDepartmentField(ctx context.Context, name string, parentId *uint) ([]*utils.RedisLock, error) {
 	locks := make([]*utils.RedisLock, 0)
 	// 名称锁
-	locksmith := utils.NewRedisLocksmith(p.logger, p.redisClient)
-	deptNameLock := locksmith.NewLock(constant.DepartmentNamePrefix, name)
+	deptNameLock := p.locksmith.NewLock(constant.DepartmentNamePrefix, name)
 	if err := deptNameLock.Lock(ctx, true); err != nil {
 		return locks, err
 	}
 	locks = append(locks, deptNameLock)
 	if parentId != nil {
 		// 父部门锁
-		parentLock := locksmith.NewLock(constant.DepartmentIdPrefix, *parentId)
+		parentLock := p.locksmith.NewLock(constant.DepartmentIdPrefix, *parentId)
 		if err := parentLock.Lock(ctx, true); err != nil {
 			return locks, err
 		}

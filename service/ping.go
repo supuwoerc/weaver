@@ -3,11 +3,7 @@ package service
 import (
 	"context"
 	"gin-web/pkg/constant"
-	pkgRedis "gin-web/pkg/redis"
 	"gin-web/pkg/utils"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"sync"
 	"time"
 )
@@ -21,11 +17,10 @@ var (
 	pingService     *PingService
 )
 
-func NewPingService(logger *zap.SugaredLogger, db *gorm.DB, r *pkgRedis.CommonRedisClient,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *PingService {
+func NewPingService(basic *BasicService) *PingService {
 	pingServiceOnce.Do(func() {
 		pingService = &PingService{
-			BasicService: NewBasicService(logger, r, db, locksmith, v),
+			BasicService: basic,
 		}
 	})
 	return pingService

@@ -24,7 +24,7 @@ func wireApp() *App {
 	emailClient := email.NewEmailClient(sugaredLogger, dialer, viper)
 	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger, viper)
 	httpServer := initialize.NewServer(viper, engine, sugaredLogger)
-	routerGroup := router.NewApiRouter(engine, viper)
+	routerGroup := router.NewRouter(engine, viper)
 	commonRedisClient := initialize.NewRedisClient(writeSyncer, viper)
 	db := initialize.NewGORM(viper)
 	redisLocksmith := utils.NewRedisLocksmith(sugaredLogger, commonRedisClient)

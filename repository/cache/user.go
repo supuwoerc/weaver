@@ -13,7 +13,7 @@ import (
 )
 
 type UserCache struct {
-	*BasicCache
+	redis *redis.CommonRedisClient
 }
 
 var (
@@ -23,7 +23,7 @@ var (
 
 func NewUserCache(r *redis.CommonRedisClient) *UserCache {
 	userCacheOnce.Do(func() {
-		userCache = &UserCache{BasicCache: NewBasicCache(r)}
+		userCache = &UserCache{redis: r}
 	})
 	return userCache
 }

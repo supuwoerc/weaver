@@ -19,9 +19,11 @@ type DepartmentDAO struct {
 	*BasicDAO
 }
 
-func NewDepartmentDAO(db *gorm.DB) *DepartmentDAO {
+func NewDepartmentDAO(basicDAO *BasicDAO) *DepartmentDAO {
 	departmentDAOOnce.Do(func() {
-		departmentDAO = &DepartmentDAO{BasicDAO: NewBasicDao(db)}
+		departmentDAO = &DepartmentDAO{
+			BasicDAO: basicDAO,
+		}
 	})
 	return departmentDAO
 }

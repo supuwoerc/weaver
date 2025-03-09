@@ -4,14 +4,8 @@ import (
 	"context"
 	"fmt"
 	"gin-web/middleware"
-	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
-	"gin-web/pkg/utils"
-	"gin-web/service"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"net/http"
 	"os"
 	"strconv"
@@ -23,7 +17,6 @@ type PingService interface {
 	LockPermissionField(ctx context.Context) error
 }
 type PingApi struct {
-	*BasicApi
 	service PingService
 }
 
@@ -32,19 +25,17 @@ var (
 	pinApi   *PingApi
 )
 
-func NewPingApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB, redisClient *redis.CommonRedisClient,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *PingApi {
+func NewPingApi(route *gin.RouterGroup, service PingService, authMiddleware *middleware.AuthMiddleware) *PingApi {
 	pingOnce.Do(func() {
 		pinApi = &PingApi{
-			BasicApi: NewBasicApi(logger, v),
-			service:  service.NewPingService(logger, db, r, locksmith, v),
+			service: service,
 		}
 		// 挂载路由
 		group := route.Group("ping")
 		{
 			group.GET("", pinApi.Ping)
 			group.GET("exception", pinApi.Exception)
-			group.GET("check-permission", middleware.NewAuthMiddleware(db, redisClient, v).PermissionRequired(), pinApi.CheckPermission)
+			group.GET("check-permission", authMiddleware.PermissionRequired(), pinApi.CheckPermission)
 			group.GET("slow", pinApi.SlowResponse)
 			group.GET("check-lock", pinApi.LockResponse)
 		}

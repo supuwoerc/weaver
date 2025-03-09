@@ -4,14 +4,10 @@ import (
 	"context"
 	"gin-web/middleware"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"gin-web/service"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"mime/multipart"
 	"sync"
 )
@@ -22,7 +18,7 @@ type AttachmentService interface {
 }
 
 type AttachmentApi struct {
-	*BasicApi
+	viper   *viper.Viper
 	service AttachmentService
 }
 
@@ -31,16 +27,20 @@ var (
 	attachmentApi  *AttachmentApi
 )
 
-func NewAttachmentApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *AttachmentApi {
+func NewAttachmentApi(
+	route *gin.RouterGroup,
+	service AttachmentService,
+	authMiddleware *middleware.AuthMiddleware,
+	viper *viper.Viper,
+) *AttachmentApi {
 	attachmentOnce.Do(func() {
 		// 初始化controller
 		attachmentApi = &AttachmentApi{
-			BasicApi: NewBasicApi(logger, v),
-			service:  service.NewAttachmentService(logger, r, db, locksmith, v),
+			viper:   viper,
+			service: service,
 		}
 		// 挂载路由
-		attachmentAccessGroup := route.Group("attachment").Use(middleware.NewAuthMiddleware(db, r, v).LoginRequired())
+		attachmentAccessGroup := route.Group("attachment").Use(authMiddleware.LoginRequired())
 		{
 			attachmentAccessGroup.POST("multiple-upload", attachmentApi.MultipleUpload)
 			attachmentAccessGroup.POST("upload", attachmentApi.Upload)

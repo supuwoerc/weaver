@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"gin-web/models"
-	"gin-web/repository/dao"
-	"gorm.io/gorm"
 	"sync"
 )
 
@@ -21,10 +19,10 @@ type AttachmentRepository struct {
 	dao AttachmentDAO
 }
 
-func NewAttachmentRepository(db *gorm.DB) *AttachmentRepository {
+func NewAttachmentRepository(dao AttachmentDAO) *AttachmentRepository {
 	attachmentRepositoryOnce.Do(func() {
 		attachmentRepository = &AttachmentRepository{
-			dao: dao.NewAttachmentDAO(db),
+			dao: dao,
 		}
 	})
 	return attachmentRepository

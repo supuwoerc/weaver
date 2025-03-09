@@ -6,17 +6,11 @@ import (
 	"gin-web/middleware"
 	"gin-web/models"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/redis"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"gin-web/service"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"gopkg.in/gomail.v2"
-	"gorm.io/gorm"
 	"net/http"
 	"sync"
 )
@@ -30,7 +24,6 @@ type UserService interface {
 }
 
 type UserApi struct {
-	*BasicApi
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
 	phoneRegexExp    *regexp.Regexp
@@ -42,15 +35,17 @@ var (
 	userApi  *UserApi
 )
 
-func NewUserApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
-	dialer *gomail.Dialer, locksmith *utils.RedisLocksmith, v *viper.Viper) *UserApi {
+func NewUserApi(
+	route *gin.RouterGroup,
+	service UserService,
+	authMiddleware *middleware.AuthMiddleware,
+) *UserApi {
 	userOnce.Do(func() {
 		userApi = &UserApi{
-			BasicApi:         NewBasicApi(logger, v),
 			emailRegexExp:    regexp.MustCompile(constant.EmailRegexPattern, regexp.None),
 			passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
 			phoneRegexExp:    regexp.MustCompile(constant.PhoneRegexPattern, regexp.None),
-			service:          service.NewUserService(logger, r, db, dialer, locksmith, v),
+			service:          service,
 		}
 		// 挂载路由
 		userPublicGroup := route.Group("public/user")
@@ -61,7 +56,7 @@ func NewUserApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.Comm
 			userPublicGroup.GET("active-success", userApi.ActiveSuccess)
 			userPublicGroup.GET("active-failure", userApi.ActiveFailure)
 		}
-		userAccessGroup := route.Group("user").Use(middleware.NewAuthMiddleware(db, r, v).LoginRequired())
+		userAccessGroup := route.Group("user").Use(authMiddleware.LoginRequired())
 		{
 			userAccessGroup.GET("refresh-token")
 			userAccessGroup.GET("profile", userApi.Profile)

@@ -2,15 +2,11 @@ package v1
 
 import (
 	"context"
-	"gin-web/pkg/redis"
+	"gin-web/middleware"
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"gin-web/service"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"sync"
 )
 
@@ -20,7 +16,6 @@ type DepartmentService interface {
 }
 
 type DepartmentApi struct {
-	*BasicApi
 	service DepartmentService
 }
 
@@ -29,17 +24,19 @@ var (
 	departmentApi  *DepartmentApi
 )
 
-func NewDepartmentApi(route *gin.RouterGroup, logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *DepartmentApi {
+func NewDepartmentApi(
+	route *gin.RouterGroup,
+	service DepartmentService,
+	authMiddleware *middleware.AuthMiddleware,
+) *DepartmentApi {
 	departmentOnce.Do(func() {
 		departmentApi = &DepartmentApi{
-			BasicApi: NewBasicApi(logger, v),
-			service:  service.NewDepartmentService(logger, db, r, locksmith, v),
+			service: service,
 		}
 		// 挂载路由
-		departmentAccessGroup := route.Group("department")
+		departmentAccessGroup := route.Group("department").Use(authMiddleware.LoginRequired())
 		{
-			departmentAccessGroup.POST("create", departmentApi.CreateDepartment)
+			departmentAccessGroup.POST("create", authMiddleware.PermissionRequired(), departmentApi.CreateDepartment)
 			departmentAccessGroup.GET("tree", departmentApi.GetDepartmentTree)
 		}
 	})

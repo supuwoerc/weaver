@@ -1,13 +1,13 @@
 package middleware
 
 import (
+	"context"
 	"errors"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
-	"gin-web/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -32,10 +32,15 @@ func unnecessaryRefreshResponse(ctx *gin.Context) {
 	response.FailWithError(ctx, response.UnnecessaryRefreshToken)
 }
 
+type TokenRepo interface {
+	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
+}
+
 type AuthMiddleware struct {
 	db          *gorm.DB
 	redisClient *redis.CommonRedisClient
 	viper       *viper.Viper
+	tokenRepo   TokenRepo
 }
 
 var (
@@ -43,12 +48,13 @@ var (
 	authMiddleware     *AuthMiddleware
 )
 
-func NewAuthMiddleware(db *gorm.DB, redisClient *redis.CommonRedisClient, v *viper.Viper) *AuthMiddleware {
+func NewAuthMiddleware(db *gorm.DB, redisClient *redis.CommonRedisClient, v *viper.Viper, tokenRepo TokenRepo) *AuthMiddleware {
 	authMiddlewareOnce.Do(func() {
 		authMiddleware = &AuthMiddleware{
 			db:          db,
 			redisClient: redisClient,
 			viper:       v,
+			tokenRepo:   tokenRepo,
 		}
 	})
 	return authMiddleware
@@ -60,7 +66,6 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 	refreshTokenKey := l.viper.GetString("jwt.refreshTokenKey")
 	prefix := l.viper.GetString("jwt.tokenPrefix")
 	jwtBuilder := jwt.NewJwtBuilder(l.db, l.redisClient, l.viper)
-	userRepository := repository.NewUserRepository(l.db, l.redisClient)
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader(tokenKey)
 		if token == "" || !strings.HasPrefix(token, prefix) {
@@ -94,7 +99,7 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 				return
 			}
 			newToken, newRefreshToken, refreshErr := jwtBuilder.ReGenerateTokenPairs(token, refreshToken, func(claims *jwt.TokenClaims, newToken, newRefreshToken string) error {
-				return userRepository.CacheTokenPair(ctx, claims.User.Email, &models.TokenPair{
+				return l.tokenRepo.CacheTokenPair(ctx, claims.User.Email, &models.TokenPair{
 					AccessToken:  newToken,
 					RefreshToken: newRefreshToken,
 				})

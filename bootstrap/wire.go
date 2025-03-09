@@ -31,8 +31,8 @@ func wireApp() *App {
 		initialize.NewGORM,
 		initialize.NewRedisClient,
 		utils.NewRedisLocksmith,
-		router.NewApiRouter,
-		api.ApiProvider,
+		router.NewRouter,
+		api.V1Provider,
 		wire.Struct(new(App), "*"),
 	)
 	return nil

@@ -3,7 +3,6 @@ package dao
 import (
 	"context"
 	"gin-web/models"
-	"gorm.io/gorm"
 	"sync"
 )
 
@@ -16,10 +15,10 @@ type AttachmentDAO struct {
 	*BasicDAO
 }
 
-func NewAttachmentDAO(db *gorm.DB) *AttachmentDAO {
+func NewAttachmentDAO(basicDAO *BasicDAO) *AttachmentDAO {
 	attachmentDAOOnce.Do(func() {
 		attachmentDAO = &AttachmentDAO{
-			BasicDAO: NewBasicDao(db),
+			BasicDAO: basicDAO,
 		}
 	})
 	return attachmentDAO

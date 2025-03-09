@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"gin-web/pkg/database"
-	"gin-web/pkg/redis"
 	"gin-web/pkg/utils"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -15,11 +14,10 @@ import (
 )
 
 type BasicService struct {
-	logger      *zap.SugaredLogger
-	redisClient *redis.CommonRedisClient
-	db          *gorm.DB
-	locksmith   *utils.RedisLocksmith
-	viper       *viper.Viper
+	logger    *zap.SugaredLogger
+	db        *gorm.DB
+	locksmith *utils.RedisLocksmith
+	viper     *viper.Viper
 }
 
 var (
@@ -27,15 +25,18 @@ var (
 	basic     *BasicService
 )
 
-func NewBasicService(logger *zap.SugaredLogger, r *redis.CommonRedisClient, db *gorm.DB, locksmith *utils.RedisLocksmith,
-	v *viper.Viper) *BasicService {
+func NewBasicService(
+	logger *zap.SugaredLogger,
+	db *gorm.DB,
+	locksmith *utils.RedisLocksmith,
+	viper *viper.Viper,
+) *BasicService {
 	basicOnce.Do(func() {
 		basic = &BasicService{
-			logger:      logger,
-			redisClient: r,
-			db:          db,
-			locksmith:   locksmith,
-			viper:       v,
+			logger:    logger,
+			db:        db,
+			locksmith: locksmith,
+			viper:     viper,
 		}
 	})
 	return basic

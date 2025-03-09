@@ -5,14 +5,9 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/database"
-	pkgRedis "gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"gin-web/repository"
 	"github.com/samber/lo"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"sync"
 )
 
@@ -40,13 +35,12 @@ var (
 )
 
 // TODO:包装一个基础的参数结构体,wire注入这个Value
-func NewPermissionService(logger *zap.SugaredLogger, db *gorm.DB, r *pkgRedis.CommonRedisClient,
-	locksmith *utils.RedisLocksmith, v *viper.Viper) *PermissionService {
+func NewPermissionService(basic *BasicService, permissionRepo PermissionRepository, roleRepository RoleRepository) *PermissionService {
 	permissionOnce.Do(func() {
 		permissionService = &PermissionService{
-			BasicService:         NewBasicService(logger, r, db, locksmith, v),
-			permissionRepository: repository.NewPermissionRepository(db),
-			roleRepository:       repository.NewRoleRepository(db),
+			BasicService:         basic,
+			permissionRepository: permissionRepo,
+			roleRepository:       roleRepository,
 		}
 	})
 	return permissionService
@@ -137,8 +131,7 @@ func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*
 
 func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint, id uint, name, resource string, roleIds []uint) error {
 	// 对权限自身加锁
-	locksmith := utils.NewRedisLocksmith(p.logger, p.redisClient)
-	permissionLock := locksmith.NewLock(constant.PermissionIdPrefix, id)
+	permissionLock := p.locksmith.NewLock(constant.PermissionIdPrefix, id)
 	if err := permissionLock.Lock(ctx, true); err != nil {
 		return err
 	}

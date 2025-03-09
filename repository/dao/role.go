@@ -21,9 +21,11 @@ type RoleDAO struct {
 	*BasicDAO
 }
 
-func NewRoleDAO(db *gorm.DB) *RoleDAO {
+func NewRoleDAO(basicDAO *BasicDAO) *RoleDAO {
 	roleDAOOnce.Do(func() {
-		roleDAO = &RoleDAO{BasicDAO: NewBasicDao(db)}
+		roleDAO = &RoleDAO{
+			BasicDAO: basicDAO,
+		}
 	})
 	return roleDAO
 }
