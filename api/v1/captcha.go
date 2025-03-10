@@ -19,7 +19,7 @@ func NewCaptchaApi(route *gin.RouterGroup, service CaptchaService) *CaptchaApi {
 		service: service,
 	}
 	// 挂载路由
-	captchaGroup := route.Group("captcha/public")
+	captchaGroup := route.Group("public/captcha")
 	{
 		captchaGroup.GET("generate", captchaApi.GenerateCaptcha)
 	}
