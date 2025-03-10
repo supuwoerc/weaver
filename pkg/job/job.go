@@ -19,15 +19,8 @@ type SystemJob interface {
 }
 
 var (
-	jobs    []SystemJob
 	mapping = make(map[string]cron.EntryID)
 )
-
-func init() {
-	jobs = []SystemJob{
-		NewServerStatus(10 * time.Second),
-	}
-}
 
 type JobRegisterer struct {
 	cronLogger *initialize.CronLogger
@@ -58,11 +51,17 @@ func (jr *JobRegisterer) delay(f func()) cron.Job {
 	return wrapJob
 }
 
+func (jr *JobRegisterer) initSystemJobs() []SystemJob {
+	return []SystemJob{
+		NewServerStatus(10*time.Second, jr.logger),
+	}
+}
+
 func (jr *JobRegisterer) RegisterJobsAndStart() error {
 	key := "system.hooks.launch"
 	onLaunch := jr.viper.GetStringSlice(key)
 	if lo.Contains(onLaunch, constant.RegisterJobs) {
-		for _, j := range jobs {
+		for _, j := range jr.initSystemJobs() {
 			mode := j.IfStillRunning()
 			var id cron.EntryID
 			var err error

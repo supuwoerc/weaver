@@ -11,13 +11,14 @@ import (
 )
 
 type ServerStatus struct {
-	CpuStatisticalInterval time.Duration
+	cpuStatisticalInterval time.Duration
 	logger                 *zap.SugaredLogger
 }
 
-func NewServerStatus(t time.Duration) *ServerStatus {
+func NewServerStatus(t time.Duration, logger *zap.SugaredLogger) *ServerStatus {
 	return &ServerStatus{
-		CpuStatisticalInterval: t,
+		cpuStatisticalInterval: t,
+		logger:                 logger,
 	}
 }
 
@@ -36,7 +37,7 @@ func (s *ServerStatus) Handle() {
 	if err != nil {
 		panic(err)
 	}
-	percent, err := cpu.Percent(s.CpuStatisticalInterval, false)
+	percent, err := cpu.Percent(s.cpuStatisticalInterval, false)
 	if err != nil {
 		panic(err)
 	}
