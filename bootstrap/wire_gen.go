@@ -10,6 +10,7 @@ import (
 	"gin-web/api/v1"
 	"gin-web/initialize"
 	"gin-web/middleware"
+	"gin-web/pkg/captcha"
 	"gin-web/pkg/email"
 	"gin-web/pkg/job"
 	"gin-web/pkg/jwt"
@@ -49,7 +50,8 @@ func WireApp() *App {
 	tokenBuilder := jwt.NewJwtBuilder(db, commonRedisClient, viper, userRepository)
 	authMiddleware := middleware.NewAuthMiddleware(viper, userRepository, tokenBuilder)
 	attachmentApi := v1.NewAttachmentApi(routerGroup, attachmentService, authMiddleware, viper)
-	captchaService := service.NewCaptchaService()
+	redisStore := captcha.NewRedisStore(commonRedisClient, viper)
+	captchaService := service.NewCaptchaService(redisStore)
 	captchaApi := v1.NewCaptchaApi(routerGroup, captchaService)
 	departmentDAO := dao.NewDepartmentDAO(basicDAO)
 	departmentCache := cache.NewDepartmentCache(commonRedisClient)

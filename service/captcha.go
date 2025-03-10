@@ -4,17 +4,18 @@ import (
 	"gin-web/pkg/captcha"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
+	"github.com/mojocn/base64Captcha"
 )
 
 type CaptchaService struct {
 	clients map[constant.CaptchaType]*captcha.Captcha // 不同业务使用不同参数的验证码生成器
 }
 
-func NewCaptchaService() *CaptchaService {
+func NewCaptchaService(store base64Captcha.Store) *CaptchaService {
 	return &CaptchaService{
 		clients: map[constant.CaptchaType]*captcha.Captcha{
-			constant.Default: captcha.NewCaptcha(100, 200, 6, 0.3, 80), // 默认验证码
-			constant.SignUp:  captcha.NewCaptcha(100, 348, 6, 0.3, 80), // 注册验证码
+			constant.Default: captcha.NewCaptcha(100, 200, 6, 0.3, 80, store), // 默认验证码
+			constant.SignUp:  captcha.NewCaptcha(100, 348, 6, 0.3, 80, store), // 注册验证码
 		},
 	}
 }

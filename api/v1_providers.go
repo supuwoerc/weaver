@@ -3,12 +3,14 @@ package api
 import (
 	v1 "gin-web/api/v1"
 	"gin-web/middleware"
+	"gin-web/pkg/captcha"
 	"gin-web/pkg/jwt"
 	"gin-web/repository"
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
 	"gin-web/service"
 	"github.com/google/wire"
+	"github.com/mojocn/base64Captcha"
 )
 
 // V1Provider api-provider集合
@@ -18,6 +20,7 @@ var V1Provider = wire.NewSet(
 	userRepositoryProvider,
 	roleRepositoryProvider,
 	permissionRepositoryProvider,
+	captchaRedisStoreProvider,
 	AttachmentApiProvider,
 	CaptchaApiProvider,
 	DepartmentApiProvider,
@@ -64,6 +67,11 @@ var AttachmentApiProvider = wire.NewSet(
 	wire.Bind(new(repository.AttachmentDAO), new(*dao.AttachmentDAO)),
 	dao.NewAttachmentDAO,
 	middleware.NewAuthMiddleware,
+)
+
+var captchaRedisStoreProvider = wire.NewSet(
+	wire.Bind(new(base64Captcha.Store), new(*captcha.RedisStore)),
+	captcha.NewRedisStore,
 )
 
 var CaptchaApiProvider = wire.NewSet(

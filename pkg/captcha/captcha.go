@@ -12,8 +12,12 @@ type Captcha struct {
 	captchaClient *base64Captcha.Captcha
 }
 
-func NewCaptcha(height int, width int, length int, maxSkew float64, dotCount int) *Captcha {
-	return &Captcha{captchaClient: base64Captcha.NewCaptcha(base64Captcha.NewDriverDigit(height, width, length, maxSkew, dotCount), &RedisStore{})}
+func NewCaptcha(height int, width int, length int, maxSkew float64, dotCount int, store base64Captcha.Store) *Captcha {
+	return &Captcha{
+		captchaClient: base64Captcha.NewCaptcha(base64Captcha.NewDriverDigit(height, width, length, maxSkew, dotCount),
+			store,
+		),
+	}
 }
 
 func (c *Captcha) Generate() (*CommonCaptchaInfo, error) {
