@@ -17,6 +17,6 @@ func NewRouter(r *gin.Engine, v *viper.Viper) *gin.RouterGroup {
 
 func InitSystemWebRouter(r *gin.Engine) {
 	r.NoRoute(func(context *gin.Context) {
-		context.HTML(http.StatusOK, "404.html", nil)
+		context.HTML(http.StatusNotFound, "404.html", nil)
 	})
 }
