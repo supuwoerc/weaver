@@ -50,7 +50,7 @@ func (p *DepartmentService) lockDepartmentField(ctx context.Context, name string
 	locks = append(locks, deptNameLock)
 	if parentId != nil {
 		// 父部门锁
-		parentLock := p.locksmith.NewLock(constant.DepartmentIdPrefix, *parentId)
+		parentLock := p.locksmith.NewLock(constant.DepartmentIdPrefix, strconv.Itoa(int(*parentId)))
 		if err := parentLock.Lock(ctx, true); err != nil {
 			return locks, err
 		}

@@ -8,9 +8,7 @@ import (
 	"gin-web/pkg/response"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/pkg/errors"
-	"github.com/samber/lo"
 	"go.uber.org/zap"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -39,20 +37,8 @@ func NewRedisLocksmith(logger *zap.SugaredLogger, redisClient *redis.CommonRedis
 }
 
 // NewLock 创建锁
-func (r *RedisLocksmith) NewLock(t constant.Prefix, object ...interface{}) *RedisLock {
-	var temp []string
-	switch any(object).(type) {
-	case []uint:
-		temp = lo.Map(any(object).([]uint), func(item uint, _ int) string {
-			return strconv.Itoa(int(item))
-		})
-	case []string:
-		temp = any(object).([]string)
-	default:
-		// TODO: 测试default 分支
-		temp = any(object).([]string)
-	}
-	name := fmt.Sprintf("%s:%s", t, strings.Join(temp, "_"))
+func (r *RedisLocksmith) NewLock(t constant.Prefix, object ...string) *RedisLock {
+	name := fmt.Sprintf("%s:%s", t, strings.Join(object, "_"))
 	return &RedisLock{
 		Mutex:    r.redisClient.Redsync.NewMutex(name, redsync.WithExpiry(defaultLockDuration), redsync.WithTries(defaultMaxRetries)),
 		duration: defaultLockDuration,

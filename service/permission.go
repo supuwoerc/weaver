@@ -8,6 +8,7 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/samber/lo"
+	"strconv"
 )
 
 type PermissionRepository interface {
@@ -52,7 +53,7 @@ func (p *PermissionService) lockPermissionField(ctx context.Context, name, resou
 	locks = append(locks, permissionResourceLock)
 	// 角色锁
 	for _, roleId := range roleIds {
-		roleIdLock := p.locksmith.NewLock(constant.RoleIdPrefix, roleId)
+		roleIdLock := p.locksmith.NewLock(constant.RoleIdPrefix, strconv.Itoa(int(roleId)))
 		if err := roleIdLock.Lock(ctx, true); err != nil {
 			return locks, err
 		}
@@ -121,7 +122,7 @@ func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*
 
 func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint, id uint, name, resource string, roleIds []uint) error {
 	// 对权限自身加锁
-	permissionLock := p.locksmith.NewLock(constant.PermissionIdPrefix, id)
+	permissionLock := p.locksmith.NewLock(constant.PermissionIdPrefix, strconv.Itoa(int(id)))
 	if err := permissionLock.Lock(ctx, true); err != nil {
 		return err
 	}
@@ -179,7 +180,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 
 func (p *PermissionService) DeletePermission(ctx context.Context, id, operator uint) error {
 	// 对权限自身加锁
-	permissionLock := p.locksmith.NewLock(constant.PermissionIdPrefix, id)
+	permissionLock := p.locksmith.NewLock(constant.PermissionIdPrefix, strconv.Itoa(int(id)))
 	if err := permissionLock.Lock(ctx, true); err != nil {
 		return err
 	}

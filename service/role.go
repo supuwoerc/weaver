@@ -9,6 +9,7 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/samber/lo"
+	"strconv"
 )
 
 type RoleRepository interface {
@@ -51,7 +52,7 @@ func (r *RoleService) lockRoleField(ctx context.Context, name string, permission
 	locks = append(locks, roleNameLock)
 	// 角色权限锁
 	for _, permissionId := range permissionIds {
-		roleIdLock := r.locksmith.NewLock(constant.PermissionIdPrefix, permissionId)
+		roleIdLock := r.locksmith.NewLock(constant.PermissionIdPrefix, strconv.Itoa(int(permissionId)))
 		if err := roleIdLock.Lock(ctx, true); err != nil {
 			return locks, err
 		}
@@ -129,7 +130,7 @@ func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*response.Rol
 
 func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, name string, userIds, permissionIds []uint) error {
 	// 对角色自身加锁
-	roleLock := r.locksmith.NewLock(constant.RoleIdPrefix, id)
+	roleLock := r.locksmith.NewLock(constant.RoleIdPrefix, strconv.Itoa(int(id)))
 	if err := roleLock.Lock(ctx, true); err != nil {
 		return err
 	}
@@ -197,7 +198,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, na
 
 func (r *RoleService) DeleteRole(ctx context.Context, id, operator uint) error {
 	// 对角色自身加锁
-	roleLock := r.locksmith.NewLock(constant.RoleIdPrefix, id)
+	roleLock := r.locksmith.NewLock(constant.RoleIdPrefix, strconv.Itoa(int(id)))
 	if err := roleLock.Lock(ctx, true); err != nil {
 		return err
 	}

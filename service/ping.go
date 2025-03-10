@@ -18,7 +18,7 @@ func NewPingService(basic *BasicService) *PingService {
 }
 
 func (p *PingService) LockPermissionField(ctx context.Context) error {
-	lock := p.locksmith.NewLock(constant.PermissionIdPrefix, 100, 200)
+	lock := p.locksmith.NewLock(constant.PermissionIdPrefix, "100", "200")
 	if err := lock.TryLock(ctx, true); err != nil {
 		return err
 	}

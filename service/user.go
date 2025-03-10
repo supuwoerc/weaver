@@ -13,6 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
 	"golang.org/x/crypto/bcrypt"
+	"strconv"
 	"time"
 )
 
@@ -209,7 +210,7 @@ func (u *UserService) GetUserList(ctx context.Context, keyword string, limit, of
 }
 
 func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode string) error {
-	userLock := u.locksmith.NewLock(constant.UserIdPrefix, uid)
+	userLock := u.locksmith.NewLock(constant.UserIdPrefix, strconv.Itoa(int(uid)))
 	if lockErr := userLock.Lock(ctx, true); lockErr != nil {
 		return lockErr
 	}
