@@ -1,24 +1,31 @@
-package bootstrap
+package job
 
 import (
 	"gin-web/initialize"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/job"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"sync"
 	"time"
 )
 
+type SystemJob interface {
+	Name() string
+	IfStillRunning() constant.JobStillMode
+	Handle()
+	Interval() string
+}
+
 var (
-	jobs    []job.SystemJob
+	jobs    []SystemJob
 	mapping = make(map[string]cron.EntryID)
 )
 
 func init() {
-	jobs = []job.SystemJob{
-		job.NewServerStatus(10 * time.Second),
+	jobs = []SystemJob{
+		NewServerStatus(10 * time.Second),
 	}
 }
 
@@ -81,4 +88,11 @@ func (jr *JobRegisterer) RegisterJobsAndStart() error {
 	}
 	jr.cronClient.Start()
 	return nil
+}
+
+func (jr *JobRegisterer) Stop(group *sync.WaitGroup) {
+	defer group.Done()
+	ctx := jr.cronClient.Stop()
+	<-ctx.Done()
+	jr.logger.Info("JobRegisterer:cron jobs have been stopped")
 }

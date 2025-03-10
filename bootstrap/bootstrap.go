@@ -3,13 +3,16 @@ package bootstrap
 import (
 	v1 "gin-web/api/v1"
 	"gin-web/initialize"
+	"gin-web/pkg/job"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"sync"
 )
 
 type App struct {
 	logger        *zap.SugaredLogger
 	viper         *viper.Viper
+	jobRegisterer *job.JobRegisterer
 	httpServer    *initialize.HttpServer
 	attachmentApi *v1.AttachmentApi
 	captchaApi    *v1.CaptchaApi
@@ -21,23 +24,16 @@ type App struct {
 }
 
 func (a *App) Run() {
+	if err := a.jobRegisterer.RegisterJobsAndStart(); err != nil {
+		panic(err)
+	}
 	a.httpServer.Run()
 }
 
 func (a *App) Close() {
+	defer a.logger.Info("app clean is executed")
+	group := sync.WaitGroup{}
+	group.Add(1)
+	go a.jobRegisterer.Stop(&group)
+	group.Wait()
 }
-
-//func Clean() {
-//	defer global.Logger.Info("Clean is executed")
-//	group := sync.WaitGroup{}
-//	group.Add(1)
-//	go cleanCronJob(&group)
-//	group.Wait()
-//}
-
-//func cleanCronJob(group *sync.WaitGroup) {
-//	defer group.Done()
-//	ctx := global.Cron.Stop()
-//	<-ctx.Done()
-//	global.Logger.Info("Cron jobs have been stopped")
-//}

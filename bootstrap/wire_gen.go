@@ -11,6 +11,7 @@ import (
 	"gin-web/initialize"
 	"gin-web/middleware"
 	"gin-web/pkg/email"
+	"gin-web/pkg/job"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/utils"
 	"gin-web/repository"
@@ -26,6 +27,9 @@ func WireApp() *App {
 	viper := initialize.NewViper()
 	writeSyncer := initialize.NewWriterSyncer(viper)
 	sugaredLogger := initialize.NewZapLogger(viper, writeSyncer)
+	cronLogger := initialize.NewCronLogger(sugaredLogger)
+	cron := initialize.NewCronClient(cronLogger)
+	jobRegisterer := job.NewJobRegisterer(cronLogger, cron, sugaredLogger, viper)
 	dialer := initialize.NewDialer(viper)
 	emailClient := email.NewEmailClient(sugaredLogger, dialer, viper)
 	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger, viper)
@@ -67,6 +71,7 @@ func WireApp() *App {
 	app := &App{
 		logger:        sugaredLogger,
 		viper:         viper,
+		jobRegisterer: jobRegisterer,
 		httpServer:    httpServer,
 		attachmentApi: attachmentApi,
 		captchaApi:    captchaApi,

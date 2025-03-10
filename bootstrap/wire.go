@@ -8,6 +8,7 @@ import (
 	"gin-web/api"
 	"gin-web/initialize"
 	"gin-web/pkg/email"
+	"gin-web/pkg/job"
 	"gin-web/pkg/utils"
 	"gin-web/router"
 	"github.com/gin-gonic/gin"
@@ -26,12 +27,15 @@ func WireApp() *App {
 		initialize.NewServer,
 		initialize.NewGORM,
 		initialize.NewRedisClient,
+		initialize.NewCronLogger,
+		initialize.NewCronClient,
 		email.NewEmailClient,
 		wire.Bind(new(http.Handler), new(*gin.Engine)),
 		wire.Bind(new(initialize.EngineLogger), new(zapcore.WriteSyncer)),
 		wire.Bind(new(initialize.RedisClientLogger), new(zapcore.WriteSyncer)),
 		utils.NewRedisLocksmith,
 		router.NewRouter,
+		job.NewJobRegisterer,
 		api.V1Provider,
 		wire.Struct(new(App), "*"),
 	)
