@@ -45,11 +45,14 @@ func wireApp() *App {
 	tokenBuilder := jwt.NewJwtBuilder(db, commonRedisClient, viper, userRepository)
 	authMiddleware := middleware.NewAuthMiddleware(viper, userRepository, tokenBuilder)
 	attachmentApi := v1.NewAttachmentApi(routerGroup, attachmentService, authMiddleware, viper)
+	captchaService := service.NewCaptchaService()
+	captchaApi := v1.NewCaptchaApi(routerGroup, captchaService)
 	app := &App{
 		logger:        sugaredLogger,
 		viper:         viper,
 		httpServer:    httpServer,
 		attachmentApi: attachmentApi,
+		captchaApi:    captchaApi,
 	}
 	return app
 }

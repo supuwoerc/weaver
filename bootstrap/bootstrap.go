@@ -12,6 +12,8 @@ type App struct {
 	viper         *viper.Viper
 	httpServer    *initialize.HttpServer
 	attachmentApi *v1.AttachmentApi
+	captchaApi    *v1.CaptchaApi
+	//departmentApi *v1.DepartmentApi
 }
 
 func RunApp() {

@@ -14,19 +14,7 @@ import (
 // V1Provider api-provider集合
 var V1Provider = wire.NewSet(
 	AttachmentApiProvider,
-)
-
-var authMiddlewareProvider = wire.NewSet(
-	middleware.NewAuthMiddleware,
-	jwt.NewJwtBuilder,
-	wire.Bind(new(jwt.TokenBuilderRepo), new(*repository.UserRepository)),
-	wire.Bind(new(middleware.AuthMiddlewareTokenRepo), new(*repository.UserRepository)),
-	repository.NewUserRepository,
-	wire.Bind(new(repository.UserDAO), new(*dao.UserDAO)),
-	dao.NewBasicDao,
-	dao.NewUserDAO,
-	wire.Bind(new(repository.UserCache), new(*cache.UserCache)),
-	cache.NewUserCache,
+	CaptchaApiProvider,
 )
 
 var AttachmentApiProvider = wire.NewSet(
@@ -38,5 +26,33 @@ var AttachmentApiProvider = wire.NewSet(
 	repository.NewAttachmentRepository,
 	wire.Bind(new(repository.AttachmentDAO), new(*dao.AttachmentDAO)),
 	dao.NewAttachmentDAO,
-	authMiddlewareProvider,
+	dao.NewBasicDao,
+	middleware.NewAuthMiddleware,
+	wire.Bind(new(middleware.AuthMiddlewareTokenRepo), new(*repository.UserRepository)),
+	repository.NewUserRepository,
+	wire.Bind(new(repository.UserDAO), new(*dao.UserDAO)),
+	wire.Bind(new(repository.UserCache), new(*cache.UserCache)),
+	dao.NewUserDAO,
+	cache.NewUserCache,
+	jwt.NewJwtBuilder,
+	wire.Bind(new(jwt.TokenBuilderRepo), new(*repository.UserRepository)),
+)
+
+var CaptchaApiProvider = wire.NewSet(
+	v1.NewCaptchaApi,
+	wire.Bind(new(v1.CaptchaService), new(*service.CaptchaService)),
+	service.NewCaptchaService,
+)
+
+var DepartmentApiProvider = wire.NewSet(
+	v1.NewDepartmentApi,
+	wire.Bind(new(v1.DepartmentService), new(*service.DepartmentService)),
+	service.NewDepartmentService,
+	wire.Bind(new(service.DepartmentRepository), new(*repository.DepartmentRepository)),
+	wire.Bind(new(service.UserRepository), new(*repository.UserRepository)),
+	repository.NewDepartmentRepository,
+	wire.Bind(new(repository.DepartmentDAO), new(*dao.DepartmentDAO)),
+	dao.NewDepartmentDAO,
+	wire.Bind(new(repository.DepartmentCache), new(*cache.DepartmentCache)),
+	cache.NewDepartmentCache,
 )
