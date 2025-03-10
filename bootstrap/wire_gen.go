@@ -22,7 +22,7 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp() *App {
+func WireApp() *App {
 	viper := initialize.NewViper()
 	writeSyncer := initialize.NewWriterSyncer(viper)
 	sugaredLogger := initialize.NewZapLogger(viper, writeSyncer)

@@ -8,10 +8,12 @@ import (
 var isCli = false
 
 func main() {
-	if isCli {
+	switch {
+	case isCli:
 		cmd.Execute()
-	} else {
-		defer bootstrap.CleanApp()
-		bootstrap.RunApp()
+	default:
+		app := bootstrap.WireApp()
+		defer app.Close()
+		app.Run()
 	}
 }

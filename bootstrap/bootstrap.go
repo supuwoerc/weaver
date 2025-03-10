@@ -20,25 +20,13 @@ type App struct {
 	userApi       *v1.UserApi
 }
 
-func RunApp() {
-	app := wireApp()
-	app.httpServer.Run()
+func (a *App) Run() {
+	a.httpServer.Run()
 }
-func CleanApp() {}
 
-//func Start() {
-//	initialize.NewViper()
-//	global.Logger = initialize.NewZapLogger()
-//	global.DB = initialize.InitGORM()
-//	global.RedisClient = initialize.NewRedisClient(initialize.LoggerSyncer)
-//	global.Dialer = initialize.InitDialer()
-//	global.Cron, global.CronLogger = initialize.InitCron(global.Logger)
-//	if err := RegisterJobs(); err != nil {
-//		panic(err)
-//	}
-//	initialize.NewServer(initialize.NewEngine(initialize.LoggerSyncer))
-//}
-//
+func (a *App) Close() {
+}
+
 //func Clean() {
 //	defer global.Logger.Info("Clean is executed")
 //	group := sync.WaitGroup{}

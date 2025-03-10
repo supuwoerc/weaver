@@ -16,7 +16,7 @@ import (
 	"net/http"
 )
 
-func wireApp() *App {
+func WireApp() *App {
 	wire.Build(
 		initialize.NewViper,
 		initialize.NewWriterSyncer,
