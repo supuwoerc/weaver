@@ -47,12 +47,34 @@ func wireApp() *App {
 	attachmentApi := v1.NewAttachmentApi(routerGroup, attachmentService, authMiddleware, viper)
 	captchaService := service.NewCaptchaService()
 	captchaApi := v1.NewCaptchaApi(routerGroup, captchaService)
+	departmentDAO := dao.NewDepartmentDAO(basicDAO)
+	departmentCache := cache.NewDepartmentCache(commonRedisClient)
+	departmentRepository := repository.NewDepartmentRepository(departmentDAO, departmentCache)
+	departmentService := service.NewDepartmentService(basicService, departmentRepository, userRepository)
+	departmentApi := v1.NewDepartmentApi(routerGroup, departmentService, authMiddleware)
+	permissionDAO := dao.NewPermissionDAO(basicDAO)
+	permissionRepository := repository.NewPermissionRepository(permissionDAO)
+	roleDAO := dao.NewRoleDAO(basicDAO)
+	roleRepository := repository.NewRoleRepository(roleDAO)
+	permissionService := service.NewPermissionService(basicService, permissionRepository, roleRepository)
+	permissionApi := v1.NewPermissionApi(routerGroup, permissionService, authMiddleware)
+	pingService := service.NewPingService(basicService)
+	pingApi := v1.NewPingApi(routerGroup, pingService, authMiddleware)
+	roleService := service.NewRoleService(basicService, roleRepository, userRepository, permissionRepository)
+	roleApi := v1.NewRoleApi(routerGroup, roleService, authMiddleware)
+	userService := service.NewUserService(basicService, captchaService, roleRepository, userRepository, emailClient, tokenBuilder)
+	userApi := v1.NewUserApi(routerGroup, userService, authMiddleware)
 	app := &App{
 		logger:        sugaredLogger,
 		viper:         viper,
 		httpServer:    httpServer,
 		attachmentApi: attachmentApi,
 		captchaApi:    captchaApi,
+		departmentApi: departmentApi,
+		permissionApi: permissionApi,
+		pingApi:       pingApi,
+		roleApi:       roleApi,
+		userApi:       userApi,
 	}
 	return app
 }

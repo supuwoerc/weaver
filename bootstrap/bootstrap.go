@@ -13,7 +13,11 @@ type App struct {
 	httpServer    *initialize.HttpServer
 	attachmentApi *v1.AttachmentApi
 	captchaApi    *v1.CaptchaApi
-	//departmentApi *v1.DepartmentApi
+	departmentApi *v1.DepartmentApi
+	permissionApi *v1.PermissionApi
+	pingApi       *v1.PingApi
+	roleApi       *v1.RoleApi
+	userApi       *v1.UserApi
 }
 
 func RunApp() {
