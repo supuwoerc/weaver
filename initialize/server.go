@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	host        string = "127.0.0.1"
+	host        string = "0.0.0.0"
 	defaultPort int    = 8080
 )
 
