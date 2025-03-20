@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APP_NAME="learn_gin_web"
+APP_NAME="weaver"
 DEPLOY_DIR=$(cd "$(dirname "$0")" && pwd)
 APP_BINARY="$DEPLOY_DIR/$APP_NAME"
 LOG_FILE="$DEPLOY_DIR/$APP_NAME.log"

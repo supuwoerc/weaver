@@ -24,12 +24,12 @@ jobs:
       - name: Build-Application
         run: |
           export GIN_MODE=release
-          GOOS=linux go build -o weave -v
+          GOOS=linux go build -o weaver -v
 
       - name: Build-CLI
         run: |
           export GIN_MODE=release
-          GOOS=linux go build -o weave_cli -tags cli -v
+          GOOS=linux go build -o weaver_cli -tags cli -v
 
       - name: Copy-Build-Result-And-Script
         uses: appleboy/scp-action@master
@@ -38,8 +38,8 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
-          source: weave,weave_cli,run.sh,pkg/locale/,templates/,config/default.yml
-          target: /var/www/weave
+          source: weaver,weaver_cli,run.sh,pkg/locale/,templates/,config/default.yml
+          target: /var/www/weaver
 
       - name: Deploy-Application-To-Ubuntu
         uses: appleboy/ssh-action@master
@@ -49,7 +49,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
           script: |
-            cd /var/www/weave
+            cd /var/www/weaver
             ls -l
             chmod +x ./run.sh
             ./run.sh
