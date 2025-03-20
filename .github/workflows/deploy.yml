@@ -1,4 +1,4 @@
-name: Deploy-Learn-Gin-Web
+name: Deploy-Application
 on:
   push:
     branches:
@@ -24,12 +24,12 @@ jobs:
       - name: Build-Application
         run: |
           export GIN_MODE=release
-          GOOS=linux go build -o learn_gin_web -v
+          GOOS=linux go build -o weave -v
 
       - name: Build-CLI
         run: |
           export GIN_MODE=release
-          GOOS=linux go build -o learn_gin_web_cli -tags cli -v
+          GOOS=linux go build -o weave_cli -tags cli -v
 
       - name: Copy-Build-Result-And-Script
         uses: appleboy/scp-action@master
@@ -38,8 +38,8 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
-          source: learn_gin_web,learn_gin_web_cli,run.sh,pkg/locale/,templates/,config/default.yml
-          target: /var/www/learn-gin-web
+          source: weave,weave_cli,run.sh,pkg/locale/,templates/,config/default.yml
+          target: /var/www/weave
 
       - name: Deploy-Application-To-Ubuntu
         uses: appleboy/ssh-action@master
@@ -49,7 +49,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
           script: |
-            cd /var/www/learn-gin-web
+            cd /var/www/weave
             ls -l
             chmod +x ./run.sh
             ./run.sh
