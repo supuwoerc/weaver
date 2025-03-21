@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="build cli" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="go mod tidy &amp;&amp; go generate ./... &amp;&amp; go build -o learn_gin_web_cli -tags cli -v" />
+    <option name="SCRIPT_TEXT" value="go mod tidy &amp;&amp; go generate ./... &amp;&amp; go build -o weaver_cli -tags cli -v" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />
