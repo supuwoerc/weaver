@@ -1,14 +1,25 @@
+env: prod
+system:
+  email:
+    host: smtp.qq.com
+    port: 465
+    user: xxx@qq.com
+    password: xxx
+  hooks:
+    launch:
+      - registerJobs
 server:
-  port: 8100
+  port: 8804
 redis:
-  addr: localhost:6379
-  password:
+  addr: 1.2.3.4:6379
+  password: xxx
   db: 0
 mysql:
-  dsn: gin_web:gin_web@tcp(127.0.0.1:3306)/gin_web?charset=utf8mb4&parseTime=True&loc=Local
+  dsn: gin_web:xxx@tcp(1.2.3.4:3306)/gin_web?charset=utf8mb4&parseTime=True&loc=Local
   maxIdleConn: 10
   maxOpenConn: 10
+  maxLifetime: 60 # 分钟
 gorm:
   logLevel: 2
 logger:
-  level: 1
+  level: 0
