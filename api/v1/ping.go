@@ -28,7 +28,7 @@ func NewPingApi(route *gin.RouterGroup, service PingService, authMiddleware *mid
 	{
 		group.GET("", pinApi.Ping)
 		group.GET("exception", pinApi.Exception)
-		group.GET("check-permission", authMiddleware.PermissionRequired(), pinApi.CheckPermission)
+		group.GET("check-permission", authMiddleware.LoginRequired(), authMiddleware.PermissionRequired(), pinApi.CheckPermission)
 		group.GET("slow", pinApi.SlowResponse)
 		group.GET("check-lock", pinApi.LockResponse)
 	}

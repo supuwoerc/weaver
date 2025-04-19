@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"gin-web/conf"
 	"gin-web/pkg/database"
 	"gin-web/pkg/utils"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"runtime/debug"
@@ -16,20 +16,20 @@ type BasicService struct {
 	logger    *zap.SugaredLogger
 	db        *gorm.DB
 	locksmith *utils.RedisLocksmith
-	viper     *viper.Viper
+	conf      *conf.Config
 }
 
 func NewBasicService(
 	logger *zap.SugaredLogger,
 	db *gorm.DB,
 	locksmith *utils.RedisLocksmith,
-	viper *viper.Viper,
+	conf *conf.Config,
 ) *BasicService {
 	return &BasicService{
 		logger:    logger,
 		db:        db,
 		locksmith: locksmith,
-		viper:     viper,
+		conf:      conf,
 	}
 }
 

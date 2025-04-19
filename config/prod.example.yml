@@ -4,22 +4,20 @@ system:
     host: smtp.qq.com
     port: 465
     user: xxx@qq.com
-    password: xxx
+    password: 123
   hooks:
     launch:
       - registerJobs
-server:
-  port: 8804
-redis:
-  addr: 1.2.3.4:6379
-  password: xxx
-  db: 0
-mysql:
-  dsn: gin_web:xxx@tcp(1.2.3.4:3306)/gin_web?charset=utf8mb4&parseTime=True&loc=Local
-  maxIdleConn: 10
-  maxOpenConn: 10
-  maxLifetime: 60 # 分钟
-gorm:
-  logLevel: 2
 logger:
   level: 0
+  stdout: true
+  gorm_level: 2
+redis:
+  addr: 1.2.3.4:6379
+  password: 123
+  db: 0
+mysql:
+  dsn: gin_web:1@tcp(1.2.3.4:3306)/gin_web?charset=utf8mb4&parseTime=True&loc=Local
+  max_idle_conn: 10
+  max_open_conn: 10
+  max_life_time: 60 # 分钟

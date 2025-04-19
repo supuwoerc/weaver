@@ -2,8 +2,8 @@ package email
 
 import (
 	"bytes"
+	"gin-web/conf"
 	"gin-web/pkg/constant"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 	"html/template"
@@ -13,19 +13,19 @@ import (
 type EmailClient struct {
 	logger *zap.SugaredLogger
 	dialer *gomail.Dialer
-	viper  *viper.Viper
+	conf   *conf.Config
 }
 
-func NewEmailClient(logger *zap.SugaredLogger, dialer *gomail.Dialer, v *viper.Viper) *EmailClient {
+func NewEmailClient(logger *zap.SugaredLogger, dialer *gomail.Dialer, conf *conf.Config) *EmailClient {
 	return &EmailClient{
 		logger: logger,
 		dialer: dialer,
-		viper:  v,
+		conf:   conf,
 	}
 }
 
 func (e *EmailClient) isProd() bool {
-	return e.viper.GetString("env") == "prod"
+	return e.conf.Env == "prod"
 }
 
 func (e *EmailClient) send(to string, subject constant.Subject, body string, c constant.MIME) error {
@@ -47,7 +47,7 @@ func (e *EmailClient) SendText(to string, subject constant.Subject, body string)
 }
 
 func (e *EmailClient) SendHTML(to string, subject constant.Subject, templatePath constant.Template, data any) error {
-	dir := e.viper.GetString("system.emailTemplateDir")
+	dir := e.conf.System.EmailTemplateDir
 	tmpl, err := template.ParseFiles(filepath.Join(dir, string(filepath.Separator), string(templatePath)))
 	if err != nil {
 		return err

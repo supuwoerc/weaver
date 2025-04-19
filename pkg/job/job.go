@@ -1,11 +1,11 @@
 package job
 
 import (
+	"gin-web/conf"
 	"gin-web/initialize"
 	"gin-web/pkg/constant"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"sync"
 	"time"
@@ -22,44 +22,43 @@ var (
 	mapping = make(map[string]cron.EntryID)
 )
 
-type JobRegisterer struct {
+type SystemJobRegisterer struct {
 	cronLogger *initialize.CronLogger
 	cronClient *cron.Cron
 	logger     *zap.SugaredLogger
-	viper      *viper.Viper
+	conf       *conf.Config
 }
 
-func NewJobRegisterer(cl *initialize.CronLogger, c *cron.Cron, logger *zap.SugaredLogger, v *viper.Viper) *JobRegisterer {
-	return &JobRegisterer{
+func NewJobRegisterer(cl *initialize.CronLogger, c *cron.Cron, logger *zap.SugaredLogger, conf *conf.Config) *SystemJobRegisterer {
+	return &SystemJobRegisterer{
 		cronLogger: cl,
 		cronClient: c,
 		logger:     logger,
-		viper:      v,
+		conf:       conf,
 	}
 }
 
-func (jr *JobRegisterer) skip(f func()) cron.Job {
+func (jr *SystemJobRegisterer) skip(f func()) cron.Job {
 	w := cron.FuncJob(f)
 	// https://github.com/robfig/cron/issues/366
 	wrapJob := cron.NewChain(cron.SkipIfStillRunning(jr.cronLogger), jr.cronLogger.CronRecover()).Then(&w)
 	return wrapJob
 }
 
-func (jr *JobRegisterer) delay(f func()) cron.Job {
+func (jr *SystemJobRegisterer) delay(f func()) cron.Job {
 	w := cron.FuncJob(f)
 	wrapJob := cron.NewChain(cron.DelayIfStillRunning(jr.cronLogger), jr.cronLogger.CronRecover()).Then(&w)
 	return wrapJob
 }
 
-func (jr *JobRegisterer) initSystemJobs() []SystemJob {
+func (jr *SystemJobRegisterer) initSystemJobs() []SystemJob {
 	return []SystemJob{
 		NewServerStatus(10*time.Second, jr.logger),
 	}
 }
 
-func (jr *JobRegisterer) RegisterJobsAndStart() error {
-	key := "system.hooks.launch"
-	onLaunch := jr.viper.GetStringSlice(key)
+func (jr *SystemJobRegisterer) RegisterJobsAndStart() error {
+	onLaunch := jr.conf.System.Hooks.Launch
 	if lo.Contains(onLaunch, constant.RegisterJobs) {
 		for _, j := range jr.initSystemJobs() {
 			mode := j.IfStillRunning()
@@ -83,15 +82,15 @@ func (jr *JobRegisterer) RegisterJobsAndStart() error {
 			jr.logger.Infow("Register job", "name", name, "interval", j.Interval(), "id", id)
 		}
 	} else {
-		jr.logger.Infof("No [%s] found in [%s]", constant.RegisterJobs, key)
+		jr.logger.Infof("No [%s] found in hooks config", constant.RegisterJobs)
 	}
 	jr.cronClient.Start()
 	return nil
 }
 
-func (jr *JobRegisterer) Stop(group *sync.WaitGroup) {
+func (jr *SystemJobRegisterer) Stop(group *sync.WaitGroup) {
 	defer group.Done()
 	ctx := jr.cronClient.Stop()
 	<-ctx.Done()
-	jr.logger.Info("JobRegisterer:cron jobs have been stopped")
+	jr.logger.Info("SystemJobRegisterer:cron jobs have been stopped")
 }

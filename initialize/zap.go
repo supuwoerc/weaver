@@ -2,7 +2,7 @@ package initialize
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
+	"gin-web/conf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -12,19 +12,18 @@ import (
 	"time"
 )
 
-func NewZapLogger(v *viper.Viper, sync zapcore.WriteSyncer) *zap.SugaredLogger {
-	level := v.Get("logger.level")
-	logMode := level.(int)
-	core := zapcore.NewCore(getEncoder(), sync, zapcore.Level(logMode))
+func NewZapLogger(conf *conf.Config, sync zapcore.WriteSyncer) *zap.SugaredLogger {
+	level := conf.Logger.Level
+	core := zapcore.NewCore(getEncoder(), sync, zapcore.Level(level))
 	return zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel)).Sugar()
 }
-func NewWriterSyncer(v *viper.Viper) zapcore.WriteSyncer {
+func NewWriterSyncer(conf *conf.Config) zapcore.WriteSyncer {
 	projectDir, err := os.Getwd()
-	write2Stdout := v.GetBool("logger.stdout")
-	targetDir := v.GetString("logger.dir")
-	maxSize := v.GetInt("logger.maxSize")
-	maxBackups := v.GetInt("logger.maxBackups")
-	maxAge := v.GetInt("logger.maxAge")
+	write2Stdout := conf.Logger.Stdout
+	targetDir := conf.Logger.Dir
+	maxSize := conf.Logger.MaxSize
+	maxBackups := conf.Logger.MaxBackups
+	maxAge := conf.Logger.MaxAge
 	if err != nil {
 		panic(err)
 	}

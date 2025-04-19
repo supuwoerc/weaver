@@ -3,12 +3,12 @@ package middleware
 import (
 	"context"
 	"errors"
+	"gin-web/conf"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"net/http"
 	"strings"
 )
@@ -34,14 +34,14 @@ type AuthMiddlewareTokenRepo interface {
 }
 
 type AuthMiddleware struct {
-	viper      *viper.Viper
+	conf       *conf.Config
 	tokenRepo  AuthMiddlewareTokenRepo
 	jwtBuilder *jwt.TokenBuilder
 }
 
-func NewAuthMiddleware(v *viper.Viper, tokenRepo AuthMiddlewareTokenRepo, jwtBuilder *jwt.TokenBuilder) *AuthMiddleware {
+func NewAuthMiddleware(conf *conf.Config, tokenRepo AuthMiddlewareTokenRepo, jwtBuilder *jwt.TokenBuilder) *AuthMiddleware {
 	return &AuthMiddleware{
-		viper:      v,
+		conf:       conf,
 		tokenRepo:  tokenRepo,
 		jwtBuilder: jwtBuilder,
 	}
@@ -49,9 +49,9 @@ func NewAuthMiddleware(v *viper.Viper, tokenRepo AuthMiddlewareTokenRepo, jwtBui
 
 // LoginRequired 检查token和refresh_token的有效性
 func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
-	tokenKey := l.viper.GetString("jwt.tokenKey")
-	refreshTokenKey := l.viper.GetString("jwt.refreshTokenKey")
-	prefix := l.viper.GetString("jwt.tokenPrefix")
+	tokenKey := l.conf.JWT.TokenKey
+	refreshTokenKey := l.conf.JWT.RefreshTokenKey
+	prefix := l.conf.JWT.TokenPrefix
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader(tokenKey)
 		if token == "" || !strings.HasPrefix(token, prefix) {

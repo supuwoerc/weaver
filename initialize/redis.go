@@ -3,11 +3,11 @@ package initialize
 import (
 	"context"
 	"fmt"
+	"gin-web/conf"
 	local "gin-web/pkg/redis"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	goredislib "github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
 	"io"
 	"net"
 	"strings"
@@ -75,11 +75,11 @@ func (r *redisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) g
 
 type RedisClientLogger io.Writer
 
-func NewRedisClient(logger RedisClientLogger, v *viper.Viper) *local.CommonRedisClient {
+func NewRedisClient(logger RedisClientLogger, conf *conf.Config) *local.CommonRedisClient {
 	client := goredislib.NewClient(&goredislib.Options{
-		Addr:     v.GetString("redis.addr"),
-		Password: v.GetString("redis.password"),
-		DB:       v.GetInt("redis.db"),
+		Addr:     conf.Redis.Addr,
+		Password: conf.Redis.Password,
+		DB:       conf.Redis.DB,
 	})
 	client.AddHook(&redisLogger{
 		logger: logger,

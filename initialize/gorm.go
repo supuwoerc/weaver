@@ -1,7 +1,7 @@
 package initialize
 
 import (
-	"github.com/spf13/viper"
+	"gin-web/conf"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -11,16 +11,15 @@ import (
 
 const TablePrefix = "sys_"
 
-func NewGORM(v *viper.Viper) *gorm.DB {
-	dsn := v.GetString("mysql.dsn")
-	logLevel := v.Get("gorm.logLevel")
-	level := logLevel.(int)
+func NewGORM(conf *conf.Config) *gorm.DB {
+	dsn := conf.Mysql.DSN
+	logLevel := conf.Logger.GormLevel
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   TablePrefix,
 			SingularTable: true,
 		},
-		Logger: logger.Default.LogMode(logger.LogLevel(level)),
+		Logger: logger.Default.LogMode(logger.LogLevel(logLevel)),
 	})
 	if err != nil {
 		panic(err)
@@ -29,9 +28,9 @@ func NewGORM(v *viper.Viper) *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	maxIdleConn := v.GetInt("mysql.maxIdleConn")
-	maxOpenConn := v.GetInt("mysql.maxOpenConn")
-	maxLifetime := v.GetDuration("mysql.maxLifetime")
+	maxIdleConn := conf.Mysql.MaxIdleConn
+	maxOpenConn := conf.Mysql.MaxOpenConn
+	maxLifetime := conf.Mysql.MaxLifetime
 	link.SetMaxIdleConns(maxIdleConn)
 	link.SetMaxOpenConns(maxOpenConn)
 	link.SetConnMaxLifetime(time.Minute * maxLifetime)

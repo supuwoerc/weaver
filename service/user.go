@@ -113,8 +113,8 @@ func (u *UserService) sendActiveEmail(ctx context.Context, uid uint, email strin
 
 func (u *UserService) generateActiveURL(ctx context.Context, uid uint) (string, error) {
 	activeCode := lo.RandomString(constant.UserActiveCodeLength, lo.LettersCharset)
-	baseURL := u.viper.GetString("system.baseURL")
-	expiration := u.viper.GetDuration("account.expiration")
+	baseURL := u.conf.System.BaseURL
+	expiration := u.conf.Account.Expiration
 	if err := u.userRepository.CacheActiveAccountCode(ctx, uid, activeCode, expiration*time.Second); err != nil {
 		return "", err
 	}

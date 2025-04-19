@@ -25,21 +25,21 @@ import (
 // Injectors from wire.go:
 
 func WireApp() *App {
-	viper := initialize.NewViper()
-	writeSyncer := initialize.NewWriterSyncer(viper)
-	sugaredLogger := initialize.NewZapLogger(viper, writeSyncer)
+	config := initialize.NewViper()
+	writeSyncer := initialize.NewWriterSyncer(config)
+	sugaredLogger := initialize.NewZapLogger(config, writeSyncer)
 	cronLogger := initialize.NewCronLogger(sugaredLogger)
 	cron := initialize.NewCronClient(cronLogger)
-	jobRegisterer := job.NewJobRegisterer(cronLogger, cron, sugaredLogger, viper)
-	dialer := initialize.NewDialer(viper)
-	emailClient := email.NewEmailClient(sugaredLogger, dialer, viper)
-	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger, viper)
-	httpServer := initialize.NewServer(viper, engine, sugaredLogger)
-	routerGroup := router.NewRouter(engine, viper)
-	db := initialize.NewGORM(viper)
-	commonRedisClient := initialize.NewRedisClient(writeSyncer, viper)
+	systemJobRegisterer := job.NewJobRegisterer(cronLogger, cron, sugaredLogger, config)
+	dialer := initialize.NewDialer(config)
+	emailClient := email.NewEmailClient(sugaredLogger, dialer, config)
+	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger, config)
+	httpServer := initialize.NewServer(config, engine, sugaredLogger)
+	routerGroup := router.NewRouter(engine, config)
+	db := initialize.NewGORM(config)
+	commonRedisClient := initialize.NewRedisClient(writeSyncer, config)
 	redisLocksmith := utils.NewRedisLocksmith(sugaredLogger, commonRedisClient)
-	basicService := service.NewBasicService(sugaredLogger, db, redisLocksmith, viper)
+	basicService := service.NewBasicService(sugaredLogger, db, redisLocksmith, config)
 	basicDAO := dao.NewBasicDao(db)
 	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
 	attachmentRepository := repository.NewAttachmentRepository(attachmentDAO)
@@ -47,10 +47,10 @@ func WireApp() *App {
 	userDAO := dao.NewUserDAO(basicDAO)
 	userCache := cache.NewUserCache(commonRedisClient)
 	userRepository := repository.NewUserRepository(userDAO, userCache)
-	tokenBuilder := jwt.NewJwtBuilder(db, commonRedisClient, viper, userRepository)
-	authMiddleware := middleware.NewAuthMiddleware(viper, userRepository, tokenBuilder)
-	attachmentApi := v1.NewAttachmentApi(routerGroup, attachmentService, authMiddleware, viper)
-	redisStore := captcha.NewRedisStore(commonRedisClient, viper)
+	tokenBuilder := jwt.NewJwtBuilder(db, commonRedisClient, config, userRepository)
+	authMiddleware := middleware.NewAuthMiddleware(config, userRepository, tokenBuilder)
+	attachmentApi := v1.NewAttachmentApi(routerGroup, attachmentService, authMiddleware, config)
+	redisStore := captcha.NewRedisStore(commonRedisClient, config)
 	captchaService := service.NewCaptchaService(redisStore)
 	captchaApi := v1.NewCaptchaApi(routerGroup, captchaService)
 	departmentDAO := dao.NewDepartmentDAO(basicDAO)
@@ -72,8 +72,8 @@ func WireApp() *App {
 	userApi := v1.NewUserApi(routerGroup, userService, authMiddleware)
 	app := &App{
 		logger:        sugaredLogger,
-		viper:         viper,
-		jobRegisterer: jobRegisterer,
+		conf:          config,
+		jobRegisterer: systemJobRegisterer,
 		httpServer:    httpServer,
 		attachmentApi: attachmentApi,
 		captchaApi:    captchaApi,

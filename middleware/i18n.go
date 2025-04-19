@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
+	"gin-web/conf"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -12,7 +13,6 @@ import (
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/spf13/viper"
 	"golang.org/x/text/language"
 	"io/fs"
 	"os"
@@ -51,12 +51,12 @@ func loadJsonFiles(dir string) ([]*i18n.Message, error) {
 }
 
 type I18NMiddleware struct {
-	viper *viper.Viper
+	conf *conf.Config
 }
 
-func NewI18NMiddleware(v *viper.Viper) *I18NMiddleware {
+func NewI18NMiddleware(conf *conf.Config) *I18NMiddleware {
 	return &I18NMiddleware{
-		viper: v,
+		conf: conf,
 	}
 }
 
@@ -82,10 +82,10 @@ func (i *I18NMiddleware) I18N() gin.HandlerFunc {
 	if err != nil {
 		panic(err)
 	}
-	defaultLang := i.viper.GetString("system.defaultLang")
+	defaultLang := i.conf.System.DefaultLang
 	cnLocalizer := i18n.NewLocalizer(bundle, language.Chinese.String())
 	enLocalizer := i18n.NewLocalizer(bundle, language.English.String())
-	localeKey := i.viper.GetString("system.defaultLocaleKey")
+	localeKey := i.conf.System.DefaultLocaleKey
 	if strings.TrimSpace(localeKey) == "" {
 		panic("locale key未配置")
 	}
@@ -114,10 +114,10 @@ func (i *I18NMiddleware) InjectTranslator() gin.HandlerFunc {
 	zhTans := zh.New()
 	enTans := en.New()
 	uni := ut.New(enTans, enTans, zhTans)
-	defaultLang := i.viper.GetString("system.defaultLang")
+	defaultLang := i.conf.System.DefaultLang
 	zhTrans, _ := uni.GetTranslator("zh")
 	enTrans, _ := uni.GetTranslator("en")
-	localeKey := i.viper.GetString("system.defaultLocaleKey")
+	localeKey := i.conf.System.DefaultLocaleKey
 	if strings.TrimSpace(localeKey) == "" {
 		panic("locale key未配置")
 	}

@@ -1,24 +1,24 @@
 package middleware
 
 import (
+	"gin-web/conf"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"strings"
 )
 
 type CorsMiddleware struct {
-	viper *viper.Viper
+	conf *conf.Config
 }
 
-func NewCorsMiddleware(v *viper.Viper) *CorsMiddleware {
+func NewCorsMiddleware(conf *conf.Config) *CorsMiddleware {
 	return &CorsMiddleware{
-		viper: v,
+		conf: conf,
 	}
 }
 
 func (c *CorsMiddleware) Cors() gin.HandlerFunc {
-	originPrefix := c.viper.GetStringSlice("cors.originPrefix")
+	originPrefix := c.conf.Cors.OriginPrefix
 	return cors.New(cors.Config{
 		AllowOriginFunc: func(origin string) bool {
 			for _, val := range originPrefix {

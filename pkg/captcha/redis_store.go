@@ -3,9 +3,9 @@ package captcha
 import (
 	"context"
 	"fmt"
+	"gin-web/conf"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/redis"
-	"github.com/spf13/viper"
 	"time"
 )
 
@@ -13,18 +13,18 @@ var ctx = context.Background()
 
 type RedisStore struct {
 	redisClient *redis.CommonRedisClient
-	viper       *viper.Viper
+	conf        *conf.Config
 }
 
-func NewRedisStore(r *redis.CommonRedisClient, v *viper.Viper) *RedisStore {
+func NewRedisStore(r *redis.CommonRedisClient, conf *conf.Config) *RedisStore {
 	return &RedisStore{
 		redisClient: r,
-		viper:       v,
+		conf:        conf,
 	}
 }
 
 func (r *RedisStore) getExpiration() time.Duration {
-	expiration := r.viper.GetDuration("captcha.expiration")
+	expiration := r.conf.Captcha.Expiration
 	return expiration * time.Second
 }
 

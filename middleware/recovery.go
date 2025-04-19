@@ -1,11 +1,11 @@
 package middleware
 
 import (
+	"gin-web/conf"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/email"
 	"gin-web/pkg/response"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"runtime/debug"
 )
@@ -13,19 +13,19 @@ import (
 type RecoveryMiddle struct {
 	emailClient *email.EmailClient
 	logger      *zap.SugaredLogger
-	viper       *viper.Viper
+	conf        *conf.Config
 }
 
-func NewRecoveryMiddleware(emailClient *email.EmailClient, logger *zap.SugaredLogger, v *viper.Viper) *RecoveryMiddle {
+func NewRecoveryMiddleware(emailClient *email.EmailClient, logger *zap.SugaredLogger, conf *conf.Config) *RecoveryMiddle {
 	return &RecoveryMiddle{
 		emailClient: emailClient,
 		logger:      logger,
-		viper:       v,
+		conf:        conf,
 	}
 }
 
 func (r *RecoveryMiddle) Recovery() gin.HandlerFunc {
-	adminEmail := r.viper.GetString("system.admin.email")
+	adminEmail := r.conf.System.Admin.Email
 	return gin.CustomRecovery(func(c *gin.Context, err any) {
 		message := string(debug.Stack())
 		r.logger.Errorf("Recovery panic,堆栈信息:%s", message)

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gin-web/conf"
 	"github.com/facebookgo/grace/gracehttp"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"net/http"
 	"os"
@@ -30,8 +30,8 @@ type HttpServer struct {
 }
 
 // NewServer 创建http服务器
-func NewServer(v *viper.Viper, handle http.Handler, logger *zap.SugaredLogger) *HttpServer {
-	port := v.GetInt("server.port")
+func NewServer(conf *conf.Config, handle http.Handler, logger *zap.SugaredLogger) *HttpServer {
+	port := conf.System.Port
 	if port == 0 {
 		port = defaultPort
 	}

@@ -3,11 +3,11 @@ package jwt
 import (
 	"context"
 	"errors"
+	"gin-web/conf"
 	"gin-web/models"
 	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"time"
 )
@@ -29,15 +29,15 @@ type TokenBuilderRepo interface {
 type TokenBuilder struct {
 	db          *gorm.DB
 	redisClient *redis.CommonRedisClient
-	viper       *viper.Viper
+	conf        *conf.Config
 	repo        TokenBuilderRepo
 }
 
-func NewJwtBuilder(db *gorm.DB, r *redis.CommonRedisClient, v *viper.Viper, repo TokenBuilderRepo) *TokenBuilder {
+func NewJwtBuilder(db *gorm.DB, r *redis.CommonRedisClient, conf *conf.Config, repo TokenBuilderRepo) *TokenBuilder {
 	return &TokenBuilder{
 		db:          db,
 		redisClient: r,
-		viper:       v,
+		conf:        conf,
 		repo:        repo,
 	}
 }
@@ -46,24 +46,24 @@ func NewJwtBuilder(db *gorm.DB, r *redis.CommonRedisClient, v *viper.Viper, repo
 func (j *TokenBuilder) generateToken(user *TokenClaimsBasic, createAt time.Time, duration time.Duration) (string, error) {
 	claims := TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    j.viper.GetString("jwt.issuer"),
+			Issuer:    j.conf.JWT.Issuer,
 			IssuedAt:  jwt.NewNumericDate(createAt),
 			ExpiresAt: jwt.NewNumericDate(createAt.Add(duration)),
 		},
 		User: user,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(j.viper.GetString("jwt.secret")))
+	return token.SignedString([]byte(j.conf.JWT.Secret))
 }
 
 // 生成短token
 func (j *TokenBuilder) generateAccessToken(user *TokenClaimsBasic, createAt time.Time) (string, error) {
-	return j.generateToken(user, createAt, j.viper.GetDuration("jwt.expires")*time.Minute)
+	return j.generateToken(user, createAt, j.conf.JWT.Expires*time.Minute)
 }
 
 // generateRefreshToken 生成长token
 func (j *TokenBuilder) generateRefreshToken(createAt time.Time) (string, error) {
-	return j.generateToken(&TokenClaimsBasic{}, createAt, j.viper.GetDuration("jwt.refreshTokenExpires")*time.Minute)
+	return j.generateToken(&TokenClaimsBasic{}, createAt, j.conf.JWT.RefreshTokenExpires*time.Minute)
 }
 
 type RefreshTokenCallback func(claims *TokenClaims, accessToken, refreshToken string) error
@@ -123,7 +123,7 @@ func (j *TokenBuilder) GenerateAccessAndRefreshToken(user *TokenClaimsBasic) (st
 func (j *TokenBuilder) ParseToken(tokenString string) (*TokenClaims, error) {
 	claims := TokenClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(j.viper.GetString("jwt.secret")), nil
+		return []byte(j.conf.JWT.Secret), nil
 	})
 	if err != nil || !token.Valid {
 		return &claims, response.InvalidToken

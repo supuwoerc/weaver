@@ -2,16 +2,16 @@ package initialize
 
 import (
 	"crypto/tls"
-	"github.com/spf13/viper"
+	"gin-web/conf"
 	"gopkg.in/gomail.v2"
 	"strings"
 )
 
-func NewDialer(v *viper.Viper) *gomail.Dialer {
-	h := v.GetString("system.email.host")
-	p := v.GetInt("system.email.port")
-	u := v.GetString("system.email.user")
-	pwd := v.GetString("system.email.password")
+func NewDialer(conf *conf.Config) *gomail.Dialer {
+	h := conf.System.Email.Host
+	p := conf.System.Email.Port
+	u := conf.System.Email.User
+	pwd := conf.System.Email.Password
 	if strings.TrimSpace(h) == "" {
 		panic("email.host is required")
 	}

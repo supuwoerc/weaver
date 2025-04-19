@@ -2,12 +2,12 @@ package v1
 
 import (
 	"context"
+	"gin-web/conf"
 	"gin-web/middleware"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"mime/multipart"
 )
 
@@ -17,19 +17,19 @@ type AttachmentService interface {
 }
 
 type AttachmentApi struct {
-	viper   *viper.Viper
 	service AttachmentService
+	conf    *conf.Config
 }
 
 func NewAttachmentApi(
 	route *gin.RouterGroup,
 	service AttachmentService,
 	authMiddleware *middleware.AuthMiddleware,
-	viper *viper.Viper,
+	conf *conf.Config,
 ) *AttachmentApi {
 	// 初始化controller
 	attachmentApi := &AttachmentApi{
-		viper:   viper,
+		conf:    conf,
 		service: service,
 	}
 	// 挂载路由
@@ -49,7 +49,7 @@ func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 	}
 	files := form.File["files"]
 	fileLen := len(files)
-	maxUploadLength := a.viper.GetInt("system.maxUploadLength")
+	maxUploadLength := a.conf.System.MaxUploadLength
 	if maxUploadLength == 0 {
 		maxUploadLength = constant.DefaultMaxLength
 	}

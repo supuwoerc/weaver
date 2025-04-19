@@ -2,17 +2,17 @@ package bootstrap
 
 import (
 	v1 "gin-web/api/v1"
+	"gin-web/conf"
 	"gin-web/initialize"
 	"gin-web/pkg/job"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"sync"
 )
 
 type App struct {
 	logger        *zap.SugaredLogger
-	viper         *viper.Viper
-	jobRegisterer *job.JobRegisterer
+	conf          *conf.Config
+	jobRegisterer *job.SystemJobRegisterer
 	httpServer    *initialize.HttpServer
 	attachmentApi *v1.AttachmentApi
 	captchaApi    *v1.CaptchaApi

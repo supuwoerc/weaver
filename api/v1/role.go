@@ -30,7 +30,10 @@ func NewRoleApi(
 		service: service,
 	}
 	// 挂载路由
-	roleAccessGroup := route.Group("role").Use(authMiddleware.PermissionRequired())
+	roleAccessGroup := route.Group("role").Use(
+		authMiddleware.LoginRequired(),
+		authMiddleware.PermissionRequired(),
+	)
 	{
 		roleAccessGroup.POST("create", roleApi.CreateRole)
 		roleAccessGroup.GET("list", roleApi.GetRoleList)

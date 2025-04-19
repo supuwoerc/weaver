@@ -30,7 +30,10 @@ func NewPermissionApi(
 		service: service,
 	}
 	// 挂载路由
-	permissionAccessGroup := route.Group("permission").Use(authMiddleware.PermissionRequired())
+	permissionAccessGroup := route.Group("permission").Use(
+		authMiddleware.LoginRequired(),
+		authMiddleware.PermissionRequired(),
+	)
 	{
 		permissionAccessGroup.POST("create", permissionApi.CreatePermission)
 		permissionAccessGroup.GET("list", permissionApi.GetPermissionList)

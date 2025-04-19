@@ -82,7 +82,7 @@ func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.Fi
 	if temp != nil {
 		return nil, temp
 	}
-	targetDir := a.viper.GetString("system.uploadAttachmentDir")
+	targetDir := a.conf.System.UploadAttachmentDir
 	var uploadAttachmentDir = filepath.Join(targetDir, time.Now().Format(time.DateOnly))
 	if strings.TrimSpace(targetDir) == "" {
 		uploadAttachmentDir = filepath.Join(projectDir, "upload", time.Now().Format(time.DateOnly))

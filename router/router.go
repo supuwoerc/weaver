@@ -1,16 +1,16 @@
 package router
 
 import (
+	"gin-web/conf"
 	"gin-web/middleware"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"net/http"
 )
 
-func NewRouter(r *gin.Engine, v *viper.Viper) *gin.RouterGroup {
+func NewRouter(r *gin.Engine, conf *conf.Config) *gin.RouterGroup {
 	group := r.Group("api/v1")
 	// 国际化中间件
-	i18n := middleware.NewI18NMiddleware(v)
+	i18n := middleware.NewI18NMiddleware(conf)
 	group.Use(i18n.I18N(), i18n.InjectTranslator())
 	return group
 }

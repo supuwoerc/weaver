@@ -1,31 +1,32 @@
 system:
-  baseURL: https://zhangqimeng.fun
-  defaultLang: cn
-  defaultLocaleKey: Locale
-  maxMultipartMemory: 104857600 # 上传文件最大字节数
-  maxUploadLength: 30           # 批量上传时每次最多上传多少个文件
-  uploadAttachmentDir: "./upload"      # 前端上传文件的目录
-  emailTemplateDir: "templates/email"  # 邮件模板目录
-  templateDir: "templates/**/*"
+  port: 8804
+  base_url: https://zhangqimeng.fun
+  default_lang: cn
+  default_locale_key: Locale
+  max_multipart_memory: 104857600 # 上传文件最大字节数
+  max_upload_length: 30           # 批量上传时每次最多上传多少个文件
+  upload_attachment_dir: "./upload"      # 前端上传文件的目录
+  email_template_dir: "templates/email"  # 邮件模板目录
+  template_dir: "templates/**/*"
   admin:
     email: "zhangzhouou@gmail.com"
 jwt:
   expires: 1440              # token过期时长(分钟)
-  refreshTokenExpires: 10080 # refresh_token的过期时长(分钟)
+  refresh_token_expires: 10080 # refresh_token的过期时长(分钟)
   secret: gin_web_secret     # 密钥
   issuer: gin_web            # issuer
-  tokenKey: Authorization           # 客户端token对应的header-key
-  refreshTokenKey: "Refresh-Token"    # 客户端token对应的header-key
-  tokenPrefix: "Bearer "     # token前缀
+  token_key: Authorization           # 客户端token对应的header-key
+  refresh_token_key: "Refresh-Token"    # 客户端token对应的header-key
+  token_prefix: "Bearer "     # token前缀
 logger:
-  maxSize: 1     # 日志文件切割尺寸(m)
-  maxBackups: 10 # 保留文件对最大个数
-  maxAge: 90     # 保留文件对最大天数
+  max_size: 100   # 日志文件切割尺寸(m)
+  max_backups: 10 # 保留文件对最大个数
+  max_age: 90     # 保留文件对最大天数
   level: -1
   dir: "./log"   # 日志文件存放的目录,为空时默认在项目目录下创建log目录存放日志文件
   stdout: false
 cors:
-  originPrefix:
+  origin_prefix:
     - http://localhost
     - http://127.0.0.1
 captcha:
