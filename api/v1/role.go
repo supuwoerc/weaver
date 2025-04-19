@@ -10,10 +10,10 @@ import (
 )
 
 type RoleService interface {
-	CreateRole(ctx context.Context, operator uint, name string, userIds, permissionIds []uint) error
+	CreateRole(ctx context.Context, operator uint, params *request.CreateRoleRequest) error
 	GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*response.RoleListRowResponse, int64, error)
 	GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error)
-	UpdateRole(ctx context.Context, operator uint, id uint, name string, userIds, permissionIds []uint) error
+	UpdateRole(ctx context.Context, operator uint, params *request.UpdateRoleRequest) error
 	DeleteRole(ctx context.Context, id, operator uint) error
 }
 
@@ -55,7 +55,7 @@ func (r *RoleApi) CreateRole(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
-	err = r.service.CreateRole(ctx, claims.User.ID, params.Name, params.Users, params.Permissions)
+	err = r.service.CreateRole(ctx, claims.User.ID, &params)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
@@ -102,7 +102,7 @@ func (r *RoleApi) UpdateRole(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
-	err = r.service.UpdateRole(ctx, claims.User.ID, params.ID, params.Name, params.Users, params.Permissions)
+	err = r.service.UpdateRole(ctx, claims.User.ID, &params)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

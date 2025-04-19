@@ -6,6 +6,7 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/database"
+	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/samber/lo"
@@ -61,8 +62,8 @@ func (r *RoleService) lockRoleField(ctx context.Context, name string, permission
 	return locks, nil
 }
 
-func (r *RoleService) CreateRole(ctx context.Context, operator uint, name string, userIds, permissionIds []uint) error {
-	locks, err := r.lockRoleField(ctx, name, permissionIds)
+func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *request.CreateRoleRequest) error {
+	locks, err := r.lockRoleField(ctx, params.Name, params.Permissions)
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
@@ -76,7 +77,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, name string
 	// TODO:记录信息到用户时间线
 	return r.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existRole, temp := r.roleRepository.GetByName(ctx, name)
+		existRole, temp := r.roleRepository.GetByName(ctx, params.Name)
 		if temp != nil && !errors.Is(temp, response.RoleNotExist) {
 			return temp
 		}
@@ -85,23 +86,23 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, name string
 		}
 		// 查询有效的用户
 		var users []*models.User
-		if len(userIds) > 0 {
-			users, err = r.userRepository.GetByIds(ctx, userIds, false, false, false)
+		if len(params.Users) > 0 {
+			users, err = r.userRepository.GetByIds(ctx, params.Users, false, false, false)
 			if err != nil {
 				return err
 			}
 		}
 		// 查询有效的权限
 		var permissions []*models.Permission
-		if len(permissionIds) > 0 {
-			permissions, err = r.permissionRepository.GetByIds(ctx, permissionIds, false)
+		if len(params.Permissions) > 0 {
+			permissions, err = r.permissionRepository.GetByIds(ctx, params.Permissions, false)
 			if err != nil {
 				return err
 			}
 		}
 		// 创建角色 & 建立关联关系
 		return r.roleRepository.Create(ctx, &models.Role{
-			Name:        name,
+			Name:        params.Name,
 			Users:       users,
 			Permissions: permissions,
 			CreatorId:   operator,
@@ -128,9 +129,9 @@ func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*response.Rol
 	return response.ToRoleDetailResponse(role), nil
 }
 
-func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, name string, userIds, permissionIds []uint) error {
+func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *request.UpdateRoleRequest) error {
 	// 对角色自身加锁
-	roleLock := r.locksmith.NewLock(constant.RoleIdPrefix, strconv.Itoa(int(id)))
+	roleLock := r.locksmith.NewLock(constant.RoleIdPrefix, strconv.Itoa(int(params.ID)))
 	if err := roleLock.Lock(ctx, true); err != nil {
 		return err
 	}
@@ -140,7 +141,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, na
 		}
 	}(roleLock)
 	// 对 name & permissions 加锁
-	locks, err := r.lockRoleField(ctx, name, permissionIds)
+	locks, err := r.lockRoleField(ctx, params.Name, params.Permissions)
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
@@ -153,19 +154,19 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, na
 	}
 	return r.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existRole, temp := r.roleRepository.GetByName(ctx, name)
+		existRole, temp := r.roleRepository.GetByName(ctx, params.Name)
 		if temp != nil && !errors.Is(temp, response.RoleNotExist) {
 			return temp
 		}
-		if existRole != nil && existRole.ID != id {
+		if existRole != nil && existRole.ID != params.ID {
 			return response.RoleCreateDuplicateName
 		}
 		// 更新角色
 		err = r.roleRepository.Update(ctx, &models.Role{
-			Name:      name,
+			Name:      params.Name,
 			UpdaterId: operator,
 			BasicModel: database.BasicModel{
-				ID: id,
+				ID: params.ID,
 			},
 		})
 		if err != nil {
@@ -173,26 +174,26 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, id uint, na
 		}
 		// 查询有效的用户
 		var users []*models.User
-		if len(userIds) > 0 {
-			users, err = r.userRepository.GetByIds(ctx, userIds, false, false, false)
+		if len(params.Users) > 0 {
+			users, err = r.userRepository.GetByIds(ctx, params.Users, false, false, false)
 			if err != nil {
 				return err
 			}
 		}
 		// 更新关联关系
-		err = r.roleRepository.AssociateUsers(ctx, id, users)
+		err = r.roleRepository.AssociateUsers(ctx, params.ID, users)
 		if err != nil {
 			return err
 		}
 		// 查询有效的权限
 		var permissions []*models.Permission
-		if len(permissionIds) > 0 {
-			permissions, err = r.permissionRepository.GetByIds(ctx, permissionIds, false)
+		if len(params.Permissions) > 0 {
+			permissions, err = r.permissionRepository.GetByIds(ctx, params.Permissions, false)
 			if err != nil {
 				return err
 			}
 		}
-		return r.roleRepository.AssociatePermissions(ctx, id, permissions)
+		return r.roleRepository.AssociatePermissions(ctx, params.ID, permissions)
 	})
 }
 

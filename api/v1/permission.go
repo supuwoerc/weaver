@@ -10,10 +10,10 @@ import (
 )
 
 type PermissionService interface {
-	CreatePermission(ctx context.Context, operator uint, name, resource string, roleIds []uint) error
+	CreatePermission(ctx context.Context, operator uint, params *request.CreatePermissionRequest) error
 	GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*response.PermissionListRowResponse, int64, error)
 	GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error)
-	UpdatePermission(ctx context.Context, operator uint, id uint, name, resource string, roleIds []uint) error
+	UpdatePermission(ctx context.Context, operator uint, params *request.UpdatePermissionRequest) error
 	DeletePermission(ctx context.Context, id, operator uint) error
 }
 
@@ -55,7 +55,7 @@ func (r *PermissionApi) CreatePermission(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
-	err = r.service.CreatePermission(ctx, claims.User.ID, params.Name, params.Resource, params.Roles)
+	err = r.service.CreatePermission(ctx, claims.User.ID, &params)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
@@ -102,7 +102,7 @@ func (r *PermissionApi) UpdatePermission(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
-	err = r.service.UpdatePermission(ctx, claims.User.ID, params.ID, params.Name, params.Resource, params.Roles)
+	err = r.service.UpdatePermission(ctx, claims.User.ID, &params)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

@@ -21,16 +21,21 @@ func NewCaptchaApi(route *gin.RouterGroup, service CaptchaService) *CaptchaApi {
 	// 挂载路由
 	captchaGroup := route.Group("public/captcha")
 	{
-		captchaGroup.GET("generate", captchaApi.GenerateCaptcha)
+		captchaGroup.GET("signup", captchaApi.GenerateSignUpCaptcha)
 	}
 	return captchaApi
 }
 
-func (c *CaptchaApi) GenerateCaptcha(ctx *gin.Context) {
-	res, err := c.service.Generate(constant.SignUp)
+func (c *CaptchaApi) commonGenerate(ctx *gin.Context, t constant.CaptchaType) {
+	res, err := c.service.Generate(t)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return
 	}
 	response.SuccessWithData(ctx, res)
+}
+
+// GenerateSignUpCaptcha 注册验证码
+func (c *CaptchaApi) GenerateSignUpCaptcha(ctx *gin.Context) {
+	c.commonGenerate(ctx, constant.SignUp)
 }

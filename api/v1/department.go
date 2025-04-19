@@ -10,7 +10,7 @@ import (
 )
 
 type DepartmentService interface {
-	CreateDepartment(ctx context.Context, operator uint, name string, parentId *uint, leaderIds, userIds []uint) error
+	CreateDepartment(ctx context.Context, operator uint, params *request.CreateDepartmentRequest) error
 	GetDepartmentTree(ctx context.Context, crew bool) ([]*response.DepartmentTreeResponse, error)
 }
 
@@ -46,7 +46,7 @@ func (r *DepartmentApi) CreateDepartment(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.AuthErr)
 		return
 	}
-	err = r.service.CreateDepartment(ctx, claims.User.ID, params.Name, params.ParentId, params.Leaders, params.Users)
+	err = r.service.CreateDepartment(ctx, claims.User.ID, &params)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

@@ -4,6 +4,7 @@ import (
 	"context"
 	"gin-web/models"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/pkg/errors"
@@ -59,8 +60,8 @@ func (p *DepartmentService) lockDepartmentField(ctx context.Context, name string
 	return locks, nil
 }
 
-func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint, name string, parentId *uint, leaderIds, userIds []uint) error {
-	locks, err := p.lockDepartmentField(ctx, name, parentId)
+func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint, params *request.CreateDepartmentRequest) error {
+	locks, err := p.lockDepartmentField(ctx, params.Name, params.ParentId)
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
@@ -73,7 +74,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	}
 	return p.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existDept, temp := p.departmentRepository.GetByName(ctx, name)
+		existDept, temp := p.departmentRepository.GetByName(ctx, params.Name)
 		if temp != nil && !errors.Is(temp, response.DeptNotExist) {
 			return temp
 		}
@@ -82,14 +83,14 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		}
 		// 查询父部门
 		var parentDept *models.Department
-		if parentId != nil {
-			parentDept, temp = p.departmentRepository.GetById(ctx, *parentId)
+		if params.ParentId != nil {
+			parentDept, temp = p.departmentRepository.GetById(ctx, *params.ParentId)
 			if temp != nil {
 				return temp
 			}
 		}
 		dept := &models.Department{
-			Name:      name,
+			Name:      params.Name,
 			CreatorId: operator,
 			UpdaterId: operator,
 		}
@@ -104,11 +105,11 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 			})
 			ancestors := strings.Join(t, ",")
 			dept.Ancestors = &ancestors
-			dept.ParentId = parentId
+			dept.ParentId = params.ParentId
 		}
 		// 查询有效的用户
 		var users []*models.User
-		tempUserIds := lo.Union(userIds, leaderIds)
+		tempUserIds := lo.Union(params.Users, params.Leaders)
 		if len(tempUserIds) > 0 {
 			users, err = p.userRepository.GetByIds(ctx, tempUserIds, false, false, false)
 			if err != nil {
@@ -118,9 +119,9 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 				// leader 也属于部门的成员
 				dept.Users = users
 				// 设置部门 leader
-				if len(leaderIds) > 0 {
+				if len(params.Leaders) > 0 {
 					dept.Leaders = lo.Filter(users, func(item *models.User, _ int) bool {
-						return lo.SomeBy(leaderIds, func(uid uint) bool {
+						return lo.SomeBy(params.Leaders, func(uid uint) bool {
 							return uid == item.ID
 						})
 					})
