@@ -92,7 +92,8 @@ func FailWithCode(ctx *gin.Context, code StatusCode) {
 
 // FailWithError 失败响应
 func FailWithError(ctx *gin.Context, err error) {
-	if code, ok := err.(StatusCode); ok {
+	var code StatusCode
+	if errors.As(err, &code) {
 		FailWithCode(ctx, code)
 		return
 	}
@@ -110,7 +111,8 @@ func FailWithError(ctx *gin.Context, err error) {
 // ParamsValidateFail 失败响应-参数错误
 func ParamsValidateFail(ctx *gin.Context, err error) {
 	msg := err.Error()
-	errs, ok := err.(validator.ValidationErrors)
+	var errs validator.ValidationErrors
+	ok := errors.As(err, &errs)
 	if !ok {
 		HttpResponse[any](ctx, InvalidParams, nil, nil, &msg)
 	} else if translator, exists := ctx.Get(ValidatorTranslatorKey); exists {

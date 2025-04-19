@@ -87,7 +87,7 @@ func (i *I18NMiddleware) I18N() gin.HandlerFunc {
 	enLocalizer := i18n.NewLocalizer(bundle, language.English.String())
 	localeKey := i.conf.System.DefaultLocaleKey
 	if strings.TrimSpace(localeKey) == "" {
-		panic("locale key未配置")
+		panic("miss locale key")
 	}
 	return func(ctx *gin.Context) {
 		locale := ctx.GetHeader(localeKey)
