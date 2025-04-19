@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/request"
@@ -13,6 +14,7 @@ import (
 	"golang.org/x/sync/singleflight"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type DepartmentRepository interface {
@@ -24,6 +26,7 @@ type DepartmentRepository interface {
 	GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error)
 	CacheDepartment(ctx context.Context, key constant.CacheKey, depts []*models.Department) error
 	GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error)
+	RemoveDepartmentCache(ctx context.Context, keys ...constant.CacheKey) error
 }
 
 type DepartmentService struct {
@@ -266,18 +269,42 @@ func (p *DepartmentService) processTree(departments []*models.Department) ([]*re
 	return res, nil
 }
 
-func (p *DepartmentService) Key() constant.CacheKey {
-	return constant.RefreshDeptCache
+func (p *DepartmentService) Key() string {
+	return constant.AutoManageDeptCache
 }
 
-func (p *DepartmentService) Refresh() error {
-	// TODO:完成刷新逻辑
-	p.logger.Info("refresh department")
-	return nil
+func (p *DepartmentService) Refresh(ctx context.Context) error {
+	start := time.Now()
+	p.logger.Infow("refresh department", "begin", start.Format(time.DateTime))
+	defer func() {
+		p.logger.Infow("refresh department",
+			"end", time.Now().Format(time.DateTime), "cost",
+			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
+		)
+	}()
+	departments, err := p.departmentRepository.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+	sfgKey := constant.DepartmentTreeSfgKey
+	crewSfgKey := constant.DepartmentTreeCrewSfgKey
+	if err = p.departmentRepository.CacheDepartment(ctx, sfgKey, departments); err != nil {
+		return err
+	}
+	if err = p.processDepartmentCrew(ctx, departments); err != nil {
+		return err
+	}
+	return p.departmentRepository.CacheDepartment(ctx, crewSfgKey, departments)
 }
 
-func (p *DepartmentService) Clean() error {
-	// TODO:完成清理逻辑
-	p.logger.Info("clean department")
-	return nil
+func (p *DepartmentService) Clean(ctx context.Context) error {
+	start := time.Now()
+	p.logger.Infow("clean department", "begin", start.Format(time.DateTime))
+	defer func() {
+		p.logger.Infow("clean department",
+			"end", time.Now().Format(time.DateTime), "cost",
+			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
+		)
+	}()
+	return p.departmentRepository.RemoveDepartmentCache(ctx, constant.DepartmentTreeSfgKey, constant.DepartmentTreeCrewSfgKey)
 }

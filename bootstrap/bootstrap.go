@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"context"
 	v1 "gin-web/api/v1"
 	"gin-web/conf"
 	"gin-web/initialize"
@@ -8,7 +9,6 @@ import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/job"
 	"go.uber.org/zap"
-	"sync"
 )
 
 type App struct {
@@ -27,15 +27,16 @@ type App struct {
 }
 
 func (a *App) Run() {
+	// 注册定时任务
+	if err := a.jobManager.RegisterJobsAndStart(); err != nil {
+		panic(err)
+	}
+	// 执行相关hook
 	if len(a.conf.System.Hooks.Launch) > 0 {
 		for _, item := range a.conf.System.Hooks.Launch {
 			switch item {
-			case constant.RegisterJobs:
-				if err := a.jobManager.RegisterJobsAndStart(); err != nil {
-					panic(err)
-				}
-			case constant.RefreshDeptCache:
-				if err := a.cacheManager.Refresh(constant.RefreshDeptCache); err != nil {
+			case constant.AutoManageDeptCache:
+				if err := a.cacheManager.Refresh(context.Background(), constant.AutoManageDeptCache); err != nil {
 					panic(err)
 				}
 			}
@@ -46,8 +47,17 @@ func (a *App) Run() {
 
 func (a *App) Close() {
 	defer a.logger.Info("app clean is executed")
-	group := sync.WaitGroup{}
-	group.Add(1)
-	go a.jobManager.Stop(&group)
-	group.Wait()
+	// 停止定时任务
+	a.jobManager.Stop()
+	// 执行相关hook
+	if len(a.conf.System.Hooks.Close) > 0 {
+		for _, item := range a.conf.System.Hooks.Close {
+			switch item {
+			case constant.AutoManageDeptCache:
+				if err := a.cacheManager.Clean(context.Background(), constant.AutoManageDeptCache); err != nil {
+					panic(err)
+				}
+			}
+		}
+	}
 }

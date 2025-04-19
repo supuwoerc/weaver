@@ -1,6 +1,5 @@
 package constant
 
 const (
-	RegisterJobs     = "registerJobs"
-	RefreshDeptCache = "refreshDeptCache"
+	AutoManageDeptCache = "autoManageDeptCache" // 管理部门缓存
 )

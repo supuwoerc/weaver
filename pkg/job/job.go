@@ -5,7 +5,6 @@ import (
 	"gin-web/pkg/constant"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
-	"sync"
 )
 
 type SystemJob interface {
@@ -72,8 +71,7 @@ func (jr *SystemJobManager) RegisterJobsAndStart() error {
 	return nil
 }
 
-func (jr *SystemJobManager) Stop(group *sync.WaitGroup) {
-	defer group.Done()
+func (jr *SystemJobManager) Stop() {
 	ctx := jr.cronClient.Stop()
 	<-ctx.Done()
 	jr.logger.Info("SystemJobManager:cron jobs have been stopped")

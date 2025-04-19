@@ -7,8 +7,9 @@ system:
     password: 123
   hooks:
     launch:
-      - registerJobs
-      - refreshDeptCache
+      - autoManageDeptCache
+    close:
+      - autoManageDeptCache
 logger:
   level: 0
   stdout: true

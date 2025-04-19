@@ -30,21 +30,6 @@ type PermissionService struct {
 	roleRepository       RoleRepository
 }
 
-func (p *PermissionService) Key() constant.CacheKey {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (p *PermissionService) Refresh() error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (p *PermissionService) Clean() error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func NewPermissionService(basic *BasicService, permissionRepo PermissionRepository, roleRepository RoleRepository) *PermissionService {
 	return &PermissionService{
 		BasicService:         basic,
@@ -210,4 +195,19 @@ func (p *PermissionService) DeletePermission(ctx context.Context, id, operator u
 		return response.PermissionExistRoleRef
 	}
 	return p.permissionRepository.DeleteById(ctx, id, operator)
+}
+
+func (p *PermissionService) Key() string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PermissionService) Refresh(context.Context) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PermissionService) Clean(context.Context) error {
+	//TODO implement me
+	panic("implement me")
 }

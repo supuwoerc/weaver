@@ -18,6 +18,7 @@ type DepartmentDAO interface {
 type DepartmentCache interface {
 	CacheDepartment(ctx context.Context, key constant.CacheKey, depts []*models.Department) error
 	GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error)
+	RemoveDepartmentCache(ctx context.Context, keys ...constant.CacheKey) error
 }
 
 type DepartmentRepository struct {
@@ -62,4 +63,8 @@ func (r *DepartmentRepository) CacheDepartment(ctx context.Context, key constant
 
 func (r *DepartmentRepository) GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
 	return r.cache.GetDepartmentCache(ctx, key)
+}
+
+func (r *DepartmentRepository) RemoveDepartmentCache(ctx context.Context, keys ...constant.CacheKey) error {
+	return r.cache.RemoveDepartmentCache(ctx, keys...)
 }

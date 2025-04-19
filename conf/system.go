@@ -27,4 +27,5 @@ type Email struct {
 
 type Hooks struct {
 	Launch []string `mapstructure:"launch"`
+	Close  []string `mapstructure:"close"`
 }

@@ -6,6 +6,7 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/redis"
+	"github.com/samber/lo"
 )
 
 type DepartmentCache struct {
@@ -24,6 +25,12 @@ func (d *DepartmentCache) CacheDepartment(ctx context.Context, key constant.Cach
 		return err
 	}
 	return d.redis.Client.Set(ctx, string(key), string(result), 0).Err()
+}
+
+func (d *DepartmentCache) RemoveDepartmentCache(ctx context.Context, keys ...constant.CacheKey) error {
+	return d.redis.Client.Del(ctx, lo.Map(keys, func(item constant.CacheKey, _ int) string {
+		return string(item)
+	})...).Err()
 }
 
 func (d *DepartmentCache) GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
