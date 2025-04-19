@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="build gin-web" type="GoApplicationRunConfiguration" factoryName="Go Application">
+  <configuration default="false" name="build http-server" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="weaver" />
     <working_directory value="$PROJECT_DIR$" />
     <go_parameters value="-race" />
