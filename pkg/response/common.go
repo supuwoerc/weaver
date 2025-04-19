@@ -6,6 +6,7 @@ import (
 
 type Creator struct {
 	*models.User
+	Status    any `json:"status,omitempty"`
 	Gender    any `json:"gender,omitempty"`
 	Birthday  any `json:"birthday,omitempty"`
 	Roles     any `json:"roles,omitempty"`
