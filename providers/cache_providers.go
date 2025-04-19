@@ -5,10 +5,10 @@ import (
 	"github.com/google/wire"
 )
 
-type Dept cache.SystemCache
-type Permission cache.SystemCache
+type DepartmentCache cache.SystemCache
+type PermissionCache cache.SystemCache
 
-func SystemCaches(dept Dept, p Permission) []cache.SystemCache {
+func SystemCaches(dept DepartmentCache, p PermissionCache) []cache.SystemCache {
 	return []cache.SystemCache{dept, p}
 }
 

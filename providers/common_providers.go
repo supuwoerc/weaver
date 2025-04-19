@@ -14,13 +14,13 @@ import (
 )
 
 var departmentServiceProvider = wire.NewSet(
-	wire.Bind(new(Dept), new(*service.DepartmentService)),
+	wire.Bind(new(DepartmentCache), new(*service.DepartmentService)),
 	wire.Bind(new(v1.DepartmentService), new(*service.DepartmentService)),
 	service.NewDepartmentService,
 )
 
 var permissionServiceProvider = wire.NewSet(
-	wire.Bind(new(Permission), new(*service.PermissionService)),
+	wire.Bind(new(PermissionCache), new(*service.PermissionService)),
 	wire.Bind(new(v1.PermissionService), new(*service.PermissionService)),
 	service.NewPermissionService,
 )
