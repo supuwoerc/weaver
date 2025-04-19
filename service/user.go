@@ -51,7 +51,7 @@ func NewUserService(
 	captchaService *CaptchaService,
 	roleRepository RoleRepository,
 	userRepo UserRepository,
-	ec *email.EmailClient,
+	ec *email.Client,
 	tb *jwt.TokenBuilder,
 ) *UserService {
 	return &UserService{

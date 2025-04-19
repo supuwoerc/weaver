@@ -6,6 +6,7 @@ import (
 	"errors"
 	"gin-web/conf"
 	"gin-web/pkg/database"
+	"gin-web/pkg/email"
 	"gin-web/pkg/utils"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -13,10 +14,11 @@ import (
 )
 
 type BasicService struct {
-	logger    *zap.SugaredLogger
-	db        *gorm.DB
-	locksmith *utils.RedisLocksmith
-	conf      *conf.Config
+	logger      *zap.SugaredLogger
+	db          *gorm.DB
+	locksmith   *utils.RedisLocksmith
+	conf        *conf.Config
+	emailClient *email.Client
 }
 
 func NewBasicService(
@@ -24,12 +26,14 @@ func NewBasicService(
 	db *gorm.DB,
 	locksmith *utils.RedisLocksmith,
 	conf *conf.Config,
+	emailClient *email.Client,
 ) *BasicService {
 	return &BasicService{
-		logger:    logger,
-		db:        db,
-		locksmith: locksmith,
-		conf:      conf,
+		logger:      logger,
+		db:          db,
+		locksmith:   locksmith,
+		conf:        conf,
+		emailClient: emailClient,
 	}
 }
 
@@ -87,9 +91,4 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		}
 	}
 	return nil
-}
-
-// TODO:通用的告警方法
-func (s *BasicService) Alarm() {
-
 }

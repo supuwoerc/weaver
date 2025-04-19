@@ -34,7 +34,7 @@ func getEnginLoggerConfig(output io.Writer) gin.LoggerConfig {
 
 type EngineLogger io.Writer
 
-func NewEngine(writer EngineLogger, emailClient *email.EmailClient, logger *zap.SugaredLogger, conf *conf.Config) *gin.Engine {
+func NewEngine(writer EngineLogger, emailClient *email.Client, logger *zap.SugaredLogger, conf *conf.Config) *gin.Engine {
 	initDebugPrinter(writer)
 	// 不携带日志和Recovery中间件，自己添加中间件，为了方便收集Recovery日志
 	r := gin.New()

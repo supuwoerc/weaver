@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gin-web/pkg/constant"
+	"gin-web/pkg/email"
 	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
 	"github.com/go-redsync/redsync/v4"
@@ -16,12 +17,14 @@ import (
 type RedisLocksmith struct {
 	logger      *zap.SugaredLogger
 	redisClient *redis.CommonRedisClient
+	emailClient *email.Client
 }
 
 type RedisLock struct {
 	*redsync.Mutex
-	duration time.Duration
-	logger   *zap.SugaredLogger
+	duration    time.Duration
+	logger      *zap.SugaredLogger
+	emailClient *email.Client
 }
 
 const (
@@ -29,10 +32,11 @@ const (
 	defaultLockDuration = 10 * time.Second
 )
 
-func NewRedisLocksmith(logger *zap.SugaredLogger, redisClient *redis.CommonRedisClient) *RedisLocksmith {
+func NewRedisLocksmith(logger *zap.SugaredLogger, redisClient *redis.CommonRedisClient, emailClient *email.Client) *RedisLocksmith {
 	return &RedisLocksmith{
 		logger:      logger,
 		redisClient: redisClient,
+		emailClient: emailClient,
 	}
 }
 
@@ -40,9 +44,10 @@ func NewRedisLocksmith(logger *zap.SugaredLogger, redisClient *redis.CommonRedis
 func (r *RedisLocksmith) NewLock(t constant.Prefix, object ...string) *RedisLock {
 	name := fmt.Sprintf("%s:%s", t, strings.Join(object, "_"))
 	return &RedisLock{
-		Mutex:    r.redisClient.Redsync.NewMutex(name, redsync.WithExpiry(defaultLockDuration), redsync.WithTries(defaultMaxRetries)),
-		duration: defaultLockDuration,
-		logger:   r.logger,
+		Mutex:       r.redisClient.Redsync.NewMutex(name, redsync.WithExpiry(defaultLockDuration), redsync.WithTries(defaultMaxRetries)),
+		duration:    defaultLockDuration,
+		logger:      r.logger,
+		emailClient: r.emailClient,
 	}
 }
 
@@ -95,11 +100,9 @@ func (l *RedisLock) Unlock() error {
 
 func (l *RedisLock) alarm(subject constant.Subject, lockName string, err error) {
 	l.logger.Errorf("redis lock name:%s subject:%s error:%s", lockName, subject, err.Error())
-	//adminEmail := viper.GetString("system.admin.email")
-	// TODO:全局的告警方法
-	//if e := email.NewEmailClient().SendText(adminEmail, subject, fmt.Sprintf("%s alarm: %v", lockName, err)); e != nil {
-	//	s.logger.Errorf("发送邮件失败,信息:%s", e.Error())
-	//}
+	if err = l.emailClient.Alarm2Admin(subject, fmt.Sprintf("%s alarm: %v", lockName, err.Error())); err != nil {
+		l.logger.Errorf("redis alarm err: %v", err.Error())
+	}
 }
 
 func (l *RedisLock) unlockWithAlarm() {

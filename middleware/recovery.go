@@ -11,12 +11,12 @@ import (
 )
 
 type RecoveryMiddle struct {
-	emailClient *email.EmailClient
+	emailClient *email.Client
 	logger      *zap.SugaredLogger
 	conf        *conf.Config
 }
 
-func NewRecoveryMiddleware(emailClient *email.EmailClient, logger *zap.SugaredLogger, conf *conf.Config) *RecoveryMiddle {
+func NewRecoveryMiddleware(emailClient *email.Client, logger *zap.SugaredLogger, conf *conf.Config) *RecoveryMiddle {
 	return &RecoveryMiddle{
 		emailClient: emailClient,
 		logger:      logger,
@@ -25,13 +25,11 @@ func NewRecoveryMiddleware(emailClient *email.EmailClient, logger *zap.SugaredLo
 }
 
 func (r *RecoveryMiddle) Recovery() gin.HandlerFunc {
-	adminEmail := r.conf.System.Admin.Email
 	return gin.CustomRecovery(func(c *gin.Context, err any) {
 		message := string(debug.Stack())
 		r.logger.Errorf("Recovery panic,堆栈信息:%s", message)
-		// TODO:全局通用的告警方法
 		go func() {
-			if e := r.emailClient.SendText(adminEmail, constant.Recover, message); e != nil {
+			if e := r.emailClient.Alarm2Admin(constant.Recover, message); e != nil {
 				r.logger.Errorf("发送邮件失败,信息:%s", e.Error())
 			}
 		}()

@@ -2,13 +2,16 @@ package initialize
 
 import (
 	"fmt"
+	"gin-web/pkg/constant"
+	"gin-web/pkg/email"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 	"runtime/debug"
 )
 
 type CronLogger struct {
-	logger *zap.SugaredLogger
+	logger      *zap.SugaredLogger
+	emailClient *email.Client
 }
 
 func (c *CronLogger) Info(msg string, keysAndValues ...interface{}) {
@@ -30,13 +33,11 @@ func (c *CronLogger) CronRecover() cron.JobWrapper {
 						err = fmt.Errorf("%v", r)
 					}
 					c.logger.Error(err, "panic", "stack", message)
-					// FIXME:全局通用的邮件告警方法
-					// TODO
-					//go func() {
-					//	if e := email.NewEmailClient().SendText(adminEmail, constant.CronRecover, message); e != nil {
-					//		global.Logger.Errorf("发送邮件失败,信息:%s", e.Error())
-					//	}
-					//}()
+					go func() {
+						if e := c.emailClient.Alarm2Admin(constant.CronRecover, message); e != nil {
+							c.logger.Errorf("cron recover alarm fail:%s", e.Error())
+						}
+					}()
 				}
 			}()
 			j.Run()
@@ -48,6 +49,6 @@ func NewCronClient(l *CronLogger) *cron.Cron {
 	return cron.New(cron.WithLogger(l), cron.WithSeconds(), cron.WithChain(l.CronRecover()))
 }
 
-func NewCronLogger(logger *zap.SugaredLogger) *CronLogger {
-	return &CronLogger{logger: logger}
+func NewCronLogger(logger *zap.SugaredLogger, emailClient *email.Client) *CronLogger {
+	return &CronLogger{logger: logger, emailClient: emailClient}
 }

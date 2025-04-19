@@ -11,3 +11,14 @@ type Config struct {
 	Redis   RedisConfig   `mapstructure:"redis"`   // redis配置
 	Mysql   MysqlConfig   `mapstructure:"mysql"`   // mysql配置
 }
+
+func (c *Config) IsProd() bool {
+	return c.Env == "prod"
+}
+func (c *Config) IsDev() bool {
+	return c.Env == "dev"
+}
+
+func (c *Config) IsTest() bool {
+	return c.Env == "test"
+}
