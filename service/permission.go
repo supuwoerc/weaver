@@ -30,6 +30,21 @@ type PermissionService struct {
 	roleRepository       RoleRepository
 }
 
+func (p *PermissionService) Key() constant.CacheKey {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PermissionService) Refresh() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PermissionService) Clean() error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewPermissionService(basic *BasicService, permissionRepo PermissionRepository, roleRepository RoleRepository) *PermissionService {
 	return &PermissionService{
 		BasicService:         basic,

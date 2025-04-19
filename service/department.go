@@ -22,8 +22,8 @@ type DepartmentRepository interface {
 	GetAll(ctx context.Context) ([]*models.Department, error)
 	GetAllUserDepartment(ctx context.Context) ([]*models.UserDepartment, error)
 	GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error)
-	CacheDepartment(ctx context.Context, key string, depts []*models.Department) error
-	GetDepartmentCache(ctx context.Context, key string) ([]*models.Department, error)
+	CacheDepartment(ctx context.Context, key constant.CacheKey, depts []*models.Department) error
+	GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error)
 }
 
 type DepartmentService struct {
@@ -145,7 +145,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 	if departmentCache != nil {
 		return p.processTree(departmentCache)
 	}
-	result, err, _ := p.deptTreeSfg.Do(key, func() (interface{}, error) {
+	result, err, _ := p.deptTreeSfg.Do(string(key), func() (interface{}, error) {
 		departments, err := p.departmentRepository.GetAll(ctx)
 		if err != nil {
 			return nil, err
@@ -166,7 +166,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 	return result.([]*response.DepartmentTreeResponse), nil
 }
 
-func (p *DepartmentService) processDepartmentCache(ctx context.Context, key string) ([]*models.Department, error) {
+func (p *DepartmentService) processDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
 	cache, err := p.departmentRepository.GetDepartmentCache(ctx, key)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -264,4 +264,20 @@ func (p *DepartmentService) processTree(departments []*models.Department) ([]*re
 		}
 	}
 	return res, nil
+}
+
+func (p *DepartmentService) Key() constant.CacheKey {
+	return constant.RefreshDeptCache
+}
+
+func (p *DepartmentService) Refresh() error {
+	// TODO:完成刷新逻辑
+	p.logger.Info("refresh department")
+	return nil
+}
+
+func (p *DepartmentService) Clean() error {
+	// TODO:完成清理逻辑
+	p.logger.Info("clean department")
+	return nil
 }

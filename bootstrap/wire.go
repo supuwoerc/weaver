@@ -5,11 +5,10 @@
 package bootstrap
 
 import (
-	"gin-web/api"
 	"gin-web/initialize"
 	"gin-web/pkg/email"
-	"gin-web/pkg/job"
 	"gin-web/pkg/utils"
+	"gin-web/providers"
 	"gin-web/router"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
@@ -35,8 +34,10 @@ func WireApp() *App {
 		wire.Bind(new(initialize.RedisClientLogger), new(zapcore.WriteSyncer)),
 		utils.NewRedisLocksmith,
 		router.NewRouter,
-		job.NewJobRegisterer,
-		api.V1Provider,
+		providers.CommonProvider,
+		providers.SystemCacheProvider,
+		providers.SystemJobProvider,
+		providers.V1Provider,
 		wire.Struct(new(App), "*"),
 	)
 	return nil

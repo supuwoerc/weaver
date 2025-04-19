@@ -10,11 +10,13 @@ import (
 	"gin-web/api/v1"
 	"gin-web/initialize"
 	"gin-web/middleware"
+	cache2 "gin-web/pkg/cache"
 	"gin-web/pkg/captcha"
 	"gin-web/pkg/email"
 	"gin-web/pkg/job"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/utils"
+	"gin-web/providers"
 	"gin-web/repository"
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
@@ -32,37 +34,40 @@ func WireApp() *App {
 	client := email.NewEmailClient(sugaredLogger, dialer, config)
 	cronLogger := initialize.NewCronLogger(sugaredLogger, client)
 	cron := initialize.NewCronClient(cronLogger)
-	systemJobRegisterer := job.NewJobRegisterer(cronLogger, cron, sugaredLogger, config)
-	engine := initialize.NewEngine(writeSyncer, client, sugaredLogger, config)
-	httpServer := initialize.NewServer(config, engine, sugaredLogger)
-	routerGroup := router.NewRouter(engine, config)
+	v := providers.SystemJobs(sugaredLogger)
+	systemJobManager := job.NewSystemJobManager(cronLogger, cron, sugaredLogger, v...)
 	db := initialize.NewGORM(config)
 	commonRedisClient := initialize.NewRedisClient(writeSyncer, config)
 	redisLocksmith := utils.NewRedisLocksmith(sugaredLogger, commonRedisClient, client)
 	basicService := service.NewBasicService(sugaredLogger, db, redisLocksmith, config, client)
 	basicDAO := dao.NewBasicDao(db)
-	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
-	attachmentRepository := repository.NewAttachmentRepository(attachmentDAO)
-	attachmentService := service.NewAttachmentService(basicService, attachmentRepository)
+	departmentDAO := dao.NewDepartmentDAO(basicDAO)
+	departmentCache := cache.NewDepartmentCache(commonRedisClient)
+	departmentRepository := repository.NewDepartmentRepository(departmentDAO, departmentCache)
 	userDAO := dao.NewUserDAO(basicDAO)
 	userCache := cache.NewUserCache(commonRedisClient)
 	userRepository := repository.NewUserRepository(userDAO, userCache)
+	departmentService := service.NewDepartmentService(basicService, departmentRepository, userRepository)
+	permissionDAO := dao.NewPermissionDAO(basicDAO)
+	permissionRepository := repository.NewPermissionRepository(permissionDAO)
+	roleDAO := dao.NewRoleDAO(basicDAO)
+	roleRepository := repository.NewRoleRepository(roleDAO)
+	permissionService := service.NewPermissionService(basicService, permissionRepository, roleRepository)
+	v2 := providers.SystemCaches(departmentService, permissionService)
+	systemCacheManager := cache2.NewSystemCacheManager(v2...)
+	engine := initialize.NewEngine(writeSyncer, client, sugaredLogger, config)
+	httpServer := initialize.NewServer(config, engine, sugaredLogger)
+	routerGroup := router.NewRouter(engine, config)
+	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
+	attachmentRepository := repository.NewAttachmentRepository(attachmentDAO)
+	attachmentService := service.NewAttachmentService(basicService, attachmentRepository)
 	tokenBuilder := jwt.NewJwtBuilder(db, commonRedisClient, config, userRepository)
 	authMiddleware := middleware.NewAuthMiddleware(config, userRepository, tokenBuilder)
 	attachmentApi := v1.NewAttachmentApi(routerGroup, attachmentService, authMiddleware, config)
 	redisStore := captcha.NewRedisStore(commonRedisClient, config)
 	captchaService := service.NewCaptchaService(redisStore)
 	captchaApi := v1.NewCaptchaApi(routerGroup, captchaService)
-	departmentDAO := dao.NewDepartmentDAO(basicDAO)
-	departmentCache := cache.NewDepartmentCache(commonRedisClient)
-	departmentRepository := repository.NewDepartmentRepository(departmentDAO, departmentCache)
-	departmentService := service.NewDepartmentService(basicService, departmentRepository, userRepository)
 	departmentApi := v1.NewDepartmentApi(routerGroup, departmentService, authMiddleware)
-	permissionDAO := dao.NewPermissionDAO(basicDAO)
-	permissionRepository := repository.NewPermissionRepository(permissionDAO)
-	roleDAO := dao.NewRoleDAO(basicDAO)
-	roleRepository := repository.NewRoleRepository(roleDAO)
-	permissionService := service.NewPermissionService(basicService, permissionRepository, roleRepository)
 	permissionApi := v1.NewPermissionApi(routerGroup, permissionService, authMiddleware)
 	pingService := service.NewPingService(basicService)
 	pingApi := v1.NewPingApi(routerGroup, pingService, authMiddleware)
@@ -73,7 +78,8 @@ func WireApp() *App {
 	app := &App{
 		logger:        sugaredLogger,
 		conf:          config,
-		jobRegisterer: systemJobRegisterer,
+		jobManager:    systemJobManager,
+		cacheManager:  systemCacheManager,
 		httpServer:    httpServer,
 		attachmentApi: attachmentApi,
 		captchaApi:    captchaApi,

@@ -1,5 +1,6 @@
 package constant
 
 const (
-	RegisterJobs = "registerJobs"
+	RegisterJobs     = "registerJobs"
+	RefreshDeptCache = "refreshDeptCache"
 )

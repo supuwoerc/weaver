@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"gin-web/models"
+	"gin-web/pkg/constant"
 )
 
 type DepartmentDAO interface {
@@ -15,8 +16,8 @@ type DepartmentDAO interface {
 }
 
 type DepartmentCache interface {
-	CacheDepartment(ctx context.Context, key string, depts []*models.Department) error
-	GetDepartmentCache(ctx context.Context, key string) ([]*models.Department, error)
+	CacheDepartment(ctx context.Context, key constant.CacheKey, depts []*models.Department) error
+	GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error)
 }
 
 type DepartmentRepository struct {
@@ -55,10 +56,10 @@ func (r *DepartmentRepository) GetAllDepartmentLeader(ctx context.Context) ([]*m
 	return r.dao.GetAllDepartmentLeader(ctx)
 }
 
-func (r *DepartmentRepository) CacheDepartment(ctx context.Context, key string, depts []*models.Department) error {
+func (r *DepartmentRepository) CacheDepartment(ctx context.Context, key constant.CacheKey, depts []*models.Department) error {
 	return r.cache.CacheDepartment(ctx, key, depts)
 }
 
-func (r *DepartmentRepository) GetDepartmentCache(ctx context.Context, key string) ([]*models.Department, error) {
+func (r *DepartmentRepository) GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
 	return r.cache.GetDepartmentCache(ctx, key)
 }

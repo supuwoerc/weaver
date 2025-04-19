@@ -1,26 +1,19 @@
-package api
+package providers
 
 import (
 	v1 "gin-web/api/v1"
 	"gin-web/middleware"
-	"gin-web/pkg/captcha"
-	"gin-web/pkg/jwt"
 	"gin-web/repository"
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
 	"gin-web/service"
 	"github.com/google/wire"
-	"github.com/mojocn/base64Captcha"
 )
 
 // V1Provider api-provider集合
 var V1Provider = wire.NewSet(
 	dao.NewBasicDao,
 	service.NewBasicService,
-	userRepositoryProvider,
-	roleRepositoryProvider,
-	permissionRepositoryProvider,
-	captchaRedisStoreProvider,
 	AttachmentApiProvider,
 	CaptchaApiProvider,
 	DepartmentApiProvider,
@@ -28,34 +21,6 @@ var V1Provider = wire.NewSet(
 	PingApiProvider,
 	RoleApiProvider,
 	UserApiProvider,
-)
-
-var userRepositoryProvider = wire.NewSet(
-	wire.Bind(new(service.UserRepository), new(*repository.UserRepository)),
-	wire.Bind(new(middleware.AuthMiddlewareTokenRepo), new(*repository.UserRepository)),
-	wire.Bind(new(jwt.TokenBuilderRepo), new(*repository.UserRepository)),
-	repository.NewUserRepository,
-	wire.Bind(new(repository.UserDAO), new(*dao.UserDAO)),
-	wire.Bind(new(repository.UserCache), new(*cache.UserCache)),
-	dao.NewUserDAO,
-	cache.NewUserCache,
-	jwt.NewJwtBuilder,
-)
-
-var roleRepositoryProvider = wire.NewSet(
-	wire.Bind(new(service.RoleRepository), new(*repository.RoleRepository)),
-	repository.NewRoleRepository,
-	wire.Bind(new(repository.RoleDAO), new(*dao.RoleDAO)),
-	dao.NewRoleDAO,
-)
-
-var permissionRepositoryProvider = wire.NewSet(
-	wire.Bind(new(v1.PermissionService), new(*service.PermissionService)),
-	service.NewPermissionService,
-	wire.Bind(new(service.PermissionRepository), new(*repository.PermissionRepository)),
-	repository.NewPermissionRepository,
-	wire.Bind(new(repository.PermissionDAO), new(*dao.PermissionDAO)),
-	dao.NewPermissionDAO,
 )
 
 var AttachmentApiProvider = wire.NewSet(
@@ -69,11 +34,6 @@ var AttachmentApiProvider = wire.NewSet(
 	middleware.NewAuthMiddleware,
 )
 
-var captchaRedisStoreProvider = wire.NewSet(
-	wire.Bind(new(base64Captcha.Store), new(*captcha.RedisStore)),
-	captcha.NewRedisStore,
-)
-
 var CaptchaApiProvider = wire.NewSet(
 	v1.NewCaptchaApi,
 	wire.Bind(new(v1.CaptchaService), new(*service.CaptchaService)),
@@ -82,8 +42,6 @@ var CaptchaApiProvider = wire.NewSet(
 
 var DepartmentApiProvider = wire.NewSet(
 	v1.NewDepartmentApi,
-	wire.Bind(new(v1.DepartmentService), new(*service.DepartmentService)),
-	service.NewDepartmentService,
 	wire.Bind(new(service.DepartmentRepository), new(*repository.DepartmentRepository)),
 	repository.NewDepartmentRepository,
 	wire.Bind(new(repository.DepartmentDAO), new(*dao.DepartmentDAO)),
