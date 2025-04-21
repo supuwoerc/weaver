@@ -5,7 +5,7 @@
 <br />
 
 <p align="center">
-   <img src="./weaver.png" alt="Logo" width="280" height="auto">
+   <img src="./weaver.png" alt="Logo" width="280" height="auto" style="border-radius: 10px">
 </p>
 <p align="center">
 完整的项目文档和开发过程
