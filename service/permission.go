@@ -159,6 +159,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 		err = p.permissionRepository.Update(ctx, &models.Permission{
 			Name:      params.Name,
 			Resource:  params.Resource,
+			Type:      params.Type,
 			UpdaterId: operator,
 			BasicModel: database.BasicModel{
 				ID: params.ID,
