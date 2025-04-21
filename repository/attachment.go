@@ -10,15 +10,11 @@ type AttachmentDAO interface {
 }
 
 type AttachmentRepository struct {
-	dao AttachmentDAO
+	AttachmentDAO
 }
 
 func NewAttachmentRepository(dao AttachmentDAO) *AttachmentRepository {
 	return &AttachmentRepository{
-		dao: dao,
+		AttachmentDAO: dao,
 	}
-}
-
-func (r *AttachmentRepository) Create(ctx context.Context, records []*models.Attachment) error {
-	return r.dao.Create(ctx, records)
 }
