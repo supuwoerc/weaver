@@ -96,6 +96,7 @@ func (p *PermissionService) CreatePermission(ctx context.Context, operator uint,
 		return p.permissionRepository.Create(ctx, &models.Permission{
 			Name:      params.Name,
 			Resource:  params.Resource,
+			Type:      params.Type,
 			Roles:     roles,
 			CreatorId: operator,
 			UpdaterId: operator,
