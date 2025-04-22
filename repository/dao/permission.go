@@ -93,8 +93,7 @@ func (r *PermissionDAO) GetRolesCount(ctx context.Context, id uint) int64 {
 }
 
 func (r *PermissionDAO) Update(ctx context.Context, permission *models.Permission) error {
-	// save并不能自动更新多对多的关系:https://github.com/go-gorm/gorm/issues/3575
-	err := r.Datasource(ctx).Omit("created_at", "roles", "creator_id").Save(permission).Error
+	err := r.Datasource(ctx).Select("*").Omit("created_at", "roles", "creator_id").Updates(permission).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 		return response.PermissionCreateDuplicate
@@ -103,7 +102,8 @@ func (r *PermissionDAO) Update(ctx context.Context, permission *models.Permissio
 }
 
 func (r *PermissionDAO) AssociateRoles(ctx context.Context, id uint, roles []*models.Role) error {
-	return r.Datasource(ctx).Model(&models.Permission{BasicModel: database.BasicModel{ID: id}}).Association("Roles").Replace(roles)
+	return r.Datasource(ctx).Model(&models.Permission{BasicModel: database.BasicModel{ID: id}}).
+		Association("Roles").Replace(roles)
 }
 
 func (r *PermissionDAO) GetByNameOrResource(ctx context.Context, name, resource string) ([]*models.Permission, error) {

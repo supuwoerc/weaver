@@ -95,8 +95,8 @@ func (r *RoleDAO) GetById(ctx context.Context, id uint, needUsers, needPermissio
 }
 
 func (r *RoleDAO) Update(ctx context.Context, role *models.Role) error {
-	// save并不能自动更新多对多的关系:https://github.com/go-gorm/gorm/issues/3575
-	err := r.Datasource(ctx).Omit("created_at", "users", "permissions", "creator_id").Save(role).Error
+	err := r.Datasource(ctx).Select("*").Omit("created_at", "users", "permissions", "creator_id").
+		Updates(role).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 		return response.RoleCreateDuplicateName
