@@ -30,11 +30,11 @@ func (r *PermissionDAO) Create(ctx context.Context, permission *models.Permissio
 	return err
 }
 
-func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, needRoles bool) ([]*models.Permission, error) {
+func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, preload ...func(d *gorm.DB) *gorm.DB) ([]*models.Permission, error) {
 	var result []*models.Permission
 	query := r.Datasource(ctx).Model(&models.Permission{})
-	if needRoles {
-		query = query.Preload("Roles")
+	if len(preload) > 0 {
+		query = query.Scopes(preload...)
 	}
 	err := query.Where("id in (?)", ids).Find(&result).Error
 	if err != nil {
@@ -43,11 +43,11 @@ func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, needRoles bool
 	return result, nil
 }
 
-func (r *PermissionDAO) GetById(ctx context.Context, id uint, needRoles bool) (*models.Permission, error) {
+func (r *PermissionDAO) GetById(ctx context.Context, id uint, preload ...func(d *gorm.DB) *gorm.DB) (*models.Permission, error) {
 	var result models.Permission
 	query := r.Datasource(ctx).Model(&models.Permission{})
-	if needRoles {
-		query = query.Preload("Roles")
+	if len(preload) > 0 {
+		query = query.Scopes(preload...)
 	}
 	err := query.Where("id = ?", id).First(&result).Error
 	if err != nil {

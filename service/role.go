@@ -10,15 +10,17 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/samber/lo"
+	"gorm.io/gorm"
 	"strconv"
 )
 
 type RoleRepository interface {
 	Create(ctx context.Context, role *models.Role) error
-	GetByIds(ctx context.Context, ids []uint, needUsers, needPermissions bool) ([]*models.Role, error)
+	GetByIds(ctx context.Context, ids []uint, preload ...func(d *gorm.DB) *gorm.DB) ([]*models.Role, error)
 	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error)
 	GetByName(ctx context.Context, name string) (*models.Role, error)
-	GetById(ctx context.Context, id uint, needUsers, needPermissions bool) (*models.Role, error)
+	GetById(ctx context.Context, id uint, preload ...func(d *gorm.DB) *gorm.DB) (*models.Role, error)
+	Preload(field string, args ...any) func(d *gorm.DB) *gorm.DB
 	Update(ctx context.Context, role *models.Role) error
 	AssociateUsers(ctx context.Context, id uint, users []*models.User) error
 	AssociatePermissions(ctx context.Context, id uint, permissions []*models.Permission) error
@@ -29,17 +31,17 @@ type RoleRepository interface {
 
 type RoleService struct {
 	*BasicService
-	roleRepository       RoleRepository
-	userRepository       UserRepository
-	permissionRepository PermissionRepository
+	roleRepo       RoleRepository
+	userRepo       UserRepository
+	permissionRepo PermissionRepository
 }
 
 func NewRoleService(basic *BasicService, roleRepository RoleRepository, userRepo UserRepository, permissionRepo PermissionRepository) *RoleService {
 	return &RoleService{
-		BasicService:         basic,
-		roleRepository:       roleRepository,
-		userRepository:       userRepo,
-		permissionRepository: permissionRepo,
+		BasicService:   basic,
+		roleRepo:       roleRepository,
+		userRepo:       userRepo,
+		permissionRepo: permissionRepo,
 	}
 }
 
@@ -77,7 +79,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 	// TODO:记录信息到用户时间线
 	return r.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existRole, temp := r.roleRepository.GetByName(ctx, params.Name)
+		existRole, temp := r.roleRepo.GetByName(ctx, params.Name)
 		if temp != nil && !errors.Is(temp, response.RoleNotExist) {
 			return temp
 		}
@@ -87,7 +89,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 		// 查询有效的用户
 		var users []*models.User
 		if len(params.Users) > 0 {
-			users, err = r.userRepository.GetByIds(ctx, params.Users, false, false, false)
+			users, err = r.userRepo.GetByIds(ctx, params.Users, false, false, false)
 			if err != nil {
 				return err
 			}
@@ -95,13 +97,13 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 		// 查询有效的权限
 		var permissions []*models.Permission
 		if len(params.Permissions) > 0 {
-			permissions, err = r.permissionRepository.GetByIds(ctx, params.Permissions, false)
+			permissions, err = r.permissionRepo.GetByIds(ctx, params.Permissions)
 			if err != nil {
 				return err
 			}
 		}
 		// 创建角色 & 建立关联关系
-		return r.roleRepository.Create(ctx, &models.Role{
+		return r.roleRepo.Create(ctx, &models.Role{
 			Name:        params.Name,
 			Users:       users,
 			Permissions: permissions,
@@ -112,7 +114,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 }
 
 func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*response.RoleListRowResponse, int64, error) {
-	list, total, err := r.roleRepository.GetList(ctx, keyword, limit, offset)
+	list, total, err := r.roleRepo.GetList(ctx, keyword, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -122,7 +124,7 @@ func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, of
 }
 
 func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error) {
-	role, err := r.roleRepository.GetById(ctx, id, true, true)
+	role, err := r.roleRepo.GetById(ctx, id, r.roleRepo.Preload("Users"), r.roleRepo.Preload("Permissions"))
 	if err != nil {
 		return nil, err
 	}
@@ -140,6 +142,10 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 			r.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
+	_, err := r.roleRepo.GetById(ctx, params.ID)
+	if err != nil {
+		return err
+	}
 	// 对 name & permissions 加锁
 	locks, err := r.lockRoleField(ctx, params.Name, params.Permissions)
 	defer func() {
@@ -154,7 +160,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 	}
 	return r.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existRole, temp := r.roleRepository.GetByName(ctx, params.Name)
+		existRole, temp := r.roleRepo.GetByName(ctx, params.Name)
 		if temp != nil && !errors.Is(temp, response.RoleNotExist) {
 			return temp
 		}
@@ -162,7 +168,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 			return response.RoleCreateDuplicateName
 		}
 		// 更新角色
-		err = r.roleRepository.Update(ctx, &models.Role{
+		err = r.roleRepo.Update(ctx, &models.Role{
 			Name:      params.Name,
 			UpdaterId: operator,
 			BasicModel: database.BasicModel{
@@ -175,25 +181,25 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 		// 查询有效的用户
 		var users []*models.User
 		if len(params.Users) > 0 {
-			users, err = r.userRepository.GetByIds(ctx, params.Users, false, false, false)
+			users, err = r.userRepo.GetByIds(ctx, params.Users, false, false, false)
 			if err != nil {
 				return err
 			}
 		}
 		// 更新关联关系
-		err = r.roleRepository.AssociateUsers(ctx, params.ID, users)
+		err = r.roleRepo.AssociateUsers(ctx, params.ID, users)
 		if err != nil {
 			return err
 		}
 		// 查询有效的权限
 		var permissions []*models.Permission
 		if len(params.Permissions) > 0 {
-			permissions, err = r.permissionRepository.GetByIds(ctx, params.Permissions, false)
+			permissions, err = r.permissionRepo.GetByIds(ctx, params.Permissions)
 			if err != nil {
 				return err
 			}
 		}
-		return r.roleRepository.AssociatePermissions(ctx, params.ID, permissions)
+		return r.roleRepo.AssociatePermissions(ctx, params.ID, permissions)
 	})
 }
 
@@ -208,13 +214,13 @@ func (r *RoleService) DeleteRole(ctx context.Context, id, operator uint) error {
 			r.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
-	permissionsCount := r.roleRepository.GetPermissionsCount(ctx, id)
+	permissionsCount := r.roleRepo.GetPermissionsCount(ctx, id)
 	if permissionsCount > 0 {
 		return response.RoleExistPermissionRef
 	}
-	usersCount := r.roleRepository.GetUsersCount(ctx, id)
+	usersCount := r.roleRepo.GetUsersCount(ctx, id)
 	if usersCount > 0 {
 		return response.RoleExistUserRef
 	}
-	return r.roleRepository.DeleteById(ctx, id, operator)
+	return r.roleRepo.DeleteById(ctx, id, operator)
 }

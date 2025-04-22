@@ -25,3 +25,9 @@ func (basic *BasicDAO) Datasource(ctx context.Context) *gorm.DB {
 	}
 	return basic.DB
 }
+
+func (basic *BasicDAO) Preload(field string, args ...any) func(d *gorm.DB) *gorm.DB {
+	return func(d *gorm.DB) *gorm.DB {
+		return d.Preload(field, args...)
+	}
+}

@@ -31,16 +31,16 @@ type DepartmentRepository interface {
 
 type DepartmentService struct {
 	*BasicService
-	departmentRepository DepartmentRepository
-	userRepository       UserRepository
-	deptTreeSfg          singleflight.Group
+	departmentRepo DepartmentRepository
+	userRepo       UserRepository
+	deptTreeSfg    singleflight.Group
 }
 
 func NewDepartmentService(basic *BasicService, deptRepo DepartmentRepository, userRepo UserRepository) *DepartmentService {
 	return &DepartmentService{
-		BasicService:         basic,
-		departmentRepository: deptRepo,
-		userRepository:       userRepo,
+		BasicService:   basic,
+		departmentRepo: deptRepo,
+		userRepo:       userRepo,
 	}
 }
 
@@ -77,7 +77,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	}
 	return p.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existDept, temp := p.departmentRepository.GetByName(ctx, params.Name)
+		existDept, temp := p.departmentRepo.GetByName(ctx, params.Name)
 		if temp != nil && !errors.Is(temp, response.DeptNotExist) {
 			return temp
 		}
@@ -87,7 +87,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		// 查询父部门
 		var parentDept *models.Department
 		if params.ParentId != nil {
-			parentDept, temp = p.departmentRepository.GetById(ctx, *params.ParentId)
+			parentDept, temp = p.departmentRepo.GetById(ctx, *params.ParentId)
 			if temp != nil {
 				return temp
 			}
@@ -114,7 +114,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		var users []*models.User
 		tempUserIds := lo.Union(params.Users, params.Leaders)
 		if len(tempUserIds) > 0 {
-			users, err = p.userRepository.GetByIds(ctx, tempUserIds, false, false, false)
+			users, err = p.userRepo.GetByIds(ctx, tempUserIds, false, false, false)
 			if err != nil {
 				return err
 			}
@@ -132,7 +132,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 			}
 		}
 		// 创建部门 & 建立关联关系
-		return p.departmentRepository.Create(ctx, dept)
+		return p.departmentRepo.Create(ctx, dept)
 	})
 }
 
@@ -149,7 +149,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 		return p.processTree(departmentCache)
 	}
 	result, err, _ := p.deptTreeSfg.Do(string(key), func() (interface{}, error) {
-		departments, err := p.departmentRepository.GetAll(ctx)
+		departments, err := p.departmentRepo.GetAll(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -158,7 +158,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 				return nil, err
 			}
 		}
-		if err = p.departmentRepository.CacheDepartment(ctx, key, departments); err != nil {
+		if err = p.departmentRepo.CacheDepartment(ctx, key, departments); err != nil {
 			return nil, err
 		}
 		return p.processTree(departments)
@@ -170,7 +170,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 }
 
 func (p *DepartmentService) processDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
-	cache, err := p.departmentRepository.GetDepartmentCache(ctx, key)
+	cache, err := p.departmentRepo.GetDepartmentCache(ctx, key)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, nil
@@ -185,15 +185,15 @@ func (p *DepartmentService) processDepartmentCrew(ctx context.Context, departmen
 	var deptLeader []*models.DepartmentLeader
 	var userDept []*models.UserDepartment
 	var err error
-	deptLeader, err = p.departmentRepository.GetAllDepartmentLeader(ctx)
+	deptLeader, err = p.departmentRepo.GetAllDepartmentLeader(ctx)
 	if err != nil {
 		return err
 	}
-	userDept, err = p.departmentRepository.GetAllUserDepartment(ctx)
+	userDept, err = p.departmentRepo.GetAllUserDepartment(ctx)
 	if err != nil {
 		return err
 	}
-	users, err = p.userRepository.GetAll(ctx)
+	users, err = p.userRepo.GetAll(ctx)
 	if err != nil {
 		return err
 	}
@@ -282,19 +282,19 @@ func (p *DepartmentService) Refresh(ctx context.Context) error {
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)
 	}()
-	departments, err := p.departmentRepository.GetAll(ctx)
+	departments, err := p.departmentRepo.GetAll(ctx)
 	if err != nil {
 		return err
 	}
 	sfgKey := constant.DepartmentTreeSfgKey
 	crewSfgKey := constant.DepartmentTreeCrewSfgKey
-	if err = p.departmentRepository.CacheDepartment(ctx, sfgKey, departments); err != nil {
+	if err = p.departmentRepo.CacheDepartment(ctx, sfgKey, departments); err != nil {
 		return err
 	}
 	if err = p.processDepartmentCrew(ctx, departments); err != nil {
 		return err
 	}
-	return p.departmentRepository.CacheDepartment(ctx, crewSfgKey, departments)
+	return p.departmentRepo.CacheDepartment(ctx, crewSfgKey, departments)
 }
 
 func (p *DepartmentService) Clean(ctx context.Context) error {
@@ -306,5 +306,5 @@ func (p *DepartmentService) Clean(ctx context.Context) error {
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)
 	}()
-	return p.departmentRepository.RemoveDepartmentCache(ctx, constant.DepartmentTreeSfgKey, constant.DepartmentTreeCrewSfgKey)
+	return p.departmentRepo.RemoveDepartmentCache(ctx, constant.DepartmentTreeSfgKey, constant.DepartmentTreeCrewSfgKey)
 }

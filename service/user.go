@@ -40,10 +40,10 @@ type UserEmailClient interface {
 type UserService struct {
 	*BasicService
 	*CaptchaService
-	userRepository UserRepository
-	roleRepository RoleRepository
-	emailClient    UserEmailClient
-	tokenBuilder   *jwt.TokenBuilder
+	userRepo     UserRepository
+	roleRepo     RoleRepository
+	emailClient  UserEmailClient
+	tokenBuilder *jwt.TokenBuilder
 }
 
 func NewUserService(
@@ -57,8 +57,8 @@ func NewUserService(
 	return &UserService{
 		BasicService:   basic,
 		CaptchaService: captchaService,
-		userRepository: userRepo,
-		roleRepository: roleRepository,
+		userRepo:       userRepo,
+		roleRepo:       roleRepository,
 		emailClient:    ec,
 		tokenBuilder:   tb,
 	}
@@ -85,7 +85,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 			u.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(emailLock)
-	existUser, err := u.userRepository.GetByEmail(ctx, user.Email, false, false, false)
+	existUser, err := u.userRepo.GetByEmail(ctx, user.Email, false, false, false)
 	if err != nil && !errors.Is(err, response.UserNotExist) {
 		return err
 	}
@@ -93,7 +93,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 		return response.UserCreateDuplicateEmail
 	}
 	return u.Transaction(ctx, false, func(ctx context.Context) error {
-		if err = u.userRepository.Create(ctx, user); err != nil {
+		if err = u.userRepo.Create(ctx, user); err != nil {
 			return err
 		}
 		return u.sendActiveEmail(ctx, user.ID, user.Email)
@@ -115,14 +115,14 @@ func (u *UserService) generateActiveURL(ctx context.Context, uid uint) (string, 
 	activeCode := lo.RandomString(constant.UserActiveCodeLength, lo.LettersCharset)
 	baseURL := u.conf.System.BaseURL
 	expiration := u.conf.Account.Expiration
-	if err := u.userRepository.CacheActiveAccountCode(ctx, uid, activeCode, expiration*time.Second); err != nil {
+	if err := u.userRepo.CacheActiveAccountCode(ctx, uid, activeCode, expiration*time.Second); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%s/view/v1/public/user/active?active_code=%s&id=%d", baseURL, activeCode, uid), nil
 }
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*response.LoginResponse, error) {
-	user, err := u.userRepository.GetByEmail(ctx, email, true, false, false)
+	user, err := u.userRepo.GetByEmail(ctx, email, true, false, false)
 	switch {
 	case err != nil:
 		return nil, err
@@ -135,7 +135,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	if err != nil {
 		return nil, response.UserLoginFail
 	}
-	pair, err := u.userRepository.GetTokenPair(ctx, email)
+	pair, err := u.userRepo.GetTokenPair(ctx, email)
 	if err == nil && pair != nil {
 		claims, parseErr := u.tokenBuilder.ParseToken(pair.AccessToken)
 		if parseErr == nil && claims != nil {
@@ -159,7 +159,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	if err != nil {
 		return nil, err
 	}
-	err = u.userRepository.CacheTokenPair(ctx, user.Email, &models.TokenPair{
+	err = u.userRepo.CacheTokenPair(ctx, user.Email, &models.TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
@@ -178,7 +178,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 }
 
 func (u *UserService) Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error) {
-	user, err := u.userRepository.GetById(ctx, uid, true, true, true)
+	user, err := u.userRepo.GetById(ctx, uid, true, true, true)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (u *UserService) Profile(ctx context.Context, uid uint) (*response.ProfileR
 }
 
 func (u *UserService) GetUserList(ctx context.Context, keyword string, limit, offset int) ([]*response.UserListRowResponse, int64, error) {
-	list, total, err := u.userRepository.GetList(ctx, keyword, limit, offset)
+	list, total, err := u.userRepo.GetList(ctx, keyword, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -219,12 +219,12 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 			u.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(userLock)
-	code, err := u.userRepository.GetActiveAccountCode(ctx, uid)
+	code, err := u.userRepo.GetActiveAccountCode(ctx, uid)
 	if err != nil {
 		// key 过期的情况需要重新发送邮件
 		if errors.Is(err, redis.Nil) {
 			var user *models.User
-			user, err = u.userRepository.GetById(ctx, uid, false, false, false)
+			user, err = u.userRepo.GetById(ctx, uid, false, false, false)
 			if err == nil && user.Status == constant.Inactive {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
@@ -240,7 +240,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 	} else {
 		return u.Transaction(ctx, false, func(ctx context.Context) error {
 			var user *models.User
-			user, err = u.userRepository.GetById(ctx, uid, false, false, false)
+			user, err = u.userRepo.GetById(ctx, uid, false, false, false)
 			if err != nil {
 				return err
 			}
@@ -250,7 +250,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 			if user.Status == constant.Disabled {
 				return response.UserDisabled
 			}
-			if err = u.userRepository.UpdateAccountStatus(ctx, uid, constant.Normal); err != nil {
+			if err = u.userRepo.UpdateAccountStatus(ctx, uid, constant.Normal); err != nil {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
 						u.logger.Errorf("send active email fail %s", err.Error())
@@ -258,7 +258,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 				}()
 				return err
 			}
-			if err = u.userRepository.RemoveActiveAccountCode(ctx, uid); err != nil {
+			if err = u.userRepo.RemoveActiveAccountCode(ctx, uid); err != nil {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
 						u.logger.Errorf("send active email fail %s", err.Error())
