@@ -10,17 +10,15 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/samber/lo"
-	"gorm.io/gorm"
 	"strconv"
 )
 
 type RoleRepository interface {
 	Create(ctx context.Context, role *models.Role) error
-	GetByIds(ctx context.Context, ids []uint, preload ...func(d *gorm.DB) *gorm.DB) ([]*models.Role, error)
+	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Role, error)
 	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error)
 	GetByName(ctx context.Context, name string) (*models.Role, error)
-	GetById(ctx context.Context, id uint, preload ...func(d *gorm.DB) *gorm.DB) (*models.Role, error)
-	Preload(field string, args ...any) func(d *gorm.DB) *gorm.DB
+	GetById(ctx context.Context, id uint, preload ...string) (*models.Role, error)
 	Update(ctx context.Context, role *models.Role) error
 	AssociateUsers(ctx context.Context, id uint, users []*models.User) error
 	AssociatePermissions(ctx context.Context, id uint, permissions []*models.Permission) error
@@ -124,7 +122,7 @@ func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, of
 }
 
 func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error) {
-	role, err := r.roleRepo.GetById(ctx, id, r.roleRepo.Preload("Users"), r.roleRepo.Preload("Permissions"))
+	role, err := r.roleRepo.GetById(ctx, id, "Users", "Permissions")
 	if err != nil {
 		return nil, err
 	}

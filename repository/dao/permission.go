@@ -7,6 +7,7 @@ import (
 	"gin-web/pkg/database"
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 	"time"
 )
@@ -30,11 +31,13 @@ func (r *PermissionDAO) Create(ctx context.Context, permission *models.Permissio
 	return err
 }
 
-func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, preload ...func(d *gorm.DB) *gorm.DB) ([]*models.Permission, error) {
+func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Permission, error) {
 	var result []*models.Permission
 	query := r.Datasource(ctx).Model(&models.Permission{})
 	if len(preload) > 0 {
-		query = query.Scopes(preload...)
+		query = query.Scopes(lo.Map(preload, func(item string, index int) func(d *gorm.DB) *gorm.DB {
+			return r.Preload(item)
+		})...)
 	}
 	err := query.Where("id in (?)", ids).Find(&result).Error
 	if err != nil {
@@ -43,11 +46,13 @@ func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, preload ...fun
 	return result, nil
 }
 
-func (r *PermissionDAO) GetById(ctx context.Context, id uint, preload ...func(d *gorm.DB) *gorm.DB) (*models.Permission, error) {
+func (r *PermissionDAO) GetById(ctx context.Context, id uint, preload ...string) (*models.Permission, error) {
 	var result models.Permission
 	query := r.Datasource(ctx).Model(&models.Permission{})
 	if len(preload) > 0 {
-		query = query.Scopes(preload...)
+		query = query.Scopes(lo.Map(preload, func(item string, index int) func(d *gorm.DB) *gorm.DB {
+			return r.Preload(item)
+		})...)
 	}
 	err := query.Where("id = ?", id).First(&result).Error
 	if err != nil {

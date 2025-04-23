@@ -9,15 +9,13 @@ import (
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
 	"github.com/samber/lo"
-	"gorm.io/gorm"
 	"strconv"
 )
 
 type PermissionRepository interface {
 	Create(ctx context.Context, permission *models.Permission) error
-	GetByIds(ctx context.Context, ids []uint, preload ...func(d *gorm.DB) *gorm.DB) ([]*models.Permission, error)
-	GetById(ctx context.Context, id uint, preload ...func(d *gorm.DB) *gorm.DB) (*models.Permission, error)
-	Preload(field string, args ...any) func(d *gorm.DB) *gorm.DB
+	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Permission, error)
+	GetById(ctx context.Context, id uint, preload ...string) (*models.Permission, error)
 	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error)
 	DeleteById(ctx context.Context, id, updater uint) error
 	GetRolesCount(ctx context.Context, id uint) int64
@@ -117,7 +115,7 @@ func (p *PermissionService) GetPermissionList(ctx context.Context, keyword strin
 }
 
 func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error) {
-	permission, err := p.permissionRepo.GetById(ctx, id, p.permissionRepo.Preload("Roles"))
+	permission, err := p.permissionRepo.GetById(ctx, id, "Roles")
 	if err != nil {
 		return nil, err
 	}

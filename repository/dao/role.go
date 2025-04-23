@@ -7,6 +7,7 @@ import (
 	"gin-web/pkg/database"
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 	"time"
 )
@@ -30,11 +31,13 @@ func (r *RoleDAO) Create(ctx context.Context, role *models.Role) error {
 	return err
 }
 
-func (r *RoleDAO) GetByIds(ctx context.Context, ids []uint, preload ...func(d *gorm.DB) *gorm.DB) ([]*models.Role, error) {
+func (r *RoleDAO) GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Role, error) {
 	var roles []*models.Role
 	query := r.Datasource(ctx).Model(&models.Role{})
 	if len(preload) > 0 {
-		query = query.Scopes(preload...)
+		query = query.Scopes(lo.Map(preload, func(item string, index int) func(d *gorm.DB) *gorm.DB {
+			return r.Preload(item)
+		})...)
 	}
 	err := query.Where("id in (?)", ids).Find(&roles).Error
 	if err != nil {
@@ -72,11 +75,13 @@ func (r *RoleDAO) GetByName(ctx context.Context, name string) (*models.Role, err
 	return role, nil
 }
 
-func (r *RoleDAO) GetById(ctx context.Context, id uint, preload ...func(d *gorm.DB) *gorm.DB) (*models.Role, error) {
+func (r *RoleDAO) GetById(ctx context.Context, id uint, preload ...string) (*models.Role, error) {
 	var result models.Role
 	query := r.Datasource(ctx).Model(&models.Role{})
 	if len(preload) > 0 {
-		query = query.Scopes(preload...)
+		query = query.Scopes(lo.Map(preload, func(item string, index int) func(d *gorm.DB) *gorm.DB {
+			return r.Preload(item)
+		})...)
 	}
 	err := query.Where("id = ?", id).First(&result).Error
 	if err != nil {
