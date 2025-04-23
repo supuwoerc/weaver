@@ -8,6 +8,7 @@ import (
 	"gin-web/pkg/database"
 	"gin-web/pkg/response"
 	"github.com/go-sql-driver/mysql"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 )
 
@@ -30,17 +31,13 @@ func (u *UserDAO) Create(ctx context.Context, user *models.User) error {
 	return err
 }
 
-func (u *UserDAO) GetByEmail(ctx context.Context, email string, needRoles, needPermissions, needDepts bool) (*models.User, error) {
+func (u *UserDAO) GetByEmail(ctx context.Context, email string, preload ...string) (*models.User, error) {
 	var user models.User
 	query := u.Datasource(ctx).Model(&models.User{})
-	if needRoles {
-		query = query.Preload("Roles")
-		if needPermissions {
-			query.Preload("Roles.Permissions")
-		}
-	}
-	if needDepts {
-		query = query.Preload("Departments")
+	if len(preload) > 0 {
+		query = query.Scopes(lo.Map(preload, func(item string, index int) func(d *gorm.DB) *gorm.DB {
+			return u.Preload(item)
+		})...)
 	}
 	err := query.Where("email = ?", email).First(&user).Error
 	if err != nil {
@@ -52,17 +49,13 @@ func (u *UserDAO) GetByEmail(ctx context.Context, email string, needRoles, needP
 	return &user, nil
 }
 
-func (u *UserDAO) GetById(ctx context.Context, uid uint, needRoles, needPermissions, needDepts bool) (*models.User, error) {
+func (u *UserDAO) GetById(ctx context.Context, uid uint, preload ...string) (*models.User, error) {
 	var user models.User
 	query := u.Datasource(ctx).Model(&models.User{})
-	if needRoles {
-		query.Preload("Roles")
-		if needPermissions {
-			query.Preload("Roles.Permissions")
-		}
-	}
-	if needDepts {
-		query = query.Preload("Departments")
+	if len(preload) > 0 {
+		query = query.Scopes(lo.Map(preload, func(item string, index int) func(d *gorm.DB) *gorm.DB {
+			return u.Preload(item)
+		})...)
 	}
 	err := query.Where("id = ?", uid).First(&user).Error
 	if err != nil {
@@ -74,17 +67,13 @@ func (u *UserDAO) GetById(ctx context.Context, uid uint, needRoles, needPermissi
 	return &user, nil
 }
 
-func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, needRoles, needPermissions, needDepts bool) ([]*models.User, error) {
+func (u *UserDAO) GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.User, error) {
 	var users []*models.User
 	query := u.Datasource(ctx).Model(&models.User{})
-	if needRoles {
-		query.Preload("Roles")
-		if needPermissions {
-			query.Preload("Roles.Permissions")
-		}
-	}
-	if needDepts {
-		query = query.Preload("Departments")
+	if len(preload) > 0 {
+		query = query.Scopes(lo.Map(preload, func(item string, index int) func(d *gorm.DB) *gorm.DB {
+			return u.Preload(item)
+		})...)
 	}
 	err := query.Where("id in (?)", ids).Find(&users).Error
 	if err != nil {

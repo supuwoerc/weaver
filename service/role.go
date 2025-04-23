@@ -87,7 +87,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 		// 查询有效的用户
 		var users []*models.User
 		if len(params.Users) > 0 {
-			users, err = r.userRepo.GetByIds(ctx, params.Users, false, false, false)
+			users, err = r.userRepo.GetByIds(ctx, params.Users)
 			if err != nil {
 				return err
 			}
@@ -179,7 +179,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 		// 查询有效的用户
 		var users []*models.User
 		if len(params.Users) > 0 {
-			users, err = r.userRepo.GetByIds(ctx, params.Users, false, false, false)
+			users, err = r.userRepo.GetByIds(ctx, params.Users)
 			if err != nil {
 				return err
 			}

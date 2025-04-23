@@ -114,7 +114,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		var users []*models.User
 		tempUserIds := lo.Union(params.Users, params.Leaders)
 		if len(tempUserIds) > 0 {
-			users, err = p.userRepo.GetByIds(ctx, tempUserIds, false, false, false)
+			users, err = p.userRepo.GetByIds(ctx, tempUserIds)
 			if err != nil {
 				return err
 			}

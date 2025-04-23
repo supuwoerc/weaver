@@ -19,9 +19,9 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user *models.User) error
-	GetByEmail(ctx context.Context, email string, needRoles, needPermissions, needDepts bool) (*models.User, error)
-	GetById(ctx context.Context, uid uint, needRoles, needPermissions, needDepts bool) (*models.User, error)
-	GetByIds(ctx context.Context, ids []uint, needRoles, needPermissions, needDepts bool) ([]*models.User, error)
+	GetByEmail(ctx context.Context, email string, preload ...string) (*models.User, error)
+	GetById(ctx context.Context, uid uint, preload ...string) (*models.User, error)
+	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.User, error)
 	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error)
 	GetAll(ctx context.Context) ([]*models.User, error)
 	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
@@ -85,7 +85,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 			u.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(emailLock)
-	existUser, err := u.userRepo.GetByEmail(ctx, user.Email, false, false, false)
+	existUser, err := u.userRepo.GetByEmail(ctx, user.Email)
 	if err != nil && !errors.Is(err, response.UserNotExist) {
 		return err
 	}
@@ -122,7 +122,7 @@ func (u *UserService) generateActiveURL(ctx context.Context, uid uint) (string, 
 }
 
 func (u *UserService) Login(ctx context.Context, email string, password string) (*response.LoginResponse, error) {
-	user, err := u.userRepo.GetByEmail(ctx, email, true, false, false)
+	user, err := u.userRepo.GetByEmail(ctx, email, "Roles")
 	switch {
 	case err != nil:
 		return nil, err
@@ -178,7 +178,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 }
 
 func (u *UserService) Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error) {
-	user, err := u.userRepo.GetById(ctx, uid, true, true, true)
+	user, err := u.userRepo.GetById(ctx, uid, "Roles", "Roles.Permissions", "Departments")
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 		// key 过期的情况需要重新发送邮件
 		if errors.Is(err, redis.Nil) {
 			var user *models.User
-			user, err = u.userRepo.GetById(ctx, uid, false, false, false)
+			user, err = u.userRepo.GetById(ctx, uid)
 			if err == nil && user.Status == constant.Inactive {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
@@ -240,7 +240,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 	} else {
 		return u.Transaction(ctx, false, func(ctx context.Context) error {
 			var user *models.User
-			user, err = u.userRepo.GetById(ctx, uid, false, false, false)
+			user, err = u.userRepo.GetById(ctx, uid)
 			if err != nil {
 				return err
 			}

@@ -9,9 +9,9 @@ import (
 
 type UserDAO interface {
 	Create(ctx context.Context, user *models.User) error
-	GetByEmail(ctx context.Context, email string, needRoles, needPermissions, needDepts bool) (*models.User, error)
-	GetById(ctx context.Context, uid uint, needRoles, needPermissions, needDepts bool) (*models.User, error)
-	GetByIds(ctx context.Context, ids []uint, needRoles, needPermissions, needDepts bool) ([]*models.User, error)
+	GetByEmail(ctx context.Context, email string, preload ...string) (*models.User, error)
+	GetById(ctx context.Context, uid uint, preload ...string) (*models.User, error)
+	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.User, error)
 	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error)
 	GetAll(ctx context.Context) ([]*models.User, error)
 	UpdateAccountStatus(ctx context.Context, id uint, status constant.UserStatus) error
