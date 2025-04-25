@@ -1,5 +1,7 @@
 package constant
 
+type ContextKey string
+
 const (
-	TransactionKey = "context_transaction"
+	TransactionKey ContextKey = "context_transaction"
 )
