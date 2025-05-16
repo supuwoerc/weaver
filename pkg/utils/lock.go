@@ -90,7 +90,7 @@ func (l *RedisLock) Unlock() error {
 		if errors.Is(err, redsync.ErrLockAlreadyExpired) {
 			return nil
 		}
-		return errors.Wrapf(err, l.Name())
+		return errors.Wrap(err, l.Name())
 	}
 	if !ok {
 		return fmt.Errorf("%s unlock failed", l.Name())
