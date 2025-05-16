@@ -44,6 +44,8 @@ func TestGetContextClaims(t *testing.T) {
 		},
 	}
 	contextWithClaims.Set(constant.ClaimsContextKey, claims)
+	contextWithInvalidClaims, _ := gin.CreateTestContext(nil)
+	contextWithInvalidClaims.Set(constant.ClaimsContextKey, nil)
 	tests := []struct {
 		name    string
 		args    args
@@ -64,6 +66,13 @@ func TestGetContextClaims(t *testing.T) {
 			want:    claims,
 			wantErr: false,
 			err:     nil,
+		},
+		{
+			name:    "InvalidClaims",
+			args:    args{ctx: contextWithInvalidClaims},
+			want:    nil,
+			wantErr: true,
+			err:     response.UserNotExist,
 		},
 	}
 	for _, tt := range tests {
