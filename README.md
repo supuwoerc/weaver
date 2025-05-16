@@ -36,8 +36,9 @@
 
 ###### 开发前的配置要求
 
-1. xxxxx x.x.x
-2. xxxxx x.x.x
+1. pre-commit
+2. gocov
+3. gocov-html
 
 ###### **安装步骤**
 

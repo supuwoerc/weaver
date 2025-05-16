@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"gin-web/middleware"
 	"gin-web/pkg/response"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type PingService interface {
@@ -40,7 +41,7 @@ func (p *PingApi) Ping(ctx *gin.Context) {
 }
 
 func (p *PingApi) Exception(ctx *gin.Context) {
-	num := 100 - 100
+	num := 100 - (99 + 1)
 	response.SuccessWithData[int](ctx, 1/num)
 }
 

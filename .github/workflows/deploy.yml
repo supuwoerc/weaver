@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 jobs:
   Build-And-Deploy-Application:
@@ -14,12 +17,24 @@ jobs:
       - name: Setup-Golang
         uses: actions/setup-go@v4
         with:
-          go-version: '1.22.10'
+          go-version: '1.24.3'
           check-latest: false
       - run: go version
 
       - name: Install-Application-Dependencies
         run: go mod download
+
+      - name: Run tests
+        run: |
+          go test ./... -coverprofile=coverage.out \
+          -covermode=atomic -coverpkg=./... \
+          COVERAGE=$(go tool cover -func=coverage.out \
+          | grep total | awk '{print substr($3, 1, length($3)-1)}') \
+          echo "覆盖率: $COVERAGE%" \
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then \
+            echo "::error::覆盖率 $COVERAGE% 低于80%要求" \
+            #exit 1 \
+          fi
 
       - name: Build-Application
         run: |
@@ -38,7 +53,13 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
-          source: weaver,weaver_cli,run.sh,pkg/locale/,templates/,config/default.yml
+          source: |
+            weaver,
+            weaver_cli,
+            run.sh,
+            pkg/locale/,
+            templates/,
+            config/default.yml
           target: /var/www/weaver
 
       - name: Deploy-Application-To-Ubuntu
@@ -53,6 +74,5 @@ jobs:
             ls -l
             chmod +x ./run.sh
             ./run.sh
-
       - name: End
         run: echo 'build and deploy end...'

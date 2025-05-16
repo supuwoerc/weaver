@@ -6,10 +6,11 @@ import (
 	"gin-web/middleware"
 	"gin-web/pkg/email"
 	"gin-web/router"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"io"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func getEnginLoggerConfig(output io.Writer) gin.LoggerConfig {
@@ -60,9 +61,9 @@ func NewEngine(writer EngineLogger, emailClient *email.Client, logger *zap.Sugar
 
 func initDebugPrinter(writer io.Writer) {
 	gin.DebugPrintFunc = func(format string, values ...interface{}) {
-		_, _ = fmt.Fprint(writer, fmt.Sprintf("{\"caller\":GIN DEBUG,\"message\":\"%s\"}\n", fmt.Sprintf(format, values...)))
+		_, _ = fmt.Fprintf(writer, "{\"caller\":GIN DEBUG,\"message\":\"%s\"}\n", fmt.Sprintf(format, values...))
 	}
 	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
-		_, _ = fmt.Fprint(writer, fmt.Sprintf("{\"caller\":GIN ROUTER DEBUG,\"method\":\"%s\",\"path\":\"%s\",\"handler\":\"%s\",\"handlers\":%d}\n", httpMethod, absolutePath, handlerName, nuHandlers))
+		_, _ = fmt.Fprintf(writer, "{\"caller\":GIN ROUTER DEBUG,\"method\":\"%s\",\"path\":\"%s\",\"handler\":\"%s\",\"handlers\":%d}\n", httpMethod, absolutePath, handlerName, nuHandlers)
 	}
 }
