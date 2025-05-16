@@ -24,17 +24,35 @@ jobs:
       - name: Install-Application-Dependencies
         run: go mod download
 
-      - name: Check test coverage
+      - name: Check-Test-Coverage
         run: |
-          go test ./... -coverprofile=coverage.out\
-          -covermode=atomic -coverpkg=./...
+          # 运行测试
+          if ! go test ./... -coverprofile=coverage.out\
+          -covermode=atomic -coverpkg=./...; then
+            echo "::error::单元测试失败"
+            exit 1
+          fi
+
+          # 获取覆盖率
           COVERAGE=$(go tool cover -func=coverage.out |\
-          grep total | awk '{print substr($3, 1, length($3)-1}')
+          grep total | awk '{print substr($3, 1, length($3)-1)}')
+
+          # 检查覆盖率
+          if [ -z "$COVERAGE" ]; then
+            echo "::error::无法获取覆盖率数据"
+            exit 1
+          fi
+
           echo "覆盖率: $COVERAGE%"
-          if [ $(echo "$COVERAGE < 80" | bc -l) -eq 1 ]; then
+
+          if awk -v cov="$COVERAGE" 'BEGIN {exit !(cov >= 80)}'; then
+            echo "✅ 覆盖率达标"
+          else
             echo "::error::覆盖率 $COVERAGE% 低于80%要求"
             exit 1
           fi
+        shell: bash
+
 
       - name: Build-Application
         run: |
