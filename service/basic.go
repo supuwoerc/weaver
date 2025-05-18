@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"gin-web/conf"
+	"gin-web/initialize"
 	"gin-web/pkg/database"
-	"gin-web/pkg/email"
 	"gin-web/pkg/utils"
+	"runtime/debug"
+
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"runtime/debug"
 )
 
 type BasicService struct {
@@ -18,7 +19,7 @@ type BasicService struct {
 	db          *gorm.DB
 	locksmith   *utils.RedisLocksmith
 	conf        *conf.Config
-	emailClient *email.Client
+	emailClient *initialize.EmailClient
 }
 
 func NewBasicService(
@@ -26,7 +27,7 @@ func NewBasicService(
 	db *gorm.DB,
 	locksmith *utils.RedisLocksmith,
 	conf *conf.Config,
-	emailClient *email.Client,
+	emailClient *initialize.EmailClient,
 ) *BasicService {
 	return &BasicService{
 		logger:      logger,

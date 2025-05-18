@@ -2,15 +2,31 @@ package providers
 
 import (
 	v1 "gin-web/api/v1"
+	"gin-web/initialize"
 	"gin-web/middleware"
 	"gin-web/pkg/captcha"
 	"gin-web/pkg/jwt"
+	"gin-web/pkg/utils"
 	"gin-web/repository"
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
 	"gin-web/service"
+
+	"go.uber.org/zap"
+
 	"github.com/google/wire"
 	"github.com/mojocn/base64Captcha"
+)
+
+var zapLoggerProvider = wire.NewSet(
+	wire.Bind(new(utils.LocksmithLogger), new(*zap.SugaredLogger)),
+	wire.Bind(new(initialize.ClientLogger), new(*zap.SugaredLogger)),
+	initialize.NewZapLogger,
+)
+
+var emailProvider = wire.NewSet(
+	wire.Bind(new(utils.LocksmithEmailClient), new(*initialize.EmailClient)),
+	initialize.NewEmailClient,
 )
 
 var departmentServiceProvider = wire.NewSet(
@@ -57,6 +73,8 @@ var captchaRedisStoreProvider = wire.NewSet(
 )
 
 var CommonProvider = wire.NewSet(
+	zapLoggerProvider,
+	emailProvider,
 	departmentServiceProvider,
 	permissionServiceProvider,
 	userRepositoryProvider,

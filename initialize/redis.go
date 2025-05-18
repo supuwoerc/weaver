@@ -90,5 +90,5 @@ func NewRedisClient(logger RedisClientLogger, conf *conf.Config) *local.CommonRe
 		panic(err)
 	}
 	pool := goredis.NewPool(client)
-	return &local.CommonRedisClient{Client: client, Redsync: redsync.New(pool)}
+	return local.NewCommonRedisClient(client, redsync.New(pool))
 }

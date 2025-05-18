@@ -3,20 +3,24 @@ package middleware
 import (
 	"gin-web/conf"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/email"
 	"gin-web/pkg/response"
+	"runtime/debug"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"runtime/debug"
 )
 
+type RecoverEmailClient interface {
+	Alarm2Admin(subject constant.Subject, body string) error
+}
+
 type RecoveryMiddle struct {
-	emailClient *email.Client
+	emailClient RecoverEmailClient
 	logger      *zap.SugaredLogger
 	conf        *conf.Config
 }
 
-func NewRecoveryMiddleware(emailClient *email.Client, logger *zap.SugaredLogger, conf *conf.Config) *RecoveryMiddle {
+func NewRecoveryMiddleware(emailClient RecoverEmailClient, logger *zap.SugaredLogger, conf *conf.Config) *RecoveryMiddle {
 	return &RecoveryMiddle{
 		emailClient: emailClient,
 		logger:      logger,

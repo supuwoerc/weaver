@@ -3,15 +3,15 @@ package initialize
 import (
 	"fmt"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/email"
+	"runtime/debug"
+
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
-	"runtime/debug"
 )
 
 type CronLogger struct {
 	logger      *zap.SugaredLogger
-	emailClient *email.Client
+	emailClient *EmailClient
 }
 
 func (c *CronLogger) Info(msg string, keysAndValues ...interface{}) {
@@ -49,6 +49,6 @@ func NewCronClient(l *CronLogger) *cron.Cron {
 	return cron.New(cron.WithLogger(l), cron.WithSeconds(), cron.WithChain(l.CronRecover()))
 }
 
-func NewCronLogger(logger *zap.SugaredLogger, emailClient *email.Client) *CronLogger {
+func NewCronLogger(logger *zap.SugaredLogger, emailClient *EmailClient) *CronLogger {
 	return &CronLogger{logger: logger, emailClient: emailClient}
 }

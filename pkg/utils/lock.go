@@ -4,27 +4,38 @@ import (
 	"context"
 	"fmt"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/email"
 	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
-	"github.com/go-redsync/redsync/v4"
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
 	"strings"
 	"time"
+
+	"github.com/go-redsync/redsync/v4"
+	"github.com/pkg/errors"
 )
 
+type LocksmithLogger interface {
+	Errorf(template string, args ...interface{})
+}
+
+type LocksmithEmailClient interface {
+	Alarm2Admin(subject constant.Subject, body string) error
+}
+
+type LocksmithMutex interface {
+	NewMutex(name string, options ...redsync.Option) *redsync.Mutex
+}
+
 type RedisLocksmith struct {
-	logger      *zap.SugaredLogger
-	redisClient *redis.CommonRedisClient
-	emailClient *email.Client
+	redisClient LocksmithMutex
+	emailClient LocksmithEmailClient
+	logger      LocksmithLogger
 }
 
 type RedisLock struct {
 	*redsync.Mutex
 	duration    time.Duration
-	logger      *zap.SugaredLogger
-	emailClient *email.Client
+	logger      LocksmithLogger
+	emailClient LocksmithEmailClient
 }
 
 const (
@@ -32,7 +43,8 @@ const (
 	defaultLockDuration = 10 * time.Second
 )
 
-func NewRedisLocksmith(logger *zap.SugaredLogger, redisClient *redis.CommonRedisClient, emailClient *email.Client) *RedisLocksmith {
+func NewRedisLocksmith(logger LocksmithLogger, redisClient *redis.CommonRedisClient,
+	emailClient LocksmithEmailClient) *RedisLocksmith {
 	return &RedisLocksmith{
 		logger:      logger,
 		redisClient: redisClient,
@@ -44,7 +56,10 @@ func NewRedisLocksmith(logger *zap.SugaredLogger, redisClient *redis.CommonRedis
 func (r *RedisLocksmith) NewLock(t constant.Prefix, object ...string) *RedisLock {
 	name := fmt.Sprintf("%s:%s", t, strings.Join(object, "_"))
 	return &RedisLock{
-		Mutex:       r.redisClient.Redsync.NewMutex(name, redsync.WithExpiry(defaultLockDuration), redsync.WithTries(defaultMaxRetries)),
+		Mutex: r.redisClient.NewMutex(name,
+			redsync.WithExpiry(defaultLockDuration),
+			redsync.WithTries(defaultMaxRetries),
+		),
 		duration:    defaultLockDuration,
 		logger:      r.logger,
 		emailClient: r.emailClient,
@@ -100,7 +115,10 @@ func (l *RedisLock) Unlock() error {
 
 func (l *RedisLock) alarm(subject constant.Subject, lockName string, err error) {
 	l.logger.Errorf("redis lock name:%s subject:%s error:%s", lockName, subject, err.Error())
-	if err = l.emailClient.Alarm2Admin(subject, fmt.Sprintf("%s alarm: %v", lockName, err.Error())); err != nil {
+	if err = l.emailClient.Alarm2Admin(
+		subject,
+		fmt.Sprintf("%s alarm: %v", lockName, err.Error()),
+	); err != nil {
 		l.logger.Errorf("redis alarm err: %v", err.Error())
 	}
 }

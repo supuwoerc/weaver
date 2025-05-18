@@ -4,17 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gin-web/initialize"
 	"gin-web/models"
 	"gin-web/pkg/constant"
-	"gin-web/pkg/email"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
+	"strconv"
+	"time"
+
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
 	"golang.org/x/crypto/bcrypt"
-	"strconv"
-	"time"
 )
 
 type UserRepository interface {
@@ -51,7 +52,7 @@ func NewUserService(
 	captchaService *CaptchaService,
 	roleRepository RoleRepository,
 	userRepo UserRepository,
-	ec *email.Client,
+	ec *initialize.EmailClient,
 	tb *jwt.TokenBuilder,
 ) *UserService {
 	return &UserService{

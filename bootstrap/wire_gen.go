@@ -7,12 +7,11 @@
 package bootstrap
 
 import (
-	"gin-web/api/v1"
+	v1 "gin-web/api/v1"
 	"gin-web/initialize"
 	"gin-web/middleware"
 	cache2 "gin-web/pkg/cache"
 	"gin-web/pkg/captcha"
-	"gin-web/pkg/email"
 	"gin-web/pkg/job"
 	"gin-web/pkg/jwt"
 	"gin-web/pkg/utils"
@@ -31,15 +30,15 @@ func WireApp() *App {
 	writeSyncer := initialize.NewWriterSyncer(config)
 	sugaredLogger := initialize.NewZapLogger(config, writeSyncer)
 	dialer := initialize.NewDialer(config)
-	client := email.NewEmailClient(sugaredLogger, dialer, config)
-	cronLogger := initialize.NewCronLogger(sugaredLogger, client)
+	emailClient := initialize.NewEmailClient(sugaredLogger, dialer, config)
+	cronLogger := initialize.NewCronLogger(sugaredLogger, emailClient)
 	cron := initialize.NewCronClient(cronLogger)
 	v := providers.SystemJobs(sugaredLogger)
 	systemJobManager := job.NewSystemJobManager(cronLogger, cron, sugaredLogger, v...)
 	db := initialize.NewGORM(config)
 	commonRedisClient := initialize.NewRedisClient(writeSyncer, config)
-	redisLocksmith := utils.NewRedisLocksmith(sugaredLogger, commonRedisClient, client)
-	basicService := service.NewBasicService(sugaredLogger, db, redisLocksmith, config, client)
+	redisLocksmith := utils.NewRedisLocksmith(sugaredLogger, commonRedisClient, emailClient)
+	basicService := service.NewBasicService(sugaredLogger, db, redisLocksmith, config, emailClient)
 	basicDAO := dao.NewBasicDao(db)
 	departmentDAO := dao.NewDepartmentDAO(basicDAO)
 	departmentCache := cache.NewDepartmentCache(commonRedisClient)
@@ -55,7 +54,7 @@ func WireApp() *App {
 	permissionService := service.NewPermissionService(basicService, permissionRepository, roleRepository)
 	v2 := providers.SystemCaches(departmentService, permissionService)
 	systemCacheManager := cache2.NewSystemCacheManager(v2...)
-	engine := initialize.NewEngine(writeSyncer, client, sugaredLogger, config)
+	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger, config)
 	httpServer := initialize.NewServer(config, engine, sugaredLogger)
 	routerGroup := router.NewRouter(engine, config)
 	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
@@ -73,7 +72,7 @@ func WireApp() *App {
 	pingApi := v1.NewPingApi(routerGroup, pingService, authMiddleware)
 	roleService := service.NewRoleService(basicService, roleRepository, userRepository, permissionRepository)
 	roleApi := v1.NewRoleApi(routerGroup, roleService, authMiddleware)
-	userService := service.NewUserService(basicService, captchaService, roleRepository, userRepository, client, tokenBuilder)
+	userService := service.NewUserService(basicService, captchaService, roleRepository, userRepository, emailClient, tokenBuilder)
 	userApi := v1.NewUserApi(routerGroup, userService, authMiddleware)
 	app := &App{
 		logger:        sugaredLogger,
