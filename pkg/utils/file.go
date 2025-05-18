@@ -15,15 +15,16 @@ func PathExists(path string) (bool, error) {
 }
 
 // IsDir 判断所给路径是否为文件夹
-func IsDir(path string) bool {
+func IsDir(path string) (bool, error) {
 	s, err := os.Stat(path)
 	if err != nil {
-		return false
+		return false, err
 	}
-	return s.IsDir()
+	return s.IsDir(), nil
 }
 
 // IsFile 判断所给路径是否为文件
-func IsFile(path string) bool {
-	return !IsDir(path)
+func IsFile(path string) (bool, error) {
+	dir, err := IsDir(path)
+	return !dir, err
 }

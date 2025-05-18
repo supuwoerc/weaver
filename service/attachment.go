@@ -10,15 +10,16 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"github.com/google/uuid"
-	"github.com/h2non/filetype"
-	"github.com/samber/lo"
 	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/h2non/filetype"
+	"github.com/samber/lo"
 )
 
 type AttachmentRepository interface {
@@ -144,7 +145,11 @@ func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.Fi
 			return nil, err
 		}
 		// 文件不存在才创建
-		if !(exists && utils.IsFile(targetFilePath)) {
+		isFile, err := utils.IsFile(targetFilePath)
+		if err != nil {
+			return nil, err
+		}
+		if !(exists && isFile) {
 			err = os.Rename(tempFilePath, targetFilePath)
 			if err != nil {
 				return nil, err
