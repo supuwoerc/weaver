@@ -3,6 +3,9 @@ package cache
 import (
 	"context"
 	"fmt"
+
+	"github.com/pkg/errors"
+
 	"github.com/samber/lo"
 )
 
@@ -11,43 +14,57 @@ type SystemCache interface {
 	Refresh(ctx context.Context) error
 	Clean(ctx context.Context) error
 }
+
+//go:generate stringer -type=cacheOperate -linecomment -output cache_operate_string.go
+type cacheOperate int
+
+const (
+	refresh cacheOperate = iota + 1 // refresh
+	clean                           // clean
+)
+
 type SystemCacheManager struct {
-	Caches []SystemCache
+	caches []SystemCache
 }
 
 func NewSystemCacheManager(caches ...SystemCache) *SystemCacheManager {
 	return &SystemCacheManager{
-		Caches: caches,
+		caches: lo.Filter(caches, func(item SystemCache, _ int) bool {
+			return item != nil
+		}),
 	}
 }
 
 func (s *SystemCacheManager) Refresh(ctx context.Context, keys ...string) error {
-	for _, key := range keys {
-		cache, ok := lo.Find(s.Caches, func(item SystemCache) bool {
-			return item.Key() == key
-		})
-		if ok {
-			if e := cache.Refresh(ctx); e != nil {
-				return e
-			}
-		} else {
-			return fmt.Errorf("refresh cache fail:cache %s not found", key)
-		}
-	}
-	return nil
+	return operateCache(ctx, refresh, s, keys...)
 }
 
 func (s *SystemCacheManager) Clean(ctx context.Context, keys ...string) error {
+	return operateCache(ctx, clean, s, keys...)
+}
+
+func operateCache(ctx context.Context, op cacheOperate, s *SystemCacheManager, keys ...string) error {
+	if len(s.caches) == 0 {
+		return fmt.Errorf("%s cache fail: cache slice is empty", op)
+	}
 	for _, key := range keys {
-		cache, ok := lo.Find(s.Caches, func(item SystemCache) bool {
-			return item.Key() == key
+		cache, exists := lo.Find(s.caches, func(c SystemCache) bool {
+			return c.Key() == key
 		})
-		if ok {
-			if e := cache.Clean(ctx); e != nil {
-				return e
-			}
-		} else {
-			return fmt.Errorf("clean cache fail:cache %s not found", key)
+		if !exists {
+			return fmt.Errorf("%s cache fail: cache %s not found", op, key)
+		}
+		var err error
+		switch op {
+		case refresh:
+			err = cache.Refresh(ctx)
+		case clean:
+			err = cache.Clean(ctx)
+		default:
+			return fmt.Errorf("%s is invalid operate", op)
+		}
+		if err != nil {
+			return errors.Wrapf(err, "%s cache fail,key %s", op, key)
 		}
 	}
 	return nil
