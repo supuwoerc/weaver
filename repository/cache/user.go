@@ -49,12 +49,16 @@ func (u *UserCache) GetTokenPair(ctx context.Context, email string) (*models.Tok
 	return &ret, err
 }
 
+func (u *UserCache) activeAccountKey(id uint) string {
+	return fmt.Sprintf("%s%d", constant.ActiveAccountPrefix, id)
+}
+
 func (u *UserCache) CacheActiveAccountCode(ctx context.Context, id uint, code string, duration time.Duration) error {
-	return u.redis.Client.Set(ctx, fmt.Sprintf("%s%d", constant.ActiveAccountPrefix, id), code, duration).Err()
+	return u.redis.Client.Set(ctx, u.activeAccountKey(id), code, duration).Err()
 }
 
 func (u *UserCache) GetActiveAccountCode(ctx context.Context, id uint) (string, error) {
-	result, err := u.redis.Client.Get(ctx, fmt.Sprintf("%s%d", constant.ActiveAccountPrefix, id)).Result()
+	result, err := u.redis.Client.Get(ctx, u.activeAccountKey(id)).Result()
 	if err != nil {
 		return "", err
 	}
@@ -62,5 +66,5 @@ func (u *UserCache) GetActiveAccountCode(ctx context.Context, id uint) (string, 
 }
 
 func (u *UserCache) RemoveActiveAccountCode(ctx context.Context, id uint) error {
-	return u.redis.Client.Del(ctx, fmt.Sprintf("%s%d", constant.ActiveAccountPrefix, id)).Err()
+	return u.redis.Client.Del(ctx, u.activeAccountKey(id)).Err()
 }
