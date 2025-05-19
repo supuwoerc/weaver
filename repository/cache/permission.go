@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"gin-web/pkg/redis"
+	"github.com/supuwoerc/weaver/pkg/redis"
 )
 
 type PermissionCache struct {

@@ -6,11 +6,12 @@
 package bootstrap
 
 import (
-	"gin-web/initialize"
-	"gin-web/pkg/utils"
-	"gin-web/providers"
-	"gin-web/router"
 	"net/http"
+
+	initialize "github.com/supuwoerc/weaverinitialize"
+	"github.com/supuwoerc/weaverpkg/utils"
+	providers "github.com/supuwoerc/weaverproviders"
+	router "github.com/supuwoerc/weaverrouter"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"

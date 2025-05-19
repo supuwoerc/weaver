@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"gin-web/conf"
 	"strings"
+
+	"github.com/supuwoerc/weaver/conf"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

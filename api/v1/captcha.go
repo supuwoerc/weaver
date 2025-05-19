@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"gin-web/pkg/constant"
-	"gin-web/pkg/response"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )

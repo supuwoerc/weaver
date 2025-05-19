@@ -2,11 +2,12 @@ package initialize
 
 import (
 	"fmt"
-	"gin-web/conf"
-	"gin-web/middleware"
-	"gin-web/router"
 	"io"
 	"time"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/middleware"
+	"github.com/supuwoerc/weaver/router"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

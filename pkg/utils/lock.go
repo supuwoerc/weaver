@@ -3,11 +3,12 @@ package utils
 import (
 	"context"
 	"fmt"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/redis"
-	"gin-web/pkg/response"
 	"strings"
 	"time"
+
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/redis"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/go-redsync/redsync/v4"
 	"github.com/pkg/errors"

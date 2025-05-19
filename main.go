@@ -1,8 +1,8 @@
 package main
 
 import (
-	"gin-web/bootstrap"
-	"gin-web/cmd"
+	"github.com/supuwoerc/weaver/bootstrap"
+	"github.com/supuwoerc/weaver/cmd"
 )
 
 var isCli = false

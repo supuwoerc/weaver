@@ -1,7 +1,7 @@
 package response
 
 import (
-	"gin-web/models"
+	"github.com/supuwoerc/weaver/models"
 )
 
 type Creator struct {

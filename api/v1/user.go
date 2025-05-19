@@ -3,13 +3,14 @@ package v1
 import (
 	"context"
 	"errors"
-	"gin-web/middleware"
-	"gin-web/models"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/request"
-	"gin-web/pkg/response"
-	"gin-web/pkg/utils"
 	"net/http"
+
+	"github.com/supuwoerc/weaver/middleware"
+	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/request"
+	"github.com/supuwoerc/weaver/pkg/response"
+	"github.com/supuwoerc/weaver/pkg/utils"
 
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"

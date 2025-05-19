@@ -1,7 +1,7 @@
 package models
 
 import (
-	"gin-web/pkg/database"
+	"github.com/supuwoerc/weaver/pkg/database"
 )
 
 type Attachment struct {

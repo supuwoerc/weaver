@@ -2,12 +2,13 @@ package v1
 
 import (
 	"context"
-	"gin-web/conf"
-	"gin-web/middleware"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/response"
-	"gin-web/pkg/utils"
 	"mime/multipart"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/middleware"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/response"
+	"github.com/supuwoerc/weaver/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )

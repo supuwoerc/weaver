@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"gin-web/pkg/constant"
-	"gin-web/pkg/jwt"
-	"gin-web/pkg/response"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/jwt"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )

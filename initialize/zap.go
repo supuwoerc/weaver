@@ -2,11 +2,12 @@ package initialize
 
 import (
 	"fmt"
-	"gin-web/conf"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/supuwoerc/weaver/conf"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

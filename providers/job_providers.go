@@ -1,8 +1,9 @@
 package providers
 
 import (
-	"gin-web/pkg/job"
 	"time"
+
+	"github.com/supuwoerc/weaver/pkg/job"
 
 	"github.com/google/wire"
 	"go.uber.org/zap"

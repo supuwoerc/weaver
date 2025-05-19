@@ -1,8 +1,9 @@
 package initialize
 
 import (
-	"gin-web/conf"
 	"time"
+
+	"github.com/supuwoerc/weaver/conf"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

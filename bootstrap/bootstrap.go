@@ -2,12 +2,13 @@ package bootstrap
 
 import (
 	"context"
-	v1 "gin-web/api/v1"
-	"gin-web/conf"
-	"gin-web/initialize"
-	"gin-web/pkg/cache"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/job"
+
+	v1 "github.com/supuwoerc/weaver/api/v1"
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/initialize"
+	"github.com/supuwoerc/weaver/pkg/cache"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/job"
 
 	"go.uber.org/zap"
 )

@@ -3,10 +3,11 @@ package captcha
 import (
 	"context"
 	"fmt"
-	"gin-web/conf"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/redis"
 	"time"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/redis"
 )
 
 var ctx = context.Background()

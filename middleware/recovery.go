@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"gin-web/conf"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/response"
 	"runtime/debug"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

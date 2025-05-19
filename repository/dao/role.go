@@ -3,10 +3,11 @@ package dao
 import (
 	"context"
 	"errors"
-	"gin-web/models"
-	"gin-web/pkg/database"
-	"gin-web/pkg/response"
 	"time"
+
+	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/database"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/samber/lo"

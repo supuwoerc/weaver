@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
-	"gin-web/models"
-	"gin-web/pkg/constant"
 	"time"
+
+	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/constant"
 )
 
 type UserDAO interface {

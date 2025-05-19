@@ -3,13 +3,14 @@ package middleware
 import (
 	"context"
 	"errors"
-	"gin-web/conf"
-	"gin-web/models"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/jwt"
-	"gin-web/pkg/response"
 	"net/http"
 	"strings"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/jwt"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )

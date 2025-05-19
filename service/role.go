@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"errors"
-	"gin-web/models"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/database"
-	"gin-web/pkg/request"
-	"gin-web/pkg/response"
-	"gin-web/pkg/utils"
 	"strconv"
+
+	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/database"
+	"github.com/supuwoerc/weaver/pkg/request"
+	"github.com/supuwoerc/weaver/pkg/response"
+	"github.com/supuwoerc/weaver/pkg/utils"
 
 	"github.com/samber/lo"
 )

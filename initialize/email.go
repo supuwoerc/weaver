@@ -3,11 +3,12 @@ package initialize
 import (
 	"bytes"
 	"crypto/tls"
-	"gin-web/conf"
-	"gin-web/pkg/constant"
 	"html/template"
 	"path/filepath"
 	"strings"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/pkg/constant"
 
 	"gopkg.in/gomail.v2"
 )

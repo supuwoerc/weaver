@@ -1,9 +1,10 @@
 package models
 
 import (
-	"gin-web/pkg/constant"
-	"gin-web/pkg/database"
 	"time"
+
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/database"
 )
 
 type User struct {

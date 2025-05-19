@@ -1,4 +1,4 @@
-module gin-web
+module github.com/supuwoerc/weaver
 
 go 1.24.3
 

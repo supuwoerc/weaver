@@ -2,10 +2,11 @@ package v1
 
 import (
 	"context"
-	"gin-web/middleware"
-	"gin-web/pkg/request"
-	"gin-web/pkg/response"
-	"gin-web/pkg/utils"
+
+	"github.com/supuwoerc/weaver/middleware"
+	"github.com/supuwoerc/weaver/pkg/request"
+	"github.com/supuwoerc/weaver/pkg/response"
+	"github.com/supuwoerc/weaver/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )

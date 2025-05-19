@@ -2,8 +2,9 @@ package initialize
 
 import (
 	"fmt"
-	"gin-web/pkg/constant"
 	"runtime/debug"
+
+	"github.com/supuwoerc/weaver/pkg/constant"
 
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"

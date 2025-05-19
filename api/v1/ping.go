@@ -3,12 +3,13 @@ package v1
 import (
 	"context"
 	"fmt"
-	"gin-web/middleware"
-	"gin-web/pkg/response"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/supuwoerc/weaver/middleware"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )

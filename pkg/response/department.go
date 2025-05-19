@@ -1,10 +1,11 @@
 package response
 
 import (
-	"gin-web/models"
-	"github.com/samber/lo"
 	"strconv"
 	"strings"
+
+	"github.com/samber/lo"
+	"github.com/supuwoerc/weaver/models"
 )
 
 // DepartmentTreeResponse 全量部门树结构

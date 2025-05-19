@@ -3,12 +3,13 @@ package initialize
 import (
 	"context"
 	"fmt"
-	"gin-web/conf"
-	local "gin-web/pkg/redis"
 	"io"
 	"net"
 	"strings"
 	"time"
+
+	"github.com/supuwoerc/weaver/conf"
+	local "github.com/supuwoerc/weaver/pkg/redis"
 
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"

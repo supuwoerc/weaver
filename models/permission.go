@@ -1,8 +1,8 @@
 package models
 
 import (
-	"gin-web/pkg/constant"
-	"gin-web/pkg/database"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/database"
 
 	"github.com/samber/lo"
 )

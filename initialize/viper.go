@@ -1,8 +1,9 @@
 package initialize
 
 import (
-	"gin-web/conf"
 	"os"
+
+	"github.com/supuwoerc/weaver/conf"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"

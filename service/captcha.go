@@ -1,9 +1,9 @@
 package service
 
 import (
-	"gin-web/pkg/captcha"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/response"
+	"github.com/supuwoerc/weaver/pkg/captcha"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/mojocn/base64Captcha"
 )

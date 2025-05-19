@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gin-web/conf"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/supuwoerc/weaver/conf"
 
 	"github.com/facebookgo/grace/gracehttp"
 	"go.uber.org/zap"

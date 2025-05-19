@@ -1,6 +1,6 @@
 package request
 
-import "gin-web/pkg/constant"
+import "github.com/supuwoerc/weaver/pkg/constant"
 
 // CreatePermissionRequest 创建新权限的请求参数
 type CreatePermissionRequest struct {

@@ -2,7 +2,8 @@ package repository
 
 import (
 	"context"
-	"gin-web/models"
+
+	"github.com/supuwoerc/weaver/models"
 )
 
 type RoleDAO interface {

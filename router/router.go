@@ -1,9 +1,10 @@
 package router
 
 import (
-	"gin-web/conf"
-	"gin-web/middleware"
 	"net/http"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/middleware"
 
 	"github.com/gin-gonic/gin"
 )

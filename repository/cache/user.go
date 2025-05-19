@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gin-web/models"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/redis"
-	"gin-web/pkg/response"
 	"time"
+
+	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/redis"
+	"github.com/supuwoerc/weaver/pkg/response"
 )
 
 type UserCache struct {

@@ -3,9 +3,10 @@ package cache
 import (
 	"context"
 	"encoding/json"
-	"gin-web/models"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/redis"
+
+	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/redis"
 
 	"github.com/samber/lo"
 )

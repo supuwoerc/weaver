@@ -7,20 +7,20 @@
 package bootstrap
 
 import (
-	v1 "gin-web/api/v1"
-	"gin-web/initialize"
-	"gin-web/middleware"
-	cache2 "gin-web/pkg/cache"
-	"gin-web/pkg/captcha"
-	"gin-web/pkg/job"
-	"gin-web/pkg/jwt"
-	"gin-web/pkg/utils"
-	"gin-web/providers"
-	"gin-web/repository"
-	"gin-web/repository/cache"
-	"gin-web/repository/dao"
-	"gin-web/router"
-	"gin-web/service"
+	v1 "github.com/supuwoerc/weaver/api/v1"
+	"github.com/supuwoerc/weaver/initialize"
+	"github.com/supuwoerc/weaver/middleware"
+	cache2 "github.com/supuwoerc/weaver/pkg/cache"
+	"github.com/supuwoerc/weaver/pkg/captcha"
+	"github.com/supuwoerc/weaver/pkg/job"
+	"github.com/supuwoerc/weaver/pkg/jwt"
+	"github.com/supuwoerc/weaver/pkg/utils"
+	"github.com/supuwoerc/weaver/providers"
+	"github.com/supuwoerc/weaver/repository"
+	"github.com/supuwoerc/weaver/repository/cache"
+	"github.com/supuwoerc/weaver/repository/dao"
+	"github.com/supuwoerc/weaver/router"
+	"github.com/supuwoerc/weaver/service"
 )
 
 // Injectors from wire.go:

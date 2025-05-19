@@ -2,7 +2,8 @@ package dao
 
 import (
 	"context"
-	"gin-web/models"
+
+	"github.com/supuwoerc/weaver/models"
 )
 
 type AttachmentDAO struct {

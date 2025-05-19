@@ -1,12 +1,12 @@
 package providers
 
 import (
-	v1 "gin-web/api/v1"
-	"gin-web/middleware"
-	"gin-web/repository"
-	"gin-web/repository/cache"
-	"gin-web/repository/dao"
-	"gin-web/service"
+	v1 "github.com/supuwoerc/weaver/api/v1"
+	"github.com/supuwoerc/weaver/middleware"
+	"github.com/supuwoerc/weaver/repository"
+	"github.com/supuwoerc/weaver/repository/cache"
+	"github.com/supuwoerc/weaver/repository/dao"
+	"github.com/supuwoerc/weaver/service"
 
 	"github.com/google/wire"
 )

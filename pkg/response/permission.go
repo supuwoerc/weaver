@@ -1,8 +1,8 @@
 package response
 
 import (
-	"gin-web/models"
 	"github.com/samber/lo"
+	"github.com/supuwoerc/weaver/models"
 )
 
 // PermissionListRowResponse 权限列表的行

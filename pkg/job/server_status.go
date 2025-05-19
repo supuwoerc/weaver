@@ -2,9 +2,10 @@ package job
 
 import (
 	"fmt"
-	"gin-web/pkg/constant"
 	"runtime"
 	"time"
+
+	"github.com/supuwoerc/weaver/pkg/constant"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"

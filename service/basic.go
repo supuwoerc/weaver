@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"gin-web/conf"
-	"gin-web/initialize"
-	"gin-web/pkg/database"
-	"gin-web/pkg/utils"
 	"runtime/debug"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/initialize"
+	"github.com/supuwoerc/weaver/pkg/database"
+	"github.com/supuwoerc/weaver/pkg/utils"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"

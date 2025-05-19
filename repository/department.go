@@ -2,8 +2,9 @@ package repository
 
 import (
 	"context"
-	"gin-web/models"
-	"gin-web/pkg/constant"
+
+	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/constant"
 )
 
 type DepartmentDAO interface {

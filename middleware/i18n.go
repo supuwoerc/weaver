@@ -2,13 +2,14 @@ package middleware
 
 import (
 	"encoding/json"
-	"gin-web/conf"
-	"gin-web/pkg/response"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

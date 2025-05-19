@@ -1,8 +1,8 @@
 package response
 
 import (
-	"gin-web/models"
 	"github.com/samber/lo"
+	"github.com/supuwoerc/weaver/models"
 )
 
 // LoginResponse 登录响应

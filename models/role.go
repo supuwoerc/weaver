@@ -1,6 +1,6 @@
 package models
 
-import "gin-web/pkg/database"
+import "github.com/supuwoerc/weaver/pkg/database"
 
 type Role struct {
 	Name        string        `json:"name" gorm:"not null"`

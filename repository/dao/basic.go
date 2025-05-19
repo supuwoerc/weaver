@@ -2,7 +2,8 @@ package dao
 
 import (
 	"context"
-	"gin-web/pkg/database"
+
+	"github.com/supuwoerc/weaver/pkg/database"
 
 	"gorm.io/gorm"
 )

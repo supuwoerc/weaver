@@ -3,11 +3,12 @@ package jwt
 import (
 	"context"
 	"errors"
-	"gin-web/conf"
-	"gin-web/models"
-	"gin-web/pkg/redis"
-	"gin-web/pkg/response"
 	"time"
+
+	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/redis"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"

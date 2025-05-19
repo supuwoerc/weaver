@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
-	"gin-web/pkg/constant"
 	"strings"
 	"time"
+
+	"github.com/supuwoerc/weaver/pkg/constant"
 
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"

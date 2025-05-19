@@ -1,11 +1,12 @@
 package utils
 
 import (
-	"gin-web/pkg/constant"
-	"gin-web/pkg/jwt"
-	"gin-web/pkg/response"
 	"os"
 	"testing"
+
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/jwt"
+	"github.com/supuwoerc/weaver/pkg/response"
 
 	jwt2 "github.com/golang-jwt/jwt/v5"
 	"github.com/samber/lo"

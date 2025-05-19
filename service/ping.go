@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
-	"gin-web/pkg/constant"
-	"gin-web/pkg/utils"
 	"time"
+
+	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/utils"
 )
 
 type PingService struct {
