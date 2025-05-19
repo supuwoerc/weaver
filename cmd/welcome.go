@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"context"
-	"github.com/schollz/progressbar/v3"
-	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/schollz/progressbar/v3"
+	"github.com/spf13/cobra"
 )
 
 var welcomeCmd = &cobra.Command{

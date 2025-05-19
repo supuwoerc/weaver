@@ -3,11 +3,12 @@ package job
 import (
 	"fmt"
 	"gin-web/pkg/constant"
+	"runtime"
+	"time"
+
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	"go.uber.org/zap"
-	"runtime"
-	"time"
 )
 
 type ServerStatus struct {

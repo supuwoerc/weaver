@@ -4,6 +4,12 @@ import (
 	"encoding/json"
 	"gin-web/conf"
 	"gin-web/pkg/response"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
@@ -14,11 +20,6 @@ import (
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"reflect"
-	"strings"
 )
 
 const (

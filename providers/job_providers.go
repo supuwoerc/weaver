@@ -2,9 +2,10 @@ package providers
 
 import (
 	"gin-web/pkg/job"
+	"time"
+
 	"github.com/google/wire"
 	"go.uber.org/zap"
-	"time"
 )
 
 func SystemJobs(logger *zap.SugaredLogger) []job.SystemJob {

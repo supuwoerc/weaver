@@ -2,9 +2,10 @@ package initialize
 
 import (
 	"gin-web/conf"
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"os"
 )
 
 const (

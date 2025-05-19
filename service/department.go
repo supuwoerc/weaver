@@ -8,13 +8,14 @@ import (
 	"gin-web/pkg/request"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
 	"golang.org/x/sync/singleflight"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type DepartmentRepository interface {

@@ -2,6 +2,7 @@ package providers
 
 import (
 	"gin-web/pkg/cache"
+
 	"github.com/google/wire"
 )
 

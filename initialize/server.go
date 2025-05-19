@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"gin-web/conf"
-	"github.com/facebookgo/grace/gracehttp"
-	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/facebookgo/grace/gracehttp"
+	"go.uber.org/zap"
 )
 
 const (

@@ -7,9 +7,10 @@ import (
 	"gin-web/models"
 	"gin-web/pkg/redis"
 	"gin-web/pkg/response"
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
-	"time"
 )
 
 type TokenClaimsBasic struct {

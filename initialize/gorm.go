@@ -2,11 +2,12 @@ package initialize
 
 import (
 	"gin-web/conf"
+	"time"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"time"
 )
 
 const TablePrefix = "sys_"

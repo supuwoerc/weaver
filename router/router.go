@@ -3,8 +3,9 @@ package router
 import (
 	"gin-web/conf"
 	"gin-web/middleware"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func NewRouter(r *gin.Engine, conf *conf.Config) *gin.RouterGroup {

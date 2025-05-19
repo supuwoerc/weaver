@@ -7,6 +7,7 @@ import (
 	"gin-web/repository/cache"
 	"gin-web/repository/dao"
 	"gin-web/service"
+
 	"github.com/google/wire"
 )
 

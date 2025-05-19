@@ -7,8 +7,9 @@ import (
 	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
 	"gin-web/pkg/utils"
-	"github.com/gin-gonic/gin"
 	"mime/multipart"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AttachmentService interface {

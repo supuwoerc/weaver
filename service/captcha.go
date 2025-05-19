@@ -4,6 +4,7 @@ import (
 	"gin-web/pkg/captcha"
 	"gin-web/pkg/constant"
 	"gin-web/pkg/response"
+
 	"github.com/mojocn/base64Captcha"
 )
 
