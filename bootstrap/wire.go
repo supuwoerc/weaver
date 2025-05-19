@@ -8,10 +8,10 @@ package bootstrap
 import (
 	"net/http"
 
-	initialize "github.com/supuwoerc/weaverinitialize"
-	"github.com/supuwoerc/weaverpkg/utils"
-	providers "github.com/supuwoerc/weaverproviders"
-	router "github.com/supuwoerc/weaverrouter"
+	initialize "github.com/supuwoerc/weaver/initialize"
+	"github.com/supuwoerc/weaver/pkg/utils"
+	providers "github.com/supuwoerc/weaver/providers"
+	router "github.com/supuwoerc/weaver/router"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
