@@ -15,15 +15,15 @@ import (
 	"gorm.io/gorm/utils"
 )
 
-const TablePrefix = "sys_"
-
 const (
-	infoStr      = "%s\n[info] "
-	warnStr      = "%s\n[warn] "
-	errStr       = "%s\n[error] "
-	traceStr     = "%s\n[%.3fms] [rows:%v] %s"
-	traceWarnStr = "%s %s\n[%.3fms] [rows:%v] %s"
-	traceErrStr  = "%s %s\n[%.3fms] [rows:%v] %s"
+	tablePrefix  = "sys_"
+	traceMessage = "gorm trace log message"
+	position     = "position"
+	mistaken     = "error"
+	execution    = "execution"
+	slow         = "slow-log"
+	rows         = "rows"
+	sql          = "sql"
 )
 
 type GormLogger struct {
@@ -50,19 +50,22 @@ func (g *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
 
 func (g *GormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
 	if g.Level >= logger.Info {
-		g.WithContext(ctx).Infof(infoStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...)
+		lineNum := utils.FileWithLineNum()
+		g.WithContext(ctx).Infof(msg, append([]interface{}{lineNum}, data...)...)
 	}
 }
 
 func (g *GormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	if g.Level >= logger.Warn {
-		g.WithContext(ctx).Warnf(warnStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...)
+		lineNum := utils.FileWithLineNum()
+		g.WithContext(ctx).Warnf(msg, append([]interface{}{lineNum}, data...)...)
 	}
 }
 
 func (g *GormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
 	if g.Level >= logger.Error {
-		g.WithContext(ctx).Warnf(errStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...)
+		lineNum := utils.FileWithLineNum()
+		g.WithContext(ctx).Errorf(msg, append([]interface{}{lineNum}, data...)...)
 	}
 }
 
@@ -71,28 +74,30 @@ func (g *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 		return
 	}
 	elapsed := time.Since(begin)
+	lineNum := utils.FileWithLineNum()
+	cost := fmt.Sprintf("%.3f ms", float64(elapsed.Nanoseconds())/1e6)
 	switch {
 	case err != nil && g.Level >= logger.Error && (!errors.Is(err, gorm.ErrRecordNotFound) || !g.IgnoreRecordNotFoundError):
-		sql, rows := fc()
-		if rows == -1 {
-			g.WithContext(ctx).Errorf(traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, "-", sql)
+		sqlRaw, affected := fc()
+		if affected == -1 {
+			g.WithContext(ctx).Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, sql, sqlRaw)
 		} else {
-			g.WithContext(ctx).Errorf(traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, rows, sql)
+			g.WithContext(ctx).Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, rows, affected, sql, sqlRaw)
 		}
 	case elapsed > g.SlowThreshold && g.SlowThreshold != 0 && g.Level >= logger.Warn:
-		sql, rows := fc()
+		sqlRaw, affected := fc()
 		slowLog := fmt.Sprintf("SLOW SQL >= %v", g.SlowThreshold)
-		if rows == -1 {
-			g.WithContext(ctx).Warnf(traceWarnStr, utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, "-", sql)
+		if affected == -1 {
+			g.WithContext(ctx).Warnw(traceMessage, position, lineNum, slow, slowLog, execution, cost, sql, sqlRaw)
 		} else {
-			g.WithContext(ctx).Warnf(traceWarnStr, utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, rows, sql)
+			g.WithContext(ctx).Warnw(traceMessage, position, lineNum, slow, slowLog, execution, cost, rows, affected, sql, sqlRaw)
 		}
 	case g.Level == logger.Info:
-		sql, rows := fc()
-		if rows == -1 {
-			g.WithContext(ctx).Infof(traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
+		sqlRaw, affected := fc()
+		if affected == -1 {
+			g.WithContext(ctx).Infow(traceMessage, position, lineNum, execution, cost, sql, sqlRaw)
 		} else {
-			g.WithContext(ctx).Infof(traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, rows, sql)
+			g.WithContext(ctx).Infow(traceMessage, position, lineNum, execution, cost, rows, affected, sql, sqlRaw)
 		}
 	}
 }
@@ -102,7 +107,7 @@ func NewGORM(conf *conf.Config, l logger.Interface) *gorm.DB {
 	logLevel := conf.Logger.GormLevel
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix:   TablePrefix,
+			TablePrefix:   tablePrefix,
 			SingularTable: true,
 		},
 		Logger: l.LogMode(logger.LogLevel(logLevel)),

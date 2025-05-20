@@ -53,12 +53,12 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		} else {
 			// 未找到已经存在的事务则开启新事务
 			isStarter = true
-			manager.DB = manager.DB.Begin(options...).WithContext(ctx)
+			manager.DB = manager.DB.Begin(options...)
 		}
 	} else {
 		// 开启新事务
 		isStarter = true
-		manager.DB = manager.DB.Begin(options...).WithContext(ctx)
+		manager.DB = manager.DB.Begin(options...)
 	}
 	if manager.DB.Error != nil {
 		return manager.DB.Error

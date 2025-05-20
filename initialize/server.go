@@ -57,12 +57,11 @@ func (s *HttpServer) Run() {
 }
 
 func (s *HttpServer) runServer(srv *http.Server) {
-	pid := os.Getpid()
 	// 参考地址:https://github.com/gin-gonic/examples/blob/master/graceful-shutdown/graceful-shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go func() {
-		s.logger.Infow("server running", "addr", srv.Addr, "pid", pid)
+		s.logger.Infow("server running", "addr", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			s.logger.Errorw("server err", "err", err.Error())
 			os.Exit(1)
@@ -72,19 +71,18 @@ func (s *HttpServer) runServer(srv *http.Server) {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(timeoutContext); err != nil {
-		s.logger.Errorw("server closed", "pid", pid, "err", err.Error())
+		s.logger.Errorw("server closed", "err", err.Error())
 		return
 	}
-	s.logger.Infow("server closed", "pid", pid)
+	s.logger.Info("server closed")
 }
 
 func (s *HttpServer) graceRunServe(srv *http.Server) {
-	pid := os.Getpid()
-	s.logger.Infow("grace server running", "addr", srv.Addr, "pid", pid)
+	s.logger.Infow("grace server running", "addr", srv.Addr)
 	err := gracehttp.Serve(srv)
 	if err != nil {
 		s.logger.Errorw("grace server err", "err", err.Error())
 		os.Exit(1)
 	}
-	s.logger.Infow("grace server closed", "pid", pid)
+	s.logger.Info("grace server closed")
 }

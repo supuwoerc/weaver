@@ -23,9 +23,9 @@ func (basic *BasicDAO) Datasource(ctx context.Context) *gorm.DB {
 		return basic.DB
 	}
 	if manager := database.LoadManager(ctx); manager != nil {
-		return manager.DB
+		return manager.DB.WithContext(ctx)
 	}
-	return basic.DB
+	return basic.DB.WithContext(ctx)
 }
 
 func (basic *BasicDAO) Preload(field string, args ...any) func(d *gorm.DB) *gorm.DB {

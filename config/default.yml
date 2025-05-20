@@ -26,7 +26,7 @@ logger:
   level: -1
   dir: "./log"   # 日志文件存放的目录,为空时默认在项目目录下创建log目录存放日志文件
   stdout: false
-  gorm_slow_threshold: 10
+  gorm_slow_threshold: 200000000 # 200ms
 cors:
   origin_prefix:
     - http://localhost
