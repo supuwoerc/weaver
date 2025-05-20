@@ -48,6 +48,10 @@ func (a *App) Run() {
 }
 
 func (a *App) Close() {
+	// logger sync
+	defer func() {
+		_ = a.logger.Sync()
+	}()
 	defer a.logger.Info("app clean is executed")
 	// 停止定时任务
 	a.jobManager.Stop()
