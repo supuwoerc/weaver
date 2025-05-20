@@ -5,13 +5,13 @@ import (
 	"runtime/debug"
 
 	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/logger"
 
 	"github.com/robfig/cron/v3"
-	"go.uber.org/zap"
 )
 
 type CronLogger struct {
-	logger      *zap.SugaredLogger
+	logger      *logger.Logger
 	emailClient *EmailClient
 }
 
@@ -50,6 +50,6 @@ func NewCronClient(l *CronLogger) *cron.Cron {
 	return cron.New(cron.WithLogger(l), cron.WithSeconds(), cron.WithChain(l.CronRecover()))
 }
 
-func NewCronLogger(logger *zap.SugaredLogger, emailClient *EmailClient) *CronLogger {
+func NewCronLogger(logger *logger.Logger, emailClient *EmailClient) *CronLogger {
 	return &CronLogger{logger: logger, emailClient: emailClient}
 }

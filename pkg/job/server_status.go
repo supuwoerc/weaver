@@ -6,18 +6,18 @@ import (
 	"time"
 
 	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/logger"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
-	"go.uber.org/zap"
 )
 
 type ServerStatus struct {
 	cpuStatisticalInterval time.Duration
-	logger                 *zap.SugaredLogger
+	logger                 *logger.Logger
 }
 
-func NewServerStatus(t time.Duration, logger *zap.SugaredLogger) *ServerStatus {
+func NewServerStatus(t time.Duration, logger *logger.Logger) *ServerStatus {
 	return &ServerStatus{
 		cpuStatisticalInterval: t,
 		logger:                 logger,

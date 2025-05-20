@@ -3,9 +3,9 @@ package job
 import (
 	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/logger"
 
 	"github.com/robfig/cron/v3"
-	"go.uber.org/zap"
 )
 
 type SystemJob interface {
@@ -18,12 +18,12 @@ type SystemJob interface {
 type SystemJobManager struct {
 	cronLogger *initialize.CronLogger
 	cronClient *cron.Cron
-	logger     *zap.SugaredLogger
+	logger     *logger.Logger
 	jobsMap    map[string]cron.EntryID // TODO:动态开关任务
 	jobs       []SystemJob             // 任务集合
 }
 
-func NewSystemJobManager(cl *initialize.CronLogger, c *cron.Cron, logger *zap.SugaredLogger, j ...SystemJob) *SystemJobManager {
+func NewSystemJobManager(cl *initialize.CronLogger, c *cron.Cron, logger *logger.Logger, j ...SystemJob) *SystemJobManager {
 	return &SystemJobManager{
 		cronLogger: cl,
 		cronClient: c,

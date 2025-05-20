@@ -8,11 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/supuwoerc/weaver/middleware"
-	"github.com/supuwoerc/weaver/pkg/response"
-	"go.uber.org/zap"
-
 	"github.com/gin-gonic/gin"
+	"github.com/supuwoerc/weaver/middleware"
+	"github.com/supuwoerc/weaver/pkg/logger"
+	"github.com/supuwoerc/weaver/pkg/response"
 )
 
 type PingService interface {
@@ -20,11 +19,11 @@ type PingService interface {
 }
 type PingApi struct {
 	service PingService
-	logger  *zap.SugaredLogger
+	logger  *logger.Logger
 }
 
 func NewPingApi(route *gin.RouterGroup, service PingService,
-	authMiddleware *middleware.AuthMiddleware, logger *zap.SugaredLogger) *PingApi {
+	authMiddleware *middleware.AuthMiddleware, logger *logger.Logger) *PingApi {
 	pinApi := &PingApi{
 		service: service,
 		logger:  logger,
@@ -72,6 +71,6 @@ func (p *PingApi) LockResponse(ctx *gin.Context) {
 	response.Success(ctx)
 }
 func (p *PingApi) LoggerTrace(ctx *gin.Context) {
-	p.logger.Info("test trace", "这是测试内容", "99887766")
+	p.logger.WithContext(ctx).Info("test trace", "这是测试内容", "99887766")
 	ctx.String(http.StatusOK, "ok")
 }

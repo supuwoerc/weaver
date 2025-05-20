@@ -9,14 +9,14 @@ import (
 	"github.com/supuwoerc/weaver/conf"
 	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/pkg/database"
+	"github.com/supuwoerc/weaver/pkg/logger"
 	"github.com/supuwoerc/weaver/pkg/utils"
 
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type BasicService struct {
-	logger      *zap.SugaredLogger
+	logger      *logger.Logger
 	db          *gorm.DB
 	locksmith   *utils.RedisLocksmith
 	conf        *conf.Config
@@ -24,7 +24,7 @@ type BasicService struct {
 }
 
 func NewBasicService(
-	logger *zap.SugaredLogger,
+	logger *logger.Logger,
 	db *gorm.DB,
 	locksmith *utils.RedisLocksmith,
 	conf *conf.Config,

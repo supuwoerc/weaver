@@ -9,12 +9,11 @@ import (
 	"github.com/supuwoerc/weaver/pkg/cache"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/job"
-
-	"go.uber.org/zap"
+	"github.com/supuwoerc/weaver/pkg/logger"
 )
 
 type App struct {
-	logger        *zap.SugaredLogger
+	logger        *logger.Logger
 	conf          *conf.Config
 	jobManager    *job.SystemJobManager
 	cacheManager  *cache.SystemCacheManager

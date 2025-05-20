@@ -7,10 +7,10 @@ import (
 
 	"github.com/supuwoerc/weaver/conf"
 	"github.com/supuwoerc/weaver/middleware"
+	"github.com/supuwoerc/weaver/pkg/logger"
 	"github.com/supuwoerc/weaver/router"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 func getEnginLoggerConfig(output io.Writer) gin.LoggerConfig {
@@ -35,7 +35,7 @@ func getEnginLoggerConfig(output io.Writer) gin.LoggerConfig {
 
 type EngineLogger io.Writer
 
-func NewEngine(writer EngineLogger, emailClient *EmailClient, logger *zap.SugaredLogger, conf *conf.Config) *gin.Engine {
+func NewEngine(writer EngineLogger, emailClient *EmailClient, logger *logger.Logger, conf *conf.Config) *gin.Engine {
 	initDebugPrinter(writer)
 	// 不携带日志和Recovery中间件，自己添加中间件，为了方便收集Recovery日志
 	r := gin.New()

@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/supuwoerc/weaver/conf"
+	"github.com/supuwoerc/weaver/pkg/logger"
 
 	"github.com/facebookgo/grace/gracehttp"
-	"go.uber.org/zap"
 )
 
 const (
@@ -27,12 +27,12 @@ var (
 
 type HttpServer struct {
 	httpServer *http.Server
-	logger     *zap.SugaredLogger
+	logger     *logger.Logger
 	isLinux    bool
 }
 
 // NewServer 创建http服务器
-func NewServer(conf *conf.Config, handle http.Handler, logger *zap.SugaredLogger) *HttpServer {
+func NewServer(conf *conf.Config, handle http.Handler, logger *logger.Logger) *HttpServer {
 	port := conf.System.Port
 	if port == 0 {
 		port = defaultPort

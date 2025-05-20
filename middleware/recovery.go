@@ -5,10 +5,10 @@ import (
 
 	"github.com/supuwoerc/weaver/conf"
 	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/logger"
 	"github.com/supuwoerc/weaver/pkg/response"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type RecoverEmailClient interface {
@@ -17,11 +17,11 @@ type RecoverEmailClient interface {
 
 type RecoveryMiddle struct {
 	emailClient RecoverEmailClient
-	logger      *zap.SugaredLogger
+	logger      *logger.Logger
 	conf        *conf.Config
 }
 
-func NewRecoveryMiddleware(emailClient RecoverEmailClient, logger *zap.SugaredLogger, conf *conf.Config) *RecoveryMiddle {
+func NewRecoveryMiddleware(emailClient RecoverEmailClient, logger *logger.Logger, conf *conf.Config) *RecoveryMiddle {
 	return &RecoveryMiddle{
 		emailClient: emailClient,
 		logger:      logger,

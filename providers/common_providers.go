@@ -6,22 +6,21 @@ import (
 	"github.com/supuwoerc/weaver/middleware"
 	"github.com/supuwoerc/weaver/pkg/captcha"
 	"github.com/supuwoerc/weaver/pkg/jwt"
+	"github.com/supuwoerc/weaver/pkg/logger"
 	"github.com/supuwoerc/weaver/pkg/utils"
 	"github.com/supuwoerc/weaver/repository"
 	"github.com/supuwoerc/weaver/repository/cache"
 	"github.com/supuwoerc/weaver/repository/dao"
 	"github.com/supuwoerc/weaver/service"
 
-	"go.uber.org/zap"
-
 	"github.com/google/wire"
 	"github.com/mojocn/base64Captcha"
 )
 
-var zapLoggerProvider = wire.NewSet(
-	wire.Bind(new(utils.LocksmithLogger), new(*zap.SugaredLogger)),
-	wire.Bind(new(initialize.ClientLogger), new(*zap.SugaredLogger)),
-	initialize.NewZapLogger,
+var loggerProvider = wire.NewSet(
+	wire.Bind(new(utils.LocksmithLogger), new(*logger.Logger)),
+	wire.Bind(new(initialize.ClientLogger), new(*logger.Logger)),
+	logger.NewLogger,
 )
 
 var emailProvider = wire.NewSet(
@@ -73,7 +72,7 @@ var captchaRedisStoreProvider = wire.NewSet(
 )
 
 var CommonProvider = wire.NewSet(
-	zapLoggerProvider,
+	loggerProvider,
 	emailProvider,
 	departmentServiceProvider,
 	permissionServiceProvider,

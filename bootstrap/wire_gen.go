@@ -14,6 +14,7 @@ import (
 	"github.com/supuwoerc/weaver/pkg/captcha"
 	"github.com/supuwoerc/weaver/pkg/job"
 	"github.com/supuwoerc/weaver/pkg/jwt"
+	"github.com/supuwoerc/weaver/pkg/logger"
 	"github.com/supuwoerc/weaver/pkg/utils"
 	"github.com/supuwoerc/weaver/providers"
 	"github.com/supuwoerc/weaver/repository"
@@ -29,16 +30,17 @@ func WireApp() *App {
 	config := initialize.NewViper()
 	writeSyncer := initialize.NewWriterSyncer(config)
 	sugaredLogger := initialize.NewZapLogger(config, writeSyncer)
+	loggerLogger := logger.NewLogger(sugaredLogger)
 	dialer := initialize.NewDialer(config)
-	emailClient := initialize.NewEmailClient(sugaredLogger, dialer, config)
-	cronLogger := initialize.NewCronLogger(sugaredLogger, emailClient)
+	emailClient := initialize.NewEmailClient(loggerLogger, dialer, config)
+	cronLogger := initialize.NewCronLogger(loggerLogger, emailClient)
 	cron := initialize.NewCronClient(cronLogger)
-	v := providers.SystemJobs(sugaredLogger)
-	systemJobManager := job.NewSystemJobManager(cronLogger, cron, sugaredLogger, v...)
+	v := providers.SystemJobs(loggerLogger)
+	systemJobManager := job.NewSystemJobManager(cronLogger, cron, loggerLogger, v...)
 	db := initialize.NewGORM(config)
 	commonRedisClient := initialize.NewRedisClient(writeSyncer, config)
-	redisLocksmith := utils.NewRedisLocksmith(sugaredLogger, commonRedisClient, emailClient)
-	basicService := service.NewBasicService(sugaredLogger, db, redisLocksmith, config, emailClient)
+	redisLocksmith := utils.NewRedisLocksmith(loggerLogger, commonRedisClient, emailClient)
+	basicService := service.NewBasicService(loggerLogger, db, redisLocksmith, config, emailClient)
 	basicDAO := dao.NewBasicDao(db)
 	departmentDAO := dao.NewDepartmentDAO(basicDAO)
 	departmentCache := cache.NewDepartmentCache(commonRedisClient)
@@ -54,8 +56,8 @@ func WireApp() *App {
 	permissionService := service.NewPermissionService(basicService, permissionRepository, roleRepository)
 	v2 := providers.SystemCaches(departmentService, permissionService)
 	systemCacheManager := cache2.NewSystemCacheManager(v2...)
-	engine := initialize.NewEngine(writeSyncer, emailClient, sugaredLogger, config)
-	httpServer := initialize.NewServer(config, engine, sugaredLogger)
+	engine := initialize.NewEngine(writeSyncer, emailClient, loggerLogger, config)
+	httpServer := initialize.NewServer(config, engine, loggerLogger)
 	routerGroup := router.NewRouter(engine, config)
 	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
 	attachmentRepository := repository.NewAttachmentRepository(attachmentDAO)
@@ -69,13 +71,13 @@ func WireApp() *App {
 	departmentApi := v1.NewDepartmentApi(routerGroup, departmentService, authMiddleware)
 	permissionApi := v1.NewPermissionApi(routerGroup, permissionService, authMiddleware)
 	pingService := service.NewPingService(basicService)
-	pingApi := v1.NewPingApi(routerGroup, pingService, authMiddleware, sugaredLogger)
+	pingApi := v1.NewPingApi(routerGroup, pingService, authMiddleware, loggerLogger)
 	roleService := service.NewRoleService(basicService, roleRepository, userRepository, permissionRepository)
 	roleApi := v1.NewRoleApi(routerGroup, roleService, authMiddleware)
 	userService := service.NewUserService(basicService, captchaService, roleRepository, userRepository, emailClient, tokenBuilder)
 	userApi := v1.NewUserApi(routerGroup, userService, authMiddleware)
 	app := &App{
-		logger:        sugaredLogger,
+		logger:        loggerLogger,
 		conf:          config,
 		jobManager:    systemJobManager,
 		cacheManager:  systemCacheManager,

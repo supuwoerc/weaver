@@ -6,21 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/supuwoerc/weaver/conf"
-	"go.uber.org/zap"
+	"github.com/supuwoerc/weaver/pkg/logger"
 )
 
 type TraceMiddleware struct {
 	conf   *conf.Config
-	logger *zap.SugaredLogger
+	logger *logger.Logger
 }
 
-type TraceContextKey string
-
-const (
-	TraceIdContextKey TraceContextKey = "trace_id"
-)
-
-func NewTraceMiddleware(conf *conf.Config, logger *zap.SugaredLogger) *TraceMiddleware {
+func NewTraceMiddleware(conf *conf.Config, logger *logger.Logger) *TraceMiddleware {
 	return &TraceMiddleware{
 		conf:   conf,
 		logger: logger,
@@ -33,7 +27,7 @@ func (c *TraceMiddleware) Trace() gin.HandlerFunc {
 		if strings.TrimSpace(requestTraceId) == "" {
 			requestTraceId = c.generateTraceId()
 		}
-		context.Set(string(TraceIdContextKey), requestTraceId)
+		context.Set(string(logger.TraceIdContextKey), requestTraceId)
 	}
 }
 

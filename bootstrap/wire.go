@@ -21,6 +21,7 @@ import (
 func WireApp() *App {
 	wire.Build(
 		initialize.NewViper,
+		initialize.NewZapLogger,
 		initialize.NewWriterSyncer,
 		initialize.NewDialer,
 		initialize.NewEngine,
