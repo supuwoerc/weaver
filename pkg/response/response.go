@@ -3,17 +3,20 @@ package response
 import (
 	"context"
 	"errors"
+	"net/http"
+
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"net/http"
 )
 
+type I18nTranslatorCtxKey string
+
 const (
-	I18nTranslatorKey      = "i18n_translator"
-	ValidatorTranslatorKey = "validator_translator"
+	I18nTranslatorKey      I18nTranslatorCtxKey = "i18n_translator"
+	ValidatorTranslatorKey I18nTranslatorCtxKey = "validator_translator"
 )
 
 var (
@@ -35,7 +38,7 @@ type DataList[T any] struct {
 
 // HttpResponse json响应
 func HttpResponse[T any](ctx *gin.Context, code StatusCode, data T, config *i18n.LocalizeConfig, message *string) {
-	translator, exists := ctx.Get(I18nTranslatorKey)
+	translator, exists := ctx.Get(string(I18nTranslatorKey))
 	var msg string
 	if message != nil {
 		msg = *message
@@ -115,7 +118,7 @@ func ParamsValidateFail(ctx *gin.Context, err error) {
 	ok := errors.As(err, &errs)
 	if !ok {
 		HttpResponse[any](ctx, InvalidParams, nil, nil, &msg)
-	} else if translator, exists := ctx.Get(ValidatorTranslatorKey); exists {
+	} else if translator, exists := ctx.Get(string(ValidatorTranslatorKey)); exists {
 		if trans, isOk := translator.(ut.Translator); isOk {
 			errMap := make(map[string]string)
 			for _, e := range errs {

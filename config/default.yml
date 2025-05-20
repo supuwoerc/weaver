@@ -2,6 +2,7 @@ system:
   port: 8804
   base_url: https://zhangqimeng.fun
   default_lang: cn
+  trace_key: "X-Trace-ID"
   default_locale_key: Locale
   max_multipart_memory: 104857600 # 上传文件最大字节数
   max_upload_length: 30           # 批量上传时每次最多上传多少个文件

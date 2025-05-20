@@ -105,9 +105,9 @@ func (i *I18NMiddleware) I18N() gin.HandlerFunc {
 		}
 		// 在上下文中注入i18n.Localizer实例
 		if locale == CN {
-			ctx.Set(response.I18nTranslatorKey, cnLocalizer)
+			ctx.Set(string(response.I18nTranslatorKey), cnLocalizer)
 		} else if locale == EN {
-			ctx.Set(response.I18nTranslatorKey, enLocalizer)
+			ctx.Set(string(response.I18nTranslatorKey), enLocalizer)
 		}
 	}
 }
@@ -121,7 +121,7 @@ func (i *I18NMiddleware) InjectTranslator() gin.HandlerFunc {
 	enTrans, _ := uni.GetTranslator("en")
 	localeKey := i.conf.System.DefaultLocaleKey
 	if strings.TrimSpace(localeKey) == "" {
-		panic("locale key未配置")
+		panic("missing default locale key configuration")
 	}
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -155,9 +155,9 @@ func (i *I18NMiddleware) InjectTranslator() gin.HandlerFunc {
 				locale = defaultLang
 			}
 			if locale == CN {
-				ctx.Set(response.ValidatorTranslatorKey, zhTrans)
+				ctx.Set(string(response.ValidatorTranslatorKey), zhTrans)
 			} else if locale == EN {
-				ctx.Set(response.ValidatorTranslatorKey, enTrans)
+				ctx.Set(string(response.ValidatorTranslatorKey), enTrans)
 			}
 		}
 	} else {

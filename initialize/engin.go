@@ -48,6 +48,8 @@ func NewEngine(writer EngineLogger, emailClient *EmailClient, logger *zap.Sugare
 	if maxMultipartMemory > 0 {
 		r.MaxMultipartMemory = maxMultipartMemory
 	}
+	// trace中间件,在上下文中放入trace信息
+	r.Use(middleware.NewTraceMiddleware(conf, logger).Trace())
 	// logger中间件,输出到控制台和zap的日志文件中
 	r.Use(gin.LoggerWithConfig(getEnginLoggerConfig(writer)))
 	// recovery中间件

@@ -4,6 +4,7 @@ type SystemConfig struct {
 	Port                int    `mapstructure:"port"`                  // 端口
 	BaseURL             string `mapstructure:"base_url"`              // 服务base_url
 	DefaultLang         string `mapstructure:"default_lang"`          // 默认语言
+	TraceKey            string `mapstructure:"trace_key"`             // 前端传递trace_id的header key
 	DefaultLocaleKey    string `mapstructure:"default_locale_key"`    // 请求语言key
 	MaxMultipartMemory  int64  `mapstructure:"max_multipart_memory"`  // 上传文件最大字节数
 	MaxUploadLength     int    `mapstructure:"max_upload_length"`     // 批量上传时每次最多上传多少个文件

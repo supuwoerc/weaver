@@ -10,6 +10,7 @@ import (
 
 	"github.com/supuwoerc/weaver/middleware"
 	"github.com/supuwoerc/weaver/pkg/response"
+	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,11 +20,14 @@ type PingService interface {
 }
 type PingApi struct {
 	service PingService
+	logger  *zap.SugaredLogger
 }
 
-func NewPingApi(route *gin.RouterGroup, service PingService, authMiddleware *middleware.AuthMiddleware) *PingApi {
+func NewPingApi(route *gin.RouterGroup, service PingService,
+	authMiddleware *middleware.AuthMiddleware, logger *zap.SugaredLogger) *PingApi {
 	pinApi := &PingApi{
 		service: service,
+		logger:  logger,
 	}
 	// 挂载路由
 	group := route.Group("ping")
@@ -33,6 +37,7 @@ func NewPingApi(route *gin.RouterGroup, service PingService, authMiddleware *mid
 		group.GET("check-permission", authMiddleware.LoginRequired(), authMiddleware.PermissionRequired(), pinApi.CheckPermission)
 		group.GET("slow", pinApi.SlowResponse)
 		group.GET("check-lock", pinApi.LockResponse)
+		group.GET("logger-trace", pinApi.LoggerTrace)
 	}
 	return pinApi
 }
@@ -65,4 +70,8 @@ func (p *PingApi) LockResponse(ctx *gin.Context) {
 		return
 	}
 	response.Success(ctx)
+}
+func (p *PingApi) LoggerTrace(ctx *gin.Context) {
+	p.logger.Info("test trace", "这是测试内容", "99887766")
+	ctx.String(http.StatusOK, "ok")
 }

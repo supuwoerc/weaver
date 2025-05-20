@@ -32,10 +32,10 @@ func NewRecoveryMiddleware(emailClient RecoverEmailClient, logger *zap.SugaredLo
 func (r *RecoveryMiddle) Recovery() gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, err any) {
 		message := string(debug.Stack())
-		r.logger.Errorf("Recovery panic,堆栈信息:%s", message)
+		r.logger.Errorf("recovery panic,stack info: %s", message)
 		go func() {
 			if e := r.emailClient.Alarm2Admin(constant.Recover, message); e != nil {
-				r.logger.Errorf("发送邮件失败,信息:%s", e.Error())
+				r.logger.Errorf("send revover email to admin fail,stack info: %s", e.Error())
 			}
 		}()
 		response.HttpResponse[any](c, response.RecoveryError, nil, nil, nil)

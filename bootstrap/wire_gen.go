@@ -69,7 +69,7 @@ func WireApp() *App {
 	departmentApi := v1.NewDepartmentApi(routerGroup, departmentService, authMiddleware)
 	permissionApi := v1.NewPermissionApi(routerGroup, permissionService, authMiddleware)
 	pingService := service.NewPingService(basicService)
-	pingApi := v1.NewPingApi(routerGroup, pingService, authMiddleware)
+	pingApi := v1.NewPingApi(routerGroup, pingService, authMiddleware, sugaredLogger)
 	roleService := service.NewRoleService(basicService, roleRepository, userRepository, permissionRepository)
 	roleApi := v1.NewRoleApi(routerGroup, roleService, authMiddleware)
 	userService := service.NewUserService(basicService, captchaService, roleRepository, userRepository, emailClient, tokenBuilder)

@@ -8,16 +8,18 @@ import (
 	"time"
 
 	"github.com/supuwoerc/weaver/conf"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func NewZapLogger(conf *conf.Config, sync zapcore.WriteSyncer) *zap.SugaredLogger {
-	level := conf.Logger.Level
-	core := zapcore.NewCore(getEncoder(), sync, zapcore.Level(level))
-	return zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel)).Sugar()
+	core := zapcore.NewCore(getEncoder(), sync, zapcore.Level(conf.Logger.Level))
+	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+	sugarLogger := logger.Sugar()
+	sugarLogger = sugarLogger.With(zap.String("env", conf.Env))
+	sugarLogger = sugarLogger.With(zap.Int("pid", os.Getpid()))
+	return sugarLogger
 }
 func NewWriterSyncer(conf *conf.Config) zapcore.WriteSyncer {
 	projectDir, err := os.Getwd()
@@ -47,7 +49,7 @@ func NewWriterSyncer(conf *conf.Config) zapcore.WriteSyncer {
 		ws = append(ws, zapcore.AddSync(os.Stdout))
 	}
 	if len(ws) == 0 {
-		panic("缺少日志输出配置信息")
+		panic("missing log output configuration")
 	}
 	return zapcore.NewMultiWriteSyncer(ws...)
 }
