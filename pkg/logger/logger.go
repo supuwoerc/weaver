@@ -25,6 +25,7 @@ func (l *Logger) WithContext(ctx context.Context) *zap.SugaredLogger {
 	value := ctx.Value(string(TraceIdContextKey))
 	result := l.SugaredLogger
 	if value != nil {
+		// generate new logger
 		result = result.With(zap.String(string(TraceIdContextKey), value.(string)))
 	}
 	return result

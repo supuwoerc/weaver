@@ -1,6 +1,7 @@
 package providers
 
 import (
+	goredislib "github.com/redis/go-redis/v9"
 	v1 "github.com/supuwoerc/weaver/api/v1"
 	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/middleware"
@@ -12,6 +13,7 @@ import (
 	"github.com/supuwoerc/weaver/repository/cache"
 	"github.com/supuwoerc/weaver/repository/dao"
 	"github.com/supuwoerc/weaver/service"
+	gormLogger "gorm.io/gorm/logger"
 
 	"github.com/google/wire"
 	"github.com/mojocn/base64Captcha"
@@ -21,6 +23,16 @@ var loggerProvider = wire.NewSet(
 	wire.Bind(new(utils.LocksmithLogger), new(*logger.Logger)),
 	wire.Bind(new(initialize.ClientLogger), new(*logger.Logger)),
 	logger.NewLogger,
+)
+
+var redisLoggerProvider = wire.NewSet(
+	wire.Bind(new(goredislib.Hook), new(*initialize.RedisLogger)),
+	initialize.NewRedisLogger,
+)
+
+var gormLoggerProvider = wire.NewSet(
+	wire.Bind(new(gormLogger.Interface), new(*initialize.GormLogger)),
+	initialize.NewGormLogger,
 )
 
 var emailProvider = wire.NewSet(
@@ -73,6 +85,8 @@ var captchaRedisStoreProvider = wire.NewSet(
 
 var CommonProvider = wire.NewSet(
 	loggerProvider,
+	redisLoggerProvider,
+	gormLoggerProvider,
 	emailProvider,
 	departmentServiceProvider,
 	permissionServiceProvider,

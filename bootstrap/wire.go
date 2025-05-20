@@ -32,7 +32,7 @@ func WireApp() *App {
 		initialize.NewCronClient,
 		wire.Bind(new(http.Handler), new(*gin.Engine)),
 		wire.Bind(new(initialize.EngineLogger), new(zapcore.WriteSyncer)),
-		wire.Bind(new(initialize.RedisClientLogger), new(zapcore.WriteSyncer)),
+		wire.Bind(new(initialize.RedisLogSyncer), new(zapcore.WriteSyncer)),
 		utils.NewRedisLocksmith,
 		router.NewRouter,
 		providers.CommonProvider,
