@@ -15,11 +15,16 @@ import (
 
 func NewZapLogger(conf *conf.Config, sync zapcore.WriteSyncer) *zap.SugaredLogger {
 	core := zapcore.NewCore(getEncoder(), sync, zapcore.Level(conf.Logger.Level))
-	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
-	sugarLogger := logger.Sugar()
-	sugarLogger = sugarLogger.With(zap.String("env", conf.Env))
-	sugarLogger = sugarLogger.With(zap.Int("pid", os.Getpid()))
-	return sugarLogger
+	logger := zap.New(
+		core,
+		zap.AddCaller(),
+		zap.AddStacktrace(zapcore.ErrorLevel),
+		zap.Fields(
+			zap.String("env", conf.Env),
+			zap.Int("pid", os.Getpid()),
+		),
+	)
+	return logger.Sugar()
 }
 func NewWriterSyncer(conf *conf.Config) zapcore.WriteSyncer {
 	projectDir, err := os.Getwd()
