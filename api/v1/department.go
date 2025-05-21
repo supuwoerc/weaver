@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 
-	"github.com/supuwoerc/weaver/middleware"
 	"github.com/supuwoerc/weaver/pkg/request"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
@@ -17,21 +16,19 @@ type DepartmentService interface {
 }
 
 type DepartmentApi struct {
+	*BasicApi
 	service DepartmentService
 }
 
-func NewDepartmentApi(
-	route *gin.RouterGroup,
-	service DepartmentService,
-	authMiddleware *middleware.AuthMiddleware,
-) *DepartmentApi {
+func NewDepartmentApi(basic *BasicApi, service DepartmentService) *DepartmentApi {
 	departmentApi := &DepartmentApi{
-		service: service,
+		BasicApi: basic,
+		service:  service,
 	}
 	// 挂载路由
-	departmentAccessGroup := route.Group("department").Use(authMiddleware.LoginRequired())
+	departmentAccessGroup := basic.route.Group("department").Use(basic.auth.LoginRequired())
 	{
-		departmentAccessGroup.POST("create", authMiddleware.PermissionRequired(), departmentApi.CreateDepartment)
+		departmentAccessGroup.POST("create", basic.auth.PermissionRequired(), departmentApi.CreateDepartment)
 		departmentAccessGroup.GET("tree", departmentApi.GetDepartmentTree)
 	}
 	return departmentApi

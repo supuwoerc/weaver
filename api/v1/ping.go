@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/supuwoerc/weaver/middleware"
-	"github.com/supuwoerc/weaver/pkg/logger"
 	"github.com/supuwoerc/weaver/pkg/response"
 )
 
@@ -18,22 +16,20 @@ type PingService interface {
 	LockPermissionField(ctx context.Context) error
 }
 type PingApi struct {
+	*BasicApi
 	service PingService
-	logger  *logger.Logger
 }
 
-func NewPingApi(route *gin.RouterGroup, service PingService,
-	authMiddleware *middleware.AuthMiddleware, logger *logger.Logger) *PingApi {
+func NewPingApi(basic *BasicApi, service PingService) *PingApi {
 	pinApi := &PingApi{
-		service: service,
-		logger:  logger,
+		BasicApi: basic,
+		service:  service,
 	}
-	// 挂载路由
-	group := route.Group("ping")
+	group := basic.route.Group("ping")
 	{
 		group.GET("", pinApi.Ping)
 		group.GET("exception", pinApi.Exception)
-		group.GET("check-permission", authMiddleware.LoginRequired(), authMiddleware.PermissionRequired(), pinApi.CheckPermission)
+		group.GET("check-permission", basic.auth.LoginRequired(), basic.auth.PermissionRequired(), pinApi.CheckPermission)
 		group.GET("slow", pinApi.SlowResponse)
 		group.GET("check-lock", pinApi.LockResponse)
 		group.GET("logger-trace", pinApi.LoggerTrace)
@@ -71,6 +67,6 @@ func (p *PingApi) LockResponse(ctx *gin.Context) {
 	response.Success(ctx)
 }
 func (p *PingApi) LoggerTrace(ctx *gin.Context) {
-	p.logger.WithContext(ctx).Info("test trace", "这是测试内容", "99887766")
+	p.logger.WithContext(ctx).Infow("test message", "content", "hello trace!!!")
 	ctx.String(http.StatusOK, "ok")
 }

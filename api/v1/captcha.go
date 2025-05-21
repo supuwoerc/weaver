@@ -12,15 +12,16 @@ type CaptchaService interface {
 }
 
 type CaptchaApi struct {
+	*BasicApi
 	service CaptchaService
 }
 
-func NewCaptchaApi(route *gin.RouterGroup, service CaptchaService) *CaptchaApi {
+func NewCaptchaApi(basic *BasicApi, service CaptchaService) *CaptchaApi {
 	captchaApi := &CaptchaApi{
-		service: service,
+		BasicApi: basic,
+		service:  service,
 	}
-	// 挂载路由
-	captchaGroup := route.Group("public/captcha")
+	captchaGroup := basic.route.Group("public/captcha")
 	{
 		captchaGroup.GET("signup", captchaApi.GenerateSignUpCaptcha)
 	}

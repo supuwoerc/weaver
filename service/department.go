@@ -19,13 +19,16 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-type DepartmentRepository interface {
+type DepartmentDAO interface {
 	Create(ctx context.Context, dept *models.Department) error
 	GetByName(ctx context.Context, name string) (*models.Department, error)
 	GetById(ctx context.Context, id uint) (*models.Department, error)
 	GetAll(ctx context.Context) ([]*models.Department, error)
 	GetAllUserDepartment(ctx context.Context) ([]*models.UserDepartment, error)
 	GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error)
+}
+
+type DepartmentCache interface {
 	CacheDepartment(ctx context.Context, key constant.CacheKey, depts []*models.Department) error
 	GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error)
 	RemoveDepartmentCache(ctx context.Context, keys ...constant.CacheKey) error
@@ -33,16 +36,23 @@ type DepartmentRepository interface {
 
 type DepartmentService struct {
 	*BasicService
-	departmentRepo DepartmentRepository
-	userRepo       UserRepository
-	deptTreeSfg    singleflight.Group
+	departmentDAO   DepartmentDAO
+	departmentCache DepartmentCache
+	userDAO         UserDAO
+	deptTreeSfg     singleflight.Group
 }
 
-func NewDepartmentService(basic *BasicService, deptRepo DepartmentRepository, userRepo UserRepository) *DepartmentService {
+func NewDepartmentService(
+	basic *BasicService,
+	deptDAO DepartmentDAO,
+	deptCache DepartmentCache,
+	userDAO UserDAO,
+) *DepartmentService {
 	return &DepartmentService{
-		BasicService:   basic,
-		departmentRepo: deptRepo,
-		userRepo:       userRepo,
+		BasicService:    basic,
+		departmentDAO:   deptDAO,
+		departmentCache: deptCache,
+		userDAO:         userDAO,
 	}
 }
 
@@ -79,7 +89,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	}
 	return p.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existDept, temp := p.departmentRepo.GetByName(ctx, params.Name)
+		existDept, temp := p.departmentDAO.GetByName(ctx, params.Name)
 		if temp != nil && !errors.Is(temp, response.DeptNotExist) {
 			return temp
 		}
@@ -89,7 +99,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		// 查询父部门
 		var parentDept *models.Department
 		if params.ParentId != nil {
-			parentDept, temp = p.departmentRepo.GetById(ctx, *params.ParentId)
+			parentDept, temp = p.departmentDAO.GetById(ctx, *params.ParentId)
 			if temp != nil {
 				return temp
 			}
@@ -116,7 +126,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 		var users []*models.User
 		tempUserIds := lo.Union(params.Users, params.Leaders)
 		if len(tempUserIds) > 0 {
-			users, err = p.userRepo.GetByIds(ctx, tempUserIds)
+			users, err = p.userDAO.GetByIds(ctx, tempUserIds)
 			if err != nil {
 				return err
 			}
@@ -134,7 +144,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 			}
 		}
 		// 创建部门 & 建立关联关系
-		return p.departmentRepo.Create(ctx, dept)
+		return p.departmentDAO.Create(ctx, dept)
 	})
 }
 
@@ -151,7 +161,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 		return p.processTree(departmentCache)
 	}
 	result, err, _ := p.deptTreeSfg.Do(string(key), func() (interface{}, error) {
-		departments, err := p.departmentRepo.GetAll(ctx)
+		departments, err := p.departmentDAO.GetAll(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -160,7 +170,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 				return nil, err
 			}
 		}
-		if err = p.departmentRepo.CacheDepartment(ctx, key, departments); err != nil {
+		if err = p.departmentCache.CacheDepartment(ctx, key, departments); err != nil {
 			return nil, err
 		}
 		return p.processTree(departments)
@@ -172,7 +182,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 }
 
 func (p *DepartmentService) processDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
-	cache, err := p.departmentRepo.GetDepartmentCache(ctx, key)
+	cache, err := p.departmentCache.GetDepartmentCache(ctx, key)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, nil
@@ -187,15 +197,15 @@ func (p *DepartmentService) processDepartmentCrew(ctx context.Context, departmen
 	var deptLeader []*models.DepartmentLeader
 	var userDept []*models.UserDepartment
 	var err error
-	deptLeader, err = p.departmentRepo.GetAllDepartmentLeader(ctx)
+	deptLeader, err = p.departmentDAO.GetAllDepartmentLeader(ctx)
 	if err != nil {
 		return err
 	}
-	userDept, err = p.departmentRepo.GetAllUserDepartment(ctx)
+	userDept, err = p.departmentDAO.GetAllUserDepartment(ctx)
 	if err != nil {
 		return err
 	}
-	users, err = p.userRepo.GetAll(ctx)
+	users, err = p.userDAO.GetAll(ctx)
 	if err != nil {
 		return err
 	}
@@ -284,19 +294,19 @@ func (p *DepartmentService) Refresh(ctx context.Context) error {
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)
 	}()
-	departments, err := p.departmentRepo.GetAll(ctx)
+	departments, err := p.departmentDAO.GetAll(ctx)
 	if err != nil {
 		return err
 	}
 	sfgKey := constant.DepartmentTreeSfgKey
 	crewSfgKey := constant.DepartmentTreeCrewSfgKey
-	if err = p.departmentRepo.CacheDepartment(ctx, sfgKey, departments); err != nil {
+	if err = p.departmentCache.CacheDepartment(ctx, sfgKey, departments); err != nil {
 		return err
 	}
 	if err = p.processDepartmentCrew(ctx, departments); err != nil {
 		return err
 	}
-	return p.departmentRepo.CacheDepartment(ctx, crewSfgKey, departments)
+	return p.departmentCache.CacheDepartment(ctx, crewSfgKey, departments)
 }
 
 func (p *DepartmentService) Clean(ctx context.Context) error {
@@ -308,5 +318,5 @@ func (p *DepartmentService) Clean(ctx context.Context) error {
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)
 	}()
-	return p.departmentRepo.RemoveDepartmentCache(ctx, constant.DepartmentTreeSfgKey, constant.DepartmentTreeCrewSfgKey)
+	return p.departmentCache.RemoveDepartmentCache(ctx, constant.DepartmentTreeSfgKey, constant.DepartmentTreeCrewSfgKey)
 }

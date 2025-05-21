@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/supuwoerc/weaver/middleware"
 	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/request"
@@ -25,25 +24,23 @@ type UserService interface {
 }
 
 type UserApi struct {
+	*BasicApi
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
 	phoneRegexExp    *regexp.Regexp
 	service          UserService
 }
 
-func NewUserApi(
-	route *gin.RouterGroup,
-	service UserService,
-	authMiddleware *middleware.AuthMiddleware,
-) *UserApi {
+func NewUserApi(basic *BasicApi, service UserService) *UserApi {
 	userApi := &UserApi{
+		BasicApi:         basic,
 		emailRegexExp:    regexp.MustCompile(constant.EmailRegexPattern, regexp.None),
 		passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
 		phoneRegexExp:    regexp.MustCompile(constant.PhoneRegexPattern, regexp.None),
 		service:          service,
 	}
 	// 挂载路由
-	userPublicGroup := route.Group("public/user")
+	userPublicGroup := basic.route.Group("public/user")
 	{
 		userPublicGroup.POST("signup", userApi.SignUp)
 		userPublicGroup.POST("login", userApi.Login)
@@ -51,7 +48,7 @@ func NewUserApi(
 		userPublicGroup.GET("active-success", userApi.ActiveSuccess)
 		userPublicGroup.GET("active-failure", userApi.ActiveFailure)
 	}
-	userAccessGroup := route.Group("user").Use(authMiddleware.LoginRequired())
+	userAccessGroup := basic.route.Group("user").Use(basic.auth.LoginRequired())
 	{
 		userAccessGroup.GET("refresh-token")
 		userAccessGroup.GET("profile", userApi.Profile)

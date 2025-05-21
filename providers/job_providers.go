@@ -3,10 +3,9 @@ package providers
 import (
 	"time"
 
+	"github.com/google/wire"
 	"github.com/supuwoerc/weaver/pkg/job"
 	"github.com/supuwoerc/weaver/pkg/logger"
-
-	"github.com/google/wire"
 )
 
 func SystemJobs(logger *logger.Logger) []job.SystemJob {

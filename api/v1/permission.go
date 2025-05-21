@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 
-	"github.com/supuwoerc/weaver/middleware"
 	"github.com/supuwoerc/weaver/pkg/request"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
@@ -20,21 +19,19 @@ type PermissionService interface {
 }
 
 type PermissionApi struct {
+	*BasicApi
 	service PermissionService
 }
 
-func NewPermissionApi(
-	route *gin.RouterGroup,
-	service PermissionService,
-	authMiddleware *middleware.AuthMiddleware,
-) *PermissionApi {
+func NewPermissionApi(basic *BasicApi, service PermissionService) *PermissionApi {
 	permissionApi := &PermissionApi{
-		service: service,
+		BasicApi: basic,
+		service:  service,
 	}
 	// 挂载路由
-	permissionAccessGroup := route.Group("permission").Use(
-		authMiddleware.LoginRequired(),
-		authMiddleware.PermissionRequired(),
+	permissionAccessGroup := basic.route.Group("permission").Use(
+		basic.auth.LoginRequired(),
+		basic.auth.PermissionRequired(),
 	)
 	{
 		permissionAccessGroup.POST("create", permissionApi.CreatePermission)

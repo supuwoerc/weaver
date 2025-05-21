@@ -14,7 +14,7 @@ import (
 	"github.com/samber/lo"
 )
 
-type PermissionRepository interface {
+type PermissionDAO interface {
 	Create(ctx context.Context, permission *models.Permission) error
 	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Permission, error)
 	GetById(ctx context.Context, id uint, preload ...string) (*models.Permission, error)
@@ -28,15 +28,15 @@ type PermissionRepository interface {
 
 type PermissionService struct {
 	*BasicService
-	permissionRepo PermissionRepository
-	roleRepo       RoleRepository
+	permissionDAO PermissionDAO
+	roleDAO       RoleDAO
 }
 
-func NewPermissionService(basic *BasicService, permissionRepo PermissionRepository, roleRepository RoleRepository) *PermissionService {
+func NewPermissionService(basic *BasicService, permissionDAO PermissionDAO, roleDAO RoleDAO) *PermissionService {
 	return &PermissionService{
-		BasicService:   basic,
-		permissionRepo: permissionRepo,
-		roleRepo:       roleRepository,
+		BasicService:  basic,
+		permissionDAO: permissionDAO,
+		roleDAO:       roleDAO,
 	}
 }
 
@@ -79,7 +79,7 @@ func (p *PermissionService) CreatePermission(ctx context.Context, operator uint,
 	}
 	return p.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existPermissions, temp := p.permissionRepo.GetByNameOrResource(ctx, params.Name, params.Resource)
+		existPermissions, temp := p.permissionDAO.GetByNameOrResource(ctx, params.Name, params.Resource)
 		if temp != nil {
 			return temp
 		}
@@ -89,13 +89,13 @@ func (p *PermissionService) CreatePermission(ctx context.Context, operator uint,
 		// 查询有效的角色
 		var roles []*models.Role
 		if len(params.Roles) > 0 {
-			roles, err = p.roleRepo.GetByIds(ctx, params.Roles)
+			roles, err = p.roleDAO.GetByIds(ctx, params.Roles)
 			if err != nil {
 				return err
 			}
 		}
 		// 创建权限 & 建立关联关系
-		return p.permissionRepo.Create(ctx, &models.Permission{
+		return p.permissionDAO.Create(ctx, &models.Permission{
 			Name:      params.Name,
 			Resource:  params.Resource,
 			Type:      params.Type,
@@ -107,7 +107,7 @@ func (p *PermissionService) CreatePermission(ctx context.Context, operator uint,
 }
 
 func (p *PermissionService) GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*response.PermissionListRowResponse, int64, error) {
-	list, total, err := p.permissionRepo.GetList(ctx, keyword, limit, offset)
+	list, total, err := p.permissionDAO.GetList(ctx, keyword, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -117,7 +117,7 @@ func (p *PermissionService) GetPermissionList(ctx context.Context, keyword strin
 }
 
 func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error) {
-	permission, err := p.permissionRepo.GetById(ctx, id, "Roles")
+	permission, err := p.permissionDAO.GetById(ctx, id, "Roles")
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 	if err := permissionLock.Lock(ctx, true); err != nil {
 		return err
 	}
-	_, err := p.permissionRepo.GetById(ctx, params.ID)
+	_, err := p.permissionDAO.GetById(ctx, params.ID)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 	}
 	return p.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existPermissions, temp := p.permissionRepo.GetByNameOrResource(ctx, params.Name, params.Resource)
+		existPermissions, temp := p.permissionDAO.GetByNameOrResource(ctx, params.Name, params.Resource)
 		if temp != nil {
 			return temp
 		}
@@ -162,7 +162,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 			return response.PermissionCreateDuplicate
 		}
 		// 更新权限
-		err = p.permissionRepo.Update(ctx, &models.Permission{
+		err = p.permissionDAO.Update(ctx, &models.Permission{
 			Name:      params.Name,
 			Resource:  params.Resource,
 			Type:      params.Type,
@@ -177,13 +177,13 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 		// 查询有效的角色
 		var roles []*models.Role
 		if len(params.Roles) > 0 {
-			roles, err = p.roleRepo.GetByIds(ctx, params.Roles)
+			roles, err = p.roleDAO.GetByIds(ctx, params.Roles)
 			if err != nil {
 				return err
 			}
 		}
 		// 更新关联关系
-		return p.permissionRepo.AssociateRoles(ctx, params.ID, roles)
+		return p.permissionDAO.AssociateRoles(ctx, params.ID, roles)
 	})
 }
 
@@ -198,11 +198,11 @@ func (p *PermissionService) DeletePermission(ctx context.Context, id, operator u
 			p.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(permissionLock)
-	count := p.permissionRepo.GetRolesCount(ctx, id)
+	count := p.permissionDAO.GetRolesCount(ctx, id)
 	if count > 0 {
 		return response.PermissionExistRoleRef
 	}
-	return p.permissionRepo.DeleteById(ctx, id, operator)
+	return p.permissionDAO.DeleteById(ctx, id, operator)
 }
 
 func (p *PermissionService) Key() string {

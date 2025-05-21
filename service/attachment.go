@@ -23,19 +23,18 @@ import (
 	"github.com/samber/lo"
 )
 
-type AttachmentRepository interface {
+type AttachmentDAO interface {
 	Create(ctx context.Context, records []*models.Attachment) error
 }
-
 type AttachmentService struct {
 	*BasicService
-	repository AttachmentRepository
+	dao AttachmentDAO
 }
 
-func NewAttachmentService(basic *BasicService, repo AttachmentRepository) *AttachmentService {
+func NewAttachmentService(basic *BasicService, dao AttachmentDAO) *AttachmentService {
 	return &AttachmentService{
 		BasicService: basic,
-		repository:   repo,
+		dao:          dao,
 	}
 }
 
@@ -173,7 +172,7 @@ func (a *AttachmentService) SaveFiles(ctx context.Context, files []*multipart.Fi
 		}
 	})
 	// TODO:创建一个事务，创建文件记录的同时为文件授权
-	temp = a.repository.Create(ctx, attachments)
+	temp = a.dao.Create(ctx, attachments)
 	if temp != nil {
 		return nil, temp
 	}

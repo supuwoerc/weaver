@@ -8,37 +8,84 @@ package bootstrap
 import (
 	"net/http"
 
-	initialize "github.com/supuwoerc/weaver/initialize"
-	"github.com/supuwoerc/weaver/pkg/utils"
-	providers "github.com/supuwoerc/weaver/providers"
-	router "github.com/supuwoerc/weaver/router"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	goredislib "github.com/redis/go-redis/v9"
+	"github.com/supuwoerc/weaver/initialize"
+	"github.com/supuwoerc/weaver/pkg/logger"
+	"github.com/supuwoerc/weaver/pkg/utils"
+	"github.com/supuwoerc/weaver/providers"
+	"github.com/supuwoerc/weaver/router"
 	"go.uber.org/zap/zapcore"
+	gormLogger "gorm.io/gorm/logger"
+)
+
+var loggerProvider = wire.NewSet(
+	wire.Bind(new(utils.LocksmithLogger), new(*logger.Logger)),
+	wire.Bind(new(initialize.ClientLogger), new(*logger.Logger)),
+	logger.NewLogger,
+)
+
+var gormLoggerProvider = wire.NewSet(
+	wire.Bind(new(gormLogger.Interface), new(*initialize.GormLogger)),
+	initialize.NewGormLogger,
+)
+
+var redisLoggerProvider = wire.NewSet(
+	wire.Bind(new(goredislib.Hook), new(*initialize.RedisLogger)),
+	initialize.NewRedisLogger,
+)
+
+var emailProvider = wire.NewSet(
+	wire.Bind(new(utils.LocksmithEmailClient), new(*initialize.EmailClient)),
+	initialize.NewEmailClient,
+)
+
+var syncerProvider = wire.NewSet(
+	wire.Bind(new(initialize.RedisLogSyncer), new(zapcore.WriteSyncer)),
+	wire.Bind(new(initialize.EngineLogger), new(zapcore.WriteSyncer)),
+	initialize.NewWriterSyncer,
+)
+
+var enginProvider = wire.NewSet(
+	wire.Bind(new(http.Handler), new(*gin.Engine)),
+	initialize.NewEngine,
 )
 
 func WireApp() *App {
 	wire.Build(
+
 		initialize.NewViper,
+		syncerProvider,
 		initialize.NewZapLogger,
-		initialize.NewWriterSyncer,
+
+		loggerProvider,
+
 		initialize.NewDialer,
-		initialize.NewEngine,
-		initialize.NewServer,
-		initialize.NewGORM,
-		initialize.NewRedisClient,
+
 		initialize.NewCronLogger,
 		initialize.NewCronClient,
-		wire.Bind(new(http.Handler), new(*gin.Engine)),
-		wire.Bind(new(initialize.EngineLogger), new(zapcore.WriteSyncer)),
-		wire.Bind(new(initialize.RedisLogSyncer), new(zapcore.WriteSyncer)),
+
+		gormLoggerProvider,
+		initialize.NewGORM,
+
 		utils.NewRedisLocksmith,
+
+		redisLoggerProvider,
+		initialize.NewRedisClient,
+
+		emailProvider,
+
+		enginProvider,
+		initialize.NewServer,
 		router.NewRouter,
-		providers.CommonProvider,
-		providers.SystemCacheProvider,
+
 		providers.SystemJobProvider,
-		providers.V1Provider,
+		providers.SystemCacheProvider,
+		providers.CommonProvider,
+		providers.MiddlewareProvider,
+		providers.ApiProvider,
+
 		wire.Struct(new(App), "*"),
 	)
 	return nil

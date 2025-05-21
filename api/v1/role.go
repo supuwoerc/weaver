@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 
-	"github.com/supuwoerc/weaver/middleware"
 	"github.com/supuwoerc/weaver/pkg/request"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
@@ -20,21 +19,18 @@ type RoleService interface {
 }
 
 type RoleApi struct {
+	*BasicApi
 	service RoleService
 }
 
-func NewRoleApi(
-	route *gin.RouterGroup,
-	service RoleService,
-	authMiddleware *middleware.AuthMiddleware,
-) *RoleApi {
+func NewRoleApi(basic *BasicApi, service RoleService) *RoleApi {
 	roleApi := &RoleApi{
-		service: service,
+		BasicApi: basic,
+		service:  service,
 	}
-	// 挂载路由
-	roleAccessGroup := route.Group("role").Use(
-		authMiddleware.LoginRequired(),
-		authMiddleware.PermissionRequired(),
+	roleAccessGroup := basic.route.Group("role").Use(
+		basic.auth.LoginRequired(),
+		basic.auth.PermissionRequired(),
 	)
 	{
 		roleAccessGroup.POST("create", roleApi.CreateRole)

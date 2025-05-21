@@ -15,7 +15,7 @@ import (
 	"github.com/samber/lo"
 )
 
-type RoleRepository interface {
+type RoleDAO interface {
 	Create(ctx context.Context, role *models.Role) error
 	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Role, error)
 	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error)
@@ -31,17 +31,17 @@ type RoleRepository interface {
 
 type RoleService struct {
 	*BasicService
-	roleRepo       RoleRepository
-	userRepo       UserRepository
-	permissionRepo PermissionRepository
+	roleDAO       RoleDAO
+	userDAO       UserDAO
+	permissionDAO PermissionDAO
 }
 
-func NewRoleService(basic *BasicService, roleRepository RoleRepository, userRepo UserRepository, permissionRepo PermissionRepository) *RoleService {
+func NewRoleService(basic *BasicService, roleDAO RoleDAO, userDAO UserDAO, permissionDAO PermissionDAO) *RoleService {
 	return &RoleService{
-		BasicService:   basic,
-		roleRepo:       roleRepository,
-		userRepo:       userRepo,
-		permissionRepo: permissionRepo,
+		BasicService:  basic,
+		roleDAO:       roleDAO,
+		userDAO:       userDAO,
+		permissionDAO: permissionDAO,
 	}
 }
 
@@ -79,7 +79,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 	// TODO:记录信息到用户时间线
 	return r.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existRole, temp := r.roleRepo.GetByName(ctx, params.Name)
+		existRole, temp := r.roleDAO.GetByName(ctx, params.Name)
 		if temp != nil && !errors.Is(temp, response.RoleNotExist) {
 			return temp
 		}
@@ -89,7 +89,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 		// 查询有效的用户
 		var users []*models.User
 		if len(params.Users) > 0 {
-			users, err = r.userRepo.GetByIds(ctx, params.Users)
+			users, err = r.userDAO.GetByIds(ctx, params.Users)
 			if err != nil {
 				return err
 			}
@@ -97,13 +97,13 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 		// 查询有效的权限
 		var permissions []*models.Permission
 		if len(params.Permissions) > 0 {
-			permissions, err = r.permissionRepo.GetByIds(ctx, params.Permissions)
+			permissions, err = r.permissionDAO.GetByIds(ctx, params.Permissions)
 			if err != nil {
 				return err
 			}
 		}
 		// 创建角色 & 建立关联关系
-		return r.roleRepo.Create(ctx, &models.Role{
+		return r.roleDAO.Create(ctx, &models.Role{
 			Name:        params.Name,
 			Users:       users,
 			Permissions: permissions,
@@ -114,7 +114,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 }
 
 func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*response.RoleListRowResponse, int64, error) {
-	list, total, err := r.roleRepo.GetList(ctx, keyword, limit, offset)
+	list, total, err := r.roleDAO.GetList(ctx, keyword, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -124,7 +124,7 @@ func (r *RoleService) GetRoleList(ctx context.Context, keyword string, limit, of
 }
 
 func (r *RoleService) GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error) {
-	role, err := r.roleRepo.GetById(ctx, id, "Users", "Permissions")
+	role, err := r.roleDAO.GetById(ctx, id, "Users", "Permissions")
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 			r.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
-	_, err := r.roleRepo.GetById(ctx, params.ID)
+	_, err := r.roleDAO.GetById(ctx, params.ID)
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 	}
 	return r.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
-		existRole, temp := r.roleRepo.GetByName(ctx, params.Name)
+		existRole, temp := r.roleDAO.GetByName(ctx, params.Name)
 		if temp != nil && !errors.Is(temp, response.RoleNotExist) {
 			return temp
 		}
@@ -168,7 +168,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 			return response.RoleCreateDuplicateName
 		}
 		// 更新角色
-		err = r.roleRepo.Update(ctx, &models.Role{
+		err = r.roleDAO.Update(ctx, &models.Role{
 			Name:      params.Name,
 			UpdaterId: operator,
 			BasicModel: database.BasicModel{
@@ -181,25 +181,25 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 		// 查询有效的用户
 		var users []*models.User
 		if len(params.Users) > 0 {
-			users, err = r.userRepo.GetByIds(ctx, params.Users)
+			users, err = r.userDAO.GetByIds(ctx, params.Users)
 			if err != nil {
 				return err
 			}
 		}
 		// 更新关联关系
-		err = r.roleRepo.AssociateUsers(ctx, params.ID, users)
+		err = r.roleDAO.AssociateUsers(ctx, params.ID, users)
 		if err != nil {
 			return err
 		}
 		// 查询有效的权限
 		var permissions []*models.Permission
 		if len(params.Permissions) > 0 {
-			permissions, err = r.permissionRepo.GetByIds(ctx, params.Permissions)
+			permissions, err = r.permissionDAO.GetByIds(ctx, params.Permissions)
 			if err != nil {
 				return err
 			}
 		}
-		return r.roleRepo.AssociatePermissions(ctx, params.ID, permissions)
+		return r.roleDAO.AssociatePermissions(ctx, params.ID, permissions)
 	})
 }
 
@@ -214,13 +214,13 @@ func (r *RoleService) DeleteRole(ctx context.Context, id, operator uint) error {
 			r.logger.Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
-	permissionsCount := r.roleRepo.GetPermissionsCount(ctx, id)
+	permissionsCount := r.roleDAO.GetPermissionsCount(ctx, id)
 	if permissionsCount > 0 {
 		return response.RoleExistPermissionRef
 	}
-	usersCount := r.roleRepo.GetUsersCount(ctx, id)
+	usersCount := r.roleDAO.GetUsersCount(ctx, id)
 	if usersCount > 0 {
 		return response.RoleExistUserRef
 	}
-	return r.roleRepo.DeleteById(ctx, id, operator)
+	return r.roleDAO.DeleteById(ctx, id, operator)
 }

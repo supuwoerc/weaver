@@ -1,9 +1,8 @@
 package providers
 
 import (
-	"github.com/supuwoerc/weaver/pkg/cache"
-
 	"github.com/google/wire"
+	"github.com/supuwoerc/weaver/pkg/cache"
 )
 
 type DepartmentCache cache.SystemCache

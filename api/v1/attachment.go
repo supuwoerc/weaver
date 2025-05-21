@@ -4,8 +4,6 @@ import (
 	"context"
 	"mime/multipart"
 
-	"github.com/supuwoerc/weaver/conf"
-	"github.com/supuwoerc/weaver/middleware"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
@@ -19,23 +17,17 @@ type AttachmentService interface {
 }
 
 type AttachmentApi struct {
+	*BasicApi
 	service AttachmentService
-	conf    *conf.Config
 }
 
-func NewAttachmentApi(
-	route *gin.RouterGroup,
-	service AttachmentService,
-	authMiddleware *middleware.AuthMiddleware,
-	conf *conf.Config,
-) *AttachmentApi {
-	// 初始化controller
+func NewAttachmentApi(basic *BasicApi, service AttachmentService) *AttachmentApi {
 	attachmentApi := &AttachmentApi{
-		conf:    conf,
-		service: service,
+		BasicApi: basic,
+		service:  service,
 	}
 	// 挂载路由
-	attachmentAccessGroup := route.Group("attachment").Use(authMiddleware.LoginRequired())
+	attachmentAccessGroup := basic.route.Group("attachment").Use(basic.auth.LoginRequired())
 	{
 		attachmentAccessGroup.POST("multiple-upload", attachmentApi.MultipleUpload)
 		attachmentAccessGroup.POST("upload", attachmentApi.Upload)
