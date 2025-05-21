@@ -71,7 +71,7 @@ func WireApp() *App {
 	pingApi := v1.NewPingApi(basicApi, pingService)
 	roleService := service.NewRoleService(basicService, roleDAO, userDAO, permissionDAO)
 	roleApi := v1.NewRoleApi(basicApi, roleService)
-	userService := service.NewUserService(basicService, captchaService, userDAO, emailClient, tokenBuilder)
+	userService := service.NewUserService(basicService, captchaService, userDAO, userCache, emailClient, tokenBuilder)
 	userApi := v1.NewUserApi(basicApi, userService)
 	app := &App{
 		logger:        loggerLogger,

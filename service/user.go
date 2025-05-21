@@ -54,6 +54,7 @@ func NewUserService(
 	basic *BasicService,
 	captchaService *CaptchaService,
 	userDAO UserDAO,
+	userCache UserCache,
 	ec *initialize.EmailClient,
 	tb *jwt.TokenBuilder,
 ) *UserService {
@@ -61,6 +62,7 @@ func NewUserService(
 		BasicService:   basic,
 		CaptchaService: captchaService,
 		userDAO:        userDAO,
+		userCache:      userCache,
 		emailClient:    ec,
 		tokenBuilder:   tb,
 	}
