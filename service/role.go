@@ -69,7 +69,7 @@ func (r *RoleService) CreateRole(ctx context.Context, operator uint, params *req
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
-				r.logger.Errorf("unlock fail %s", e.Error())
+				r.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -139,7 +139,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			r.logger.Errorf("unlock fail %s", e.Error())
+			r.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
 	_, err := r.roleDAO.GetById(ctx, params.ID)
@@ -151,7 +151,7 @@ func (r *RoleService) UpdateRole(ctx context.Context, operator uint, params *req
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
-				r.logger.Errorf("unlock fail %s", e.Error())
+				r.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -211,7 +211,7 @@ func (r *RoleService) DeleteRole(ctx context.Context, id, operator uint) error {
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			r.logger.Errorf("unlock fail %s", e.Error())
+			r.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
 	permissionsCount := r.roleDAO.GetPermissionsCount(ctx, id)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/logger"
 	"github.com/supuwoerc/weaver/pkg/redis"
 	"github.com/supuwoerc/weaver/pkg/response"
 
@@ -15,11 +16,12 @@ import (
 )
 
 type LocksmithLogger interface {
-	Errorf(template string, args ...interface{})
+	logger.LogCtxInterface
+	Errorw(msg string, keysAndValues ...interface{})
 }
 
 type LocksmithEmailClient interface {
-	Alarm2Admin(subject constant.Subject, body string) error
+	Alarm2Admin(ctx context.Context, subject constant.Subject, body string) error
 }
 
 type LocksmithMutex interface {
@@ -114,30 +116,31 @@ func (l *RedisLock) Unlock() error {
 	return nil
 }
 
-func (l *RedisLock) alarm(subject constant.Subject, lockName string, err error) {
-	l.logger.Errorf("redis lock name:%s subject:%s error:%s", lockName, subject, err.Error())
+func (l *RedisLock) alarm(ctx context.Context, subject constant.Subject, lockName string, err error) {
+	l.logger.WithContext(ctx).Errorw("redis lock error alarm", "lock", lockName, "subject", subject, "err", err.Error())
 	if err = l.emailClient.Alarm2Admin(
+		ctx,
 		subject,
 		fmt.Sprintf("%s alarm: %v", lockName, err.Error()),
 	); err != nil {
-		l.logger.Errorf("redis alarm err: %v", err.Error())
+		l.logger.WithContext(ctx).Errorw("redis lock error alarm to admin err", "err", err.Error())
 	}
 }
 
-func (l *RedisLock) unlockWithAlarm() {
+func (l *RedisLock) unlockWithAlarm(ctx context.Context) {
 	err := l.Unlock()
 	if err != nil {
-		go l.alarm(constant.UnlockFail, l.Name(), err)
+		go l.alarm(ctx, constant.UnlockFail, l.Name(), err)
 	}
 }
 
-func (l *RedisLock) extendWithAlarm() bool {
+func (l *RedisLock) extendWithAlarm(ctx context.Context) bool {
 	ok, err := l.Extend()
 	if err != nil {
-		go l.alarm(constant.ExtendErr, l.Name(), err)
+		go l.alarm(ctx, constant.ExtendErr, l.Name(), err)
 		return false
 	} else if !ok {
-		go l.alarm(constant.ExtendFail, l.Name(), errors.New("lock couldn't be extended"))
+		go l.alarm(ctx, constant.ExtendFail, l.Name(), errors.New("lock couldn't be extended"))
 		return false
 	}
 	return true
@@ -150,16 +153,16 @@ func (l *RedisLock) autoExtend(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			ticker.Stop()
-			l.unlockWithAlarm()
+			l.unlockWithAlarm(ctx)
 			return
 		case <-ticker.C:
 			select {
 			case <-ctx.Done():
 				ticker.Stop()
-				l.unlockWithAlarm()
+				l.unlockWithAlarm(ctx)
 				return
 			default:
-				if success := l.extendWithAlarm(); !success {
+				if success := l.extendWithAlarm(ctx); !success {
 					ticker.Stop()
 					return
 				}

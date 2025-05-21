@@ -9,10 +9,15 @@ import (
 type TraceContextKey string
 
 const (
-	TraceIdContextKey TraceContextKey = "trace_id"
+	TraceIDContextKey TraceContextKey = "trace_id"
 )
 
+type LogCtxInterface interface {
+	WithContext(ctx context.Context) *zap.SugaredLogger
+}
+
 type Logger struct {
+	LogCtxInterface
 	*zap.SugaredLogger
 }
 
@@ -22,11 +27,11 @@ func NewLogger(z *zap.SugaredLogger) *Logger {
 	}
 }
 func (l *Logger) WithContext(ctx context.Context) *zap.SugaredLogger {
-	value := ctx.Value(string(TraceIdContextKey))
+	value := ctx.Value(string(TraceIDContextKey))
 	result := l.SugaredLogger
 	if value != nil {
 		// generate new logger
-		result = result.With(zap.String(string(TraceIdContextKey), value.(string)))
+		result = result.With(zap.String(string(TraceIDContextKey), value.(string)))
 	}
 	return result
 }

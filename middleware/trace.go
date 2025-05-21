@@ -23,14 +23,14 @@ func NewTraceMiddleware(conf *conf.Config, logger *logger.Logger) *TraceMiddlewa
 
 func (c *TraceMiddleware) Trace() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		requestTraceId := context.GetHeader(c.conf.System.TraceKey)
-		if strings.TrimSpace(requestTraceId) == "" {
-			requestTraceId = c.generateTraceId()
+		requestTraceID := context.GetHeader(c.conf.System.TraceKey)
+		if strings.TrimSpace(requestTraceID) == "" {
+			requestTraceID = c.generateTraceID()
 		}
-		context.Set(string(logger.TraceIdContextKey), requestTraceId)
+		context.Set(string(logger.TraceIDContextKey), requestTraceID)
 	}
 }
 
-func (c *TraceMiddleware) generateTraceId() string {
+func (c *TraceMiddleware) generateTraceID() string {
 	return uuid.New().String()
 }

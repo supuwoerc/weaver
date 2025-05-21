@@ -23,14 +23,14 @@ func (p *PingService) LockPermissionField(ctx context.Context) error {
 	if err := lock.TryLock(ctx, true); err != nil {
 		return err
 	}
-	p.logger.Info("lock success")
+	p.logger.WithContext(ctx).Info("lock success")
 	defer func(lock *utils.RedisLock) {
 		e := lock.Unlock()
 		if e != nil {
-			p.logger.Infof("unlock fail %s", e.Error())
+			p.logger.WithContext(ctx).Infof("unlock fail %s", e.Error())
 			return
 		}
-		p.logger.Info("unlock success")
+		p.logger.WithContext(ctx).Info("unlock success")
 	}(lock)
 	time.Sleep(time.Second * 20)
 	return nil

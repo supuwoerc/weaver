@@ -33,7 +33,7 @@ func getEnginLoggerConfig(output io.Writer) gin.LoggerConfig {
 			builder.WriteString(params.Method)
 			builder.WriteString(`","path":"`)
 			builder.WriteString(params.Path)
-			if traceId, ok := params.Keys[string(logger.TraceIdContextKey)]; ok {
+			if traceId, ok := params.Keys[string(logger.TraceIDContextKey)]; ok {
 				tid, o := traceId.(string)
 				if o {
 					builder.WriteString(`","trace_id":"`)

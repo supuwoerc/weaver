@@ -80,7 +80,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
-				p.logger.Errorf("unlock fail %s", e.Error())
+				p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -287,9 +287,9 @@ func (p *DepartmentService) Key() string {
 
 func (p *DepartmentService) Refresh(ctx context.Context) error {
 	start := time.Now()
-	p.logger.Infow("refresh department", "begin", start.Format(time.DateTime))
+	p.logger.WithContext(ctx).Infow("refresh department", "begin", start.Format(time.DateTime))
 	defer func() {
-		p.logger.Infow("refresh department",
+		p.logger.WithContext(ctx).Infow("refresh department",
 			"end", time.Now().Format(time.DateTime), "cost",
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)
@@ -311,9 +311,9 @@ func (p *DepartmentService) Refresh(ctx context.Context) error {
 
 func (p *DepartmentService) Clean(ctx context.Context) error {
 	start := time.Now()
-	p.logger.Infow("clean department", "begin", start.Format(time.DateTime))
+	p.logger.WithContext(ctx).Infow("clean department", "begin", start.Format(time.DateTime))
 	defer func() {
-		p.logger.Infow("clean department",
+		p.logger.WithContext(ctx).Infow("clean department",
 			"end", time.Now().Format(time.DateTime), "cost",
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)

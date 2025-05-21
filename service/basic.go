@@ -70,7 +70,7 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		defer func() {
 			if err := recover(); err != nil {
 				stackInfo := string(debug.Stack())
-				s.logger.Errorw("mysql transaction recover", "panic", err, "stack", stackInfo)
+				s.logger.WithContext(wrapContext).Errorw("mysql transaction recover", "panic", err, "stack", stackInfo)
 				execErr = errors.New(stackInfo)
 			}
 		}()

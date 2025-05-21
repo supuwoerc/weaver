@@ -70,7 +70,7 @@ func (p *PermissionService) CreatePermission(ctx context.Context, operator uint,
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
-				p.logger.Errorf("unlock fail %s", e.Error())
+				p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -136,7 +136,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			p.logger.Errorf("unlock fail %s", e.Error())
+			p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(permissionLock)
 	// 对 name & resource & roleIds 加锁
@@ -144,7 +144,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
-				p.logger.Errorf("unlock fail %s", e.Error())
+				p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -195,7 +195,7 @@ func (p *PermissionService) DeletePermission(ctx context.Context, id, operator u
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			p.logger.Errorf("unlock fail %s", e.Error())
+			p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(permissionLock)
 	count := p.permissionDAO.GetRolesCount(ctx, id)

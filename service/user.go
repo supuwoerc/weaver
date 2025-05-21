@@ -38,7 +38,7 @@ type UserCache interface {
 }
 
 type UserEmailClient interface {
-	SendHTML(to string, subject constant.Subject, templatePath constant.Template, data any) error
+	SendHTML(ctx context.Context, to string, subject constant.Subject, templatePath constant.Template, data any) error
 }
 
 type UserService struct {
@@ -86,7 +86,7 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			u.logger.Errorf("unlock fail %s", e.Error())
+			u.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(emailLock)
 	existUser, err := u.userDAO.GetByEmail(ctx, user.Email)
@@ -110,7 +110,7 @@ func (u *UserService) sendActiveEmail(ctx context.Context, uid uint, email strin
 		return makeErr
 	}
 	variable := models.SignUpVariable{ActiveURL: activeURL}
-	err := u.emailClient.SendHTML(email, constant.Signup, constant.SignupTemplate, variable)
+	err := u.emailClient.SendHTML(ctx, email, constant.Signup, constant.SignupTemplate, variable)
 	if err != nil {
 		return err
 	}
@@ -224,7 +224,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			u.logger.Errorf("unlock fail %s", e.Error())
+			u.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(userLock)
 	code, err := u.userCache.GetActiveAccountCode(ctx, uid)
@@ -236,7 +236,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 			if err == nil && user.Status == constant.Inactive {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
-						u.logger.Errorf("send active email fail %s", err.Error())
+						u.logger.WithContext(ctx).Errorf("send active email fail %s", err.Error())
 					}
 				}()
 			}
@@ -261,7 +261,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 			if err = u.userDAO.UpdateAccountStatus(ctx, uid, constant.Normal); err != nil {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
-						u.logger.Errorf("send active email fail %s", err.Error())
+						u.logger.WithContext(ctx).Errorf("send active email fail %s", err.Error())
 					}
 				}()
 				return err
@@ -269,7 +269,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 			if err = u.userCache.RemoveActiveAccountCode(ctx, uid); err != nil {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
-						u.logger.Errorf("send active email fail %s", err.Error())
+						u.logger.WithContext(ctx).Errorf("send active email fail %s", err.Error())
 					}
 				}()
 				return err

@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"html/template"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/supuwoerc/weaver/conf"
 	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/logger"
 
 	"gopkg.in/gomail.v2"
 )
@@ -36,6 +38,7 @@ func NewDialer(conf *conf.Config) *gomail.Dialer {
 }
 
 type ClientLogger interface {
+	logger.LogCtxInterface
 	Debugw(msg string, keysAndValues ...interface{})
 }
 
@@ -53,7 +56,7 @@ func NewEmailClient(logger ClientLogger, dialer *gomail.Dialer, conf *conf.Confi
 	}
 }
 
-func (e *EmailClient) send(to string, subject constant.Subject, body string, c constant.MIME) error {
+func (e *EmailClient) send(ctx context.Context, to string, subject constant.Subject, body string, c constant.MIME) error {
 	if e.conf.IsProd() {
 		message := gomail.NewMessage()
 		message.SetHeader("From", e.dialer.Username)
@@ -62,16 +65,17 @@ func (e *EmailClient) send(to string, subject constant.Subject, body string, c c
 		message.SetBody(string(c), body)
 		return e.dialer.DialAndSend(message)
 	} else {
-		e.logger.Debugw("Sending emails in non-production environments", "To", to, "Subject", string(subject), "Env", e.conf.Env)
+		e.logger.WithContext(ctx).Debugw("Sending emails in non-production environments",
+			"To", to, "Subject", string(subject), "Env", e.conf.Env)
 	}
 	return nil
 }
 
-func (e *EmailClient) SendText(to string, subject constant.Subject, body string) error {
-	return e.send(to, subject, body, constant.TextPlain)
+func (e *EmailClient) SendText(ctx context.Context, to string, subject constant.Subject, body string) error {
+	return e.send(ctx, to, subject, body, constant.TextPlain)
 }
 
-func (e *EmailClient) SendHTML(to string, subject constant.Subject, templatePath constant.Template, data any) error {
+func (e *EmailClient) SendHTML(ctx context.Context, to string, subject constant.Subject, templatePath constant.Template, data any) error {
 	dir := e.conf.System.EmailTemplateDir
 	tmpl, err := template.ParseFiles(filepath.Join(dir, string(filepath.Separator), string(templatePath)))
 	if err != nil {
@@ -81,9 +85,9 @@ func (e *EmailClient) SendHTML(to string, subject constant.Subject, templatePath
 	if err = tmpl.Execute(&buffer, data); err != nil {
 		return err
 	}
-	return e.send(to, subject, buffer.String(), constant.TextHTML)
+	return e.send(ctx, to, subject, buffer.String(), constant.TextHTML)
 }
 
-func (e *EmailClient) Alarm2Admin(subject constant.Subject, body string) error {
-	return e.send(e.conf.System.Admin.Email, subject, body, constant.TextPlain)
+func (e *EmailClient) Alarm2Admin(ctx context.Context, subject constant.Subject, body string) error {
+	return e.send(ctx, e.conf.System.Admin.Email, subject, body, constant.TextPlain)
 }
