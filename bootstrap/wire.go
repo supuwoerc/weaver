@@ -20,63 +20,42 @@ import (
 	gormLogger "gorm.io/gorm/logger"
 )
 
-var loggerProvider = wire.NewSet(
-	wire.Bind(new(utils.LocksmithLogger), new(*logger.Logger)),
-	wire.Bind(new(initialize.ClientLogger), new(*logger.Logger)),
-	logger.NewLogger,
-)
-
-var gormLoggerProvider = wire.NewSet(
-	wire.Bind(new(gormLogger.Interface), new(*initialize.GormLogger)),
-	initialize.NewGormLogger,
-)
-
-var redisLoggerProvider = wire.NewSet(
-	wire.Bind(new(goredislib.Hook), new(*initialize.RedisLogger)),
-	initialize.NewRedisLogger,
-)
-
-var emailProvider = wire.NewSet(
-	wire.Bind(new(utils.LocksmithEmailClient), new(*initialize.EmailClient)),
-	initialize.NewEmailClient,
-)
-
-var syncerProvider = wire.NewSet(
-	wire.Bind(new(initialize.RedisLogSyncer), new(zapcore.WriteSyncer)),
-	wire.Bind(new(initialize.EngineLogger), new(zapcore.WriteSyncer)),
-	initialize.NewWriterSyncer,
-)
-
-var enginProvider = wire.NewSet(
-	wire.Bind(new(http.Handler), new(*gin.Engine)),
-	initialize.NewEngine,
-)
-
 func WireApp() *App {
 	wire.Build(
 
 		initialize.NewViper,
-		syncerProvider,
+
+		wire.Bind(new(initialize.RedisLogSyncer), new(zapcore.WriteSyncer)),
+		wire.Bind(new(initialize.EngineLogger), new(zapcore.WriteSyncer)),
+		initialize.NewWriterSyncer,
+
 		initialize.NewZapLogger,
 
-		loggerProvider,
+		wire.Bind(new(utils.LocksmithLogger), new(*logger.Logger)),
+		wire.Bind(new(initialize.ClientLogger), new(*logger.Logger)),
+		logger.NewLogger,
 
 		initialize.NewDialer,
 
 		initialize.NewCronLogger,
 		initialize.NewCronClient,
 
-		gormLoggerProvider,
+		wire.Bind(new(gormLogger.Interface), new(*initialize.GormLogger)),
+		initialize.NewGormLogger,
 		initialize.NewGORM,
 
 		utils.NewRedisLocksmith,
 
-		redisLoggerProvider,
+		wire.Bind(new(goredislib.Hook), new(*initialize.RedisLogger)),
+		initialize.NewRedisLogger,
+
 		initialize.NewRedisClient,
 
-		emailProvider,
+		wire.Bind(new(utils.LocksmithEmailClient), new(*initialize.EmailClient)),
+		initialize.NewEmailClient,
 
-		enginProvider,
+		wire.Bind(new(http.Handler), new(*gin.Engine)),
+		initialize.NewEngine,
 		initialize.NewServer,
 		router.NewRouter,
 

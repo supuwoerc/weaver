@@ -3,6 +3,8 @@ package initialize
 import (
 	"fmt"
 	"io"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/supuwoerc/weaver/conf"
@@ -20,15 +22,29 @@ func getEnginLoggerConfig(output io.Writer) gin.LoggerConfig {
 			if params.Latency > time.Minute {
 				params.Latency = params.Latency.Truncate(time.Second)
 			}
-			return fmt.Sprintf(
-				"{\"caller\":GIN,\"time\":\"%s\",\"status\":%3d,\"latency\":%v,\"method\":\"%s\",\"path\":\"%s\",\"client\":\"%s\"}\n",
-				params.TimeStamp.Format(time.DateTime),
-				params.StatusCode,
-				params.Latency,
-				params.Method,
-				params.Path,
-				params.ClientIP,
-			)
+			var builder strings.Builder
+			builder.WriteString(`{"caller":"GIN","time":"`)
+			builder.WriteString(params.TimeStamp.Format(time.DateTime))
+			builder.WriteString(`","status":`)
+			builder.WriteString(strconv.Itoa(params.StatusCode))
+			builder.WriteString(`,"latency":`)
+			builder.WriteString(params.Latency.String())
+			builder.WriteString(`,"method":"`)
+			builder.WriteString(params.Method)
+			builder.WriteString(`","path":"`)
+			builder.WriteString(params.Path)
+			if traceId, ok := params.Keys[string(logger.TraceIdContextKey)]; ok {
+				tid, o := traceId.(string)
+				if o {
+					builder.WriteString(`","trace_id":"`)
+					builder.WriteString(tid)
+				}
+			}
+			builder.WriteString(`","client":"`)
+			builder.WriteString(params.ClientIP)
+			builder.WriteString(`"}`)
+			builder.WriteByte('\n') // 换行符
+			return builder.String()
 		},
 	}
 }

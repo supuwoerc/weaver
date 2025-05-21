@@ -7,11 +7,6 @@
 package bootstrap
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/wire"
-	"github.com/redis/go-redis/v9"
 	v1 "github.com/supuwoerc/weaver/api/v1"
 	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/middleware"
@@ -26,8 +21,6 @@ import (
 	"github.com/supuwoerc/weaver/repository/dao"
 	"github.com/supuwoerc/weaver/router"
 	"github.com/supuwoerc/weaver/service"
-	"go.uber.org/zap/zapcore"
-	logger2 "gorm.io/gorm/logger"
 )
 
 // Injectors from wire.go:
@@ -96,17 +89,3 @@ func WireApp() *App {
 	}
 	return app
 }
-
-// wire.go:
-
-var loggerProvider = wire.NewSet(wire.Bind(new(utils.LocksmithLogger), new(*logger.Logger)), wire.Bind(new(initialize.ClientLogger), new(*logger.Logger)), logger.NewLogger)
-
-var gormLoggerProvider = wire.NewSet(wire.Bind(new(logger2.Interface), new(*initialize.GormLogger)), initialize.NewGormLogger)
-
-var redisLoggerProvider = wire.NewSet(wire.Bind(new(redis.Hook), new(*initialize.RedisLogger)), initialize.NewRedisLogger)
-
-var emailProvider = wire.NewSet(wire.Bind(new(utils.LocksmithEmailClient), new(*initialize.EmailClient)), initialize.NewEmailClient)
-
-var syncerProvider = wire.NewSet(wire.Bind(new(initialize.RedisLogSyncer), new(zapcore.WriteSyncer)), wire.Bind(new(initialize.EngineLogger), new(zapcore.WriteSyncer)), initialize.NewWriterSyncer)
-
-var enginProvider = wire.NewSet(wire.Bind(new(http.Handler), new(*gin.Engine)), initialize.NewEngine)
