@@ -29,11 +29,7 @@ func (c *CronLogger) CronRecover() cron.JobWrapper {
 			defer func() {
 				if r := recover(); r != nil {
 					message := string(debug.Stack())
-					err, ok := r.(error)
-					if !ok {
-						err = fmt.Errorf("%v", r)
-					}
-					c.logger.Error(err, "panic", "stack", message)
+					c.logger.Errorw("cron recover alarm fail", "panic", r, "stack", message)
 					go func() {
 						if e := c.emailClient.Alarm2Admin(constant.CronRecover, message); e != nil {
 							c.logger.Errorf("cron recover alarm fail:%s", e.Error())
