@@ -22,12 +22,12 @@ func NewTraceMiddleware(conf *conf.Config, logger *logger.Logger) *TraceMiddlewa
 }
 
 func (c *TraceMiddleware) Trace() gin.HandlerFunc {
-	return func(context *gin.Context) {
-		requestTraceID := context.GetHeader(c.conf.System.TraceKey)
+	return func(ctx *gin.Context) {
+		requestTraceID := ctx.GetHeader(c.conf.System.TraceKey)
 		if strings.TrimSpace(requestTraceID) == "" {
 			requestTraceID = c.generateTraceID()
 		}
-		context.Set(string(logger.TraceIDContextKey), requestTraceID)
+		ctx.Set(string(logger.TraceIDContextKey), requestTraceID)
 	}
 }
 
