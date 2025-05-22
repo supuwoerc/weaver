@@ -23,4 +23,4 @@ else
   echo "::error::覆盖率 $COVERAGE% 低于80%要求"
 fi
 
-gocov convert coverage.out | gocov-html -t kit > coverage.html
+gocov convert coverage.out | gocov-html -t golang > coverage.html
