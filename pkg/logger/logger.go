@@ -26,12 +26,20 @@ func NewLogger(z *zap.SugaredLogger) *Logger {
 		SugaredLogger: z,
 	}
 }
+
+// WithContext Write the information in the context to a new logger and return
 func (l *Logger) WithContext(ctx context.Context) *zap.SugaredLogger {
-	value := ctx.Value(string(TraceIDContextKey))
+	keyString := string(TraceIDContextKey)
+	key := TraceIDContextKey
+	value := ctx.Value(key)
 	result := l.SugaredLogger
 	if value != nil {
-		// generate new logger
-		result = result.With(zap.String(string(TraceIDContextKey), value.(string)))
+		result = result.With(zap.String(keyString, value.(string)))
+	} else {
+		value = ctx.Value(keyString)
+		if value != nil {
+			result = result.With(zap.String(keyString, value.(string)))
+		}
 	}
 	return result
 }
