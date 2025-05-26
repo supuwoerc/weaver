@@ -38,7 +38,7 @@ func WireApp() *App {
 	systemJobManager := job.NewSystemJobManager(cronLogger, cron, loggerLogger, v...)
 	gormLogger := initialize.NewGormLogger(loggerLogger, config)
 	db := initialize.NewGORM(config, gormLogger)
-	redisLogger := initialize.NewRedisLogger(writeSyncer)
+	redisLogger := initialize.NewRedisLogger(loggerLogger, config)
 	commonRedisClient := initialize.NewRedisClient(redisLogger, config)
 	redisLocksmith := utils.NewRedisLocksmith(loggerLogger, commonRedisClient, emailClient)
 	basicService := service.NewBasicService(loggerLogger, db, redisLocksmith, config, emailClient)

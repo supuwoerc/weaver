@@ -3,39 +3,49 @@ package initialize
 import (
 	"context"
 	"fmt"
-	"io"
 	"net"
 	"strings"
-	"time"
-
-	"github.com/supuwoerc/weaver/conf"
-	local "github.com/supuwoerc/weaver/pkg/redis"
 
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	goredislib "github.com/redis/go-redis/v9"
+	"github.com/supuwoerc/weaver/conf"
+	weaverLogger "github.com/supuwoerc/weaver/pkg/logger"
+	local "github.com/supuwoerc/weaver/pkg/redis"
 )
 
-type RedisLogSyncer io.Writer
+type RedisLogLevel int
+
+const (
+	Silent RedisLogLevel = iota + 1
+	Error
+	Warn
+	Info
+)
+
 type RedisLogger struct {
 	goredislib.Hook
-	syncer RedisLogSyncer
+	*weaverLogger.Logger
+	Level RedisLogLevel
 }
 
-func NewRedisLogger(syncer RedisLogSyncer) *RedisLogger {
+func NewRedisLogger(l *weaverLogger.Logger, conf *conf.Config) *RedisLogger {
 	return &RedisLogger{
-		syncer: syncer,
+		Logger: l,
+		Level:  RedisLogLevel(conf.Logger.RedisLevel),
 	}
 }
 
 func (r *RedisLogger) DialHook(next goredislib.DialHook) goredislib.DialHook {
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
-		_, _ = fmt.Fprintf(r.syncer, "{\"caller\":Redis,\"event\":Dialing to Redis,\"time\":\"%s\",\"network\":\"%s\",\"address\":\"%s\"}\n", time.Now().Format(time.DateTime), network, addr)
+		if r.Level >= Info {
+			r.Logger.WithContext(ctx).Infow("dialing to Redis", "network", network, "addr", addr)
+		}
 		conn, err := next(ctx, network, addr)
-		if err != nil {
-			_, _ = fmt.Fprintf(r.syncer, "{\"caller\":Redis,\"event\":Dialing Error,\"time\":\"%s\",\"error\":\"%s\"}\n", time.Now().Format(time.DateTime), err.Error())
-		} else {
-			_, _ = fmt.Fprintf(r.syncer, "{\"caller\":Redis,\"event\":Successfully connected to Redis,\"time\":\"%s\",\"network\":\"%s\",\"address\":\"%s\"}\n", time.Now().Format(time.DateTime), network, addr)
+		if err != nil && r.Level >= Error {
+			r.Logger.WithContext(ctx).Errorw("dialing Error", "error", err.Error())
+		} else if r.Level >= Info {
+			r.Logger.WithContext(ctx).Infow("successfully connected to Redis", "network", network, "addr", addr)
 		}
 		return conn, err
 	}
@@ -50,12 +60,14 @@ func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.Proces
 			}
 			builder.WriteString(fmt.Sprintf("%v", arg))
 		}
-		_, _ = fmt.Fprintf(r.syncer, "{\"caller\":Redis,\"event\":Preparing to execute command,\"time\":\"%s\",\"command\":\"%s\",\"args\":\"%s\"}\n", time.Now().Format(time.DateTime), cmd.Name(), builder.String())
+		if r.Level >= Info {
+			r.Logger.WithContext(ctx).Infow("preparing to execute command", "command", cmd.Name())
+		}
 		err := next(ctx, cmd)
-		if err != nil {
-			_, _ = fmt.Fprintf(r.syncer, "{\"caller\":Redis,\"event\":Error executing command,\"time\":\"%s\",\"command\":\"%s\",\"args\":\"%s\"}\n", time.Now().Format(time.DateTime), cmd.Name(), err.Error())
-		} else {
-			_, _ = fmt.Fprintf(r.syncer, "{\"caller\":Redis,\"event\":Successfully executed command,\"time\":\"%s\",\"command\":\"%s\"}\n", time.Now().Format(time.DateTime), cmd.Name())
+		if err != nil && r.Level >= Error {
+			r.Logger.WithContext(ctx).Errorw("error executing command", "error", err.Error())
+		} else if r.Level >= Info {
+			r.Logger.WithContext(ctx).Infow("successfully executed command")
 		}
 		return err
 	}
@@ -71,13 +83,15 @@ func (r *RedisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) g
 				}
 				builder.WriteString(fmt.Sprintf("%v", arg))
 			}
-			_, _ = fmt.Fprintf(r.syncer, "{\"caller\":Redis,\"event\":Preparing to execute command in pipeline,\"time\":\"%s\",\"command\":\"%s\",\"args\":\"%s\"}\n", time.Now().Format(time.DateTime), cmd.Name(), builder.String())
+			if r.Level >= Info {
+				r.Logger.WithContext(ctx).Infow("preparing to execute command in pipeline", "command", cmd.Name())
+			}
 		}
 		err := next(ctx, cmds)
-		if err != nil {
-			_, _ = fmt.Fprintf(r.syncer, "{\"caller\":Redis,\"event\":Error executing commands in pipeline,\"time\":\"%s\",\"error\":\"%s\"}\n", time.Now().Format(time.DateTime), err.Error())
-		} else {
-			_, _ = fmt.Fprintf(r.syncer, "{\"caller\":Redis,\"event\":Successfully executed commands in pipeline,\"time\":\"%s\"}\n", time.Now().Format(time.DateTime))
+		if err != nil && r.Level >= Error {
+			r.Logger.WithContext(ctx).Errorw("error executing commands in pipeline", "error", err.Error())
+		} else if r.Level >= Info {
+			r.Logger.WithContext(ctx).Infow("successfully executed commands in pipelined")
 		}
 		return err
 	}

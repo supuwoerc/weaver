@@ -12,4 +12,5 @@ type LoggerConfig struct {
 	GormLevel                     int           `mapstructure:"gorm_level"`                         // gorm日志级别
 	GormSlowThreshold             time.Duration `mapstructure:"gorm_slow_threshold"`                // gorm慢查询阈值
 	GormIgnoreRecordNotFoundError bool          `mapstructure:"gorm_ignore_record_not_found_error"` // gorm忽略record not found错误
+	RedisLevel                    int           `mapstructure:"redis_level"`                        // redis日志级别
 }

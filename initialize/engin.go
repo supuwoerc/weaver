@@ -23,7 +23,7 @@ func getEnginLoggerConfig(output io.Writer) gin.LoggerConfig {
 				params.Latency = params.Latency.Truncate(time.Second)
 			}
 			var builder strings.Builder
-			builder.WriteString(`{"caller":"GIN","time":"`)
+			builder.WriteString(`{time":"`)
 			builder.WriteString(params.TimeStamp.Format(time.DateTime))
 			builder.WriteString(`","status":`)
 			builder.WriteString(strconv.Itoa(params.StatusCode))

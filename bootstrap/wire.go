@@ -25,7 +25,6 @@ func WireApp() *App {
 
 		initialize.NewViper,
 
-		wire.Bind(new(initialize.RedisLogSyncer), new(zapcore.WriteSyncer)),
 		wire.Bind(new(initialize.EngineLogger), new(zapcore.WriteSyncer)),
 		initialize.NewWriterSyncer,
 
