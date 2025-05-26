@@ -52,7 +52,7 @@ func WireApp() *App {
 	permissionService := service.NewPermissionService(basicService, permissionDAO, roleDAO)
 	v2 := providers.SystemCaches(departmentService, permissionService)
 	systemCacheManager := cache2.NewSystemCacheManager(v2...)
-	engine := initialize.NewEngine(writeSyncer, emailClient, loggerLogger, config)
+	engine := initialize.NewEngine(emailClient, loggerLogger, config)
 	httpServer := initialize.NewServer(config, engine, loggerLogger)
 	routerGroup := router.NewRouter(engine, config)
 	userCache := cache.NewUserCache(commonRedisClient)

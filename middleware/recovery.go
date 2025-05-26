@@ -16,21 +16,21 @@ type RecoverEmailClient interface {
 	Alarm2Admin(ctx context.Context, subject constant.Subject, body string) error
 }
 
-type RecoveryMiddle struct {
+type RecoveryMiddleware struct {
 	emailClient RecoverEmailClient
 	logger      *logger.Logger
 	conf        *conf.Config
 }
 
-func NewRecoveryMiddleware(emailClient RecoverEmailClient, logger *logger.Logger, conf *conf.Config) *RecoveryMiddle {
-	return &RecoveryMiddle{
+func NewRecoveryMiddleware(emailClient RecoverEmailClient, logger *logger.Logger, conf *conf.Config) *RecoveryMiddleware {
+	return &RecoveryMiddleware{
 		emailClient: emailClient,
 		logger:      logger,
 		conf:        conf,
 	}
 }
 
-func (r *RecoveryMiddle) Recovery() gin.HandlerFunc {
+func (r *RecoveryMiddleware) Recovery() gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, err any) {
 		message := string(debug.Stack())
 		r.logger.WithContext(c).Errorw("recover panic", "panic", err, "stack", message)

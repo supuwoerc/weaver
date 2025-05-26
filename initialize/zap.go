@@ -20,7 +20,6 @@ func NewZapLogger(conf *conf.Config, sync zapcore.WriteSyncer) *zap.SugaredLogge
 		zap.AddCaller(),
 		zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.Fields(
-			zap.String("env", conf.Env),
 			zap.Int("pid", os.Getpid()),
 		),
 	)

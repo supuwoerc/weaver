@@ -16,7 +16,6 @@ import (
 	"github.com/supuwoerc/weaver/pkg/utils"
 	"github.com/supuwoerc/weaver/providers"
 	"github.com/supuwoerc/weaver/router"
-	"go.uber.org/zap/zapcore"
 	gormLogger "gorm.io/gorm/logger"
 )
 
@@ -25,7 +24,6 @@ func WireApp() *App {
 
 		initialize.NewViper,
 
-		wire.Bind(new(initialize.EngineLogger), new(zapcore.WriteSyncer)),
 		initialize.NewWriterSyncer,
 
 		initialize.NewZapLogger,
