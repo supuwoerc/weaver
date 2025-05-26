@@ -8,6 +8,8 @@ import (
 
 	"github.com/supuwoerc/weaver/conf"
 	weaverLogger "github.com/supuwoerc/weaver/pkg/logger"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -79,10 +81,15 @@ func (g *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 	switch {
 	case err != nil && g.Level >= logger.Error && (!errors.Is(err, gorm.ErrRecordNotFound) || !g.IgnoreRecordNotFoundError):
 		sqlRaw, affected := fc()
+		stackLevel := zapcore.ErrorLevel
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			stackLevel = zapcore.PanicLevel
+		}
+		logEntry := g.WithContext(ctx).WithOptions(zap.AddStacktrace(stackLevel))
 		if affected == -1 {
-			g.WithContext(ctx).Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, sql, sqlRaw)
+			logEntry.Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, sql, sqlRaw)
 		} else {
-			g.WithContext(ctx).Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, rows, affected, sql, sqlRaw)
+			logEntry.Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, rows, affected, sql, sqlRaw)
 		}
 	case elapsed > g.SlowThreshold && g.SlowThreshold != 0 && g.Level >= logger.Warn:
 		sqlRaw, affected := fc()
