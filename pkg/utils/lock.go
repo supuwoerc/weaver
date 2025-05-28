@@ -40,6 +40,7 @@ type RedisLock struct {
 	duration time.Duration
 	logger   LocksmithLogger
 	state    atomic.Int64
+	stopChan chan struct{} // 通知autoExtend停止
 }
 
 const (
@@ -64,6 +65,7 @@ func (r *RedisLocksmith) NewLock(t constant.Prefix, object ...string) *RedisLock
 		),
 		duration: defaultLockDuration,
 		logger:   r.logger,
+		stopChan: make(chan struct{}),
 	}
 }
 
@@ -117,6 +119,7 @@ func (l *RedisLock) Unlock() error {
 			return fmt.Errorf("cannot unlock: lock in invalid state: %d", currentState)
 		}
 	}
+	close(l.stopChan) // cancel autoExtend
 	ok, err := l.Mutex.Unlock()
 	if err != nil {
 		if errors.Is(err, redsync.ErrLockAlreadyExpired) {
@@ -138,6 +141,11 @@ func (l *RedisLock) unlockWithLog(ctx context.Context) {
 }
 
 func (l *RedisLock) extend(ctx context.Context) bool {
+	select {
+	case <-l.stopChan:
+		return false
+	default:
+	}
 	if l.state.Load() != lockStateLocked {
 		return false
 	}
@@ -155,21 +163,23 @@ func (l *RedisLock) extend(ctx context.Context) bool {
 // autoExtend 自动延长锁的过期时间
 func (l *RedisLock) autoExtend(ctx context.Context) {
 	ticker := time.NewTicker(l.duration / 3)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
-			ticker.Stop()
 			l.unlockWithLog(ctx)
+			return
+		case <-l.stopChan:
 			return
 		case <-ticker.C:
 			select {
 			case <-ctx.Done():
-				ticker.Stop()
 				l.unlockWithLog(ctx)
+				return
+			case <-l.stopChan:
 				return
 			default:
 				if success := l.extend(ctx); !success {
-					ticker.Stop()
 					return
 				}
 			}
