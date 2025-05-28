@@ -45,14 +45,17 @@ func (e *EnginLoggerMiddleware) Logger() gin.HandlerFunc {
 		if param.Latency > time.Minute {
 			param.Latency = param.Latency.Truncate(time.Second)
 		}
-		e.logger.WithContext(c).Infow("http request",
+		infos := []any{
 			"path", param.Path,
 			"latency", fmt.Sprintf("%v", param.Latency),
 			"method", param.Method,
 			"code", param.StatusCode,
-			"error", param.ErrorMessage,
 			"size", param.BodySize,
 			"client", param.ClientIP,
-		)
+		}
+		if param.ErrorMessage != "" {
+			infos = append(infos, "error", param.ErrorMessage)
+		}
+		e.logger.WithContext(c).Infow("http request", infos...)
 	}
 }
