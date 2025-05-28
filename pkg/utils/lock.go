@@ -148,7 +148,7 @@ func (l *RedisLock) extendWithAlarm(ctx context.Context) bool {
 
 // autoExtend 自动延长锁的过期时间
 func (l *RedisLock) autoExtend(ctx context.Context) {
-	ticker := time.NewTicker(l.duration / 2)
+	ticker := time.NewTicker(l.duration / 4)
 	for {
 		select {
 		case <-ctx.Done():
