@@ -30,9 +30,13 @@ type RedisLocksmith struct {
 }
 
 const (
-	lockStateUnlocked = 0 // 未锁定
-	lockStateLocked   = 1 // 锁定
-	lockStateReleased = 2 // 释放
+	lockStateUnlocked   = 0  // 未锁定
+	lockStateLocked     = 1  // 锁定
+	lockStateReleased   = 2  // 释放
+	defaultMaxRetries   = 32 // 重试时间
+	defaultLockDuration = 10 * time.Second
+	extendFactor        = 3                      // 续期interval次数
+	extendAheadDuration = 500 * time.Millisecond // 续期提前值
 )
 
 type RedisLock struct {
@@ -42,11 +46,6 @@ type RedisLock struct {
 	state    atomic.Int64
 	stopChan chan struct{} // 通知autoExtend停止
 }
-
-const (
-	defaultMaxRetries   = 32
-	defaultLockDuration = 10 * time.Second
-)
 
 func NewRedisLocksmith(logger LocksmithLogger, redisClient *redis.CommonRedisClient) *RedisLocksmith {
 	return &RedisLocksmith{
@@ -149,9 +148,21 @@ func (l *RedisLock) extend(ctx context.Context) bool {
 	if l.state.Load() != lockStateLocked {
 		return false
 	}
+	deadline, ok := ctx.Deadline()
+	if ok && time.Until(deadline) < 100*time.Millisecond {
+		l.logger.WithContext(ctx).Warnw("skipping extend due to approaching deadline",
+			"name", l.Name(),
+			"remaining", time.Until(deadline))
+		return false
+	}
 	ok, err := l.Mutex.Extend()
 	if err != nil {
-		l.logger.WithContext(ctx).Errorw("lock couldn't be extended", "err", err.Error(), "name", l.Name())
+		// ignore context cancel and deadline error
+		if !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
+			l.logger.WithContext(ctx).Errorw("lock couldn't be extended",
+				"err", err.Error(),
+				"name", l.Name())
+		}
 		return false
 	} else if !ok {
 		l.logger.WithContext(ctx).Errorw("redis extend lock fail ", "name", l.Name())
@@ -162,7 +173,8 @@ func (l *RedisLock) extend(ctx context.Context) bool {
 
 // autoExtend 自动延长锁的过期时间
 func (l *RedisLock) autoExtend(ctx context.Context) {
-	ticker := time.NewTicker(l.duration / 3)
+	extendInterval := l.duration/extendFactor - extendAheadDuration
+	ticker := time.NewTicker(extendInterval)
 	defer ticker.Stop()
 	for {
 		select {
