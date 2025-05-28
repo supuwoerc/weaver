@@ -40,7 +40,7 @@ func WireApp() *App {
 	db := initialize.NewGORM(config, gormLogger)
 	redisLogger := initialize.NewRedisLogger(loggerLogger, config)
 	commonRedisClient := initialize.NewRedisClient(redisLogger, config)
-	redisLocksmith := utils.NewRedisLocksmith(loggerLogger, commonRedisClient, emailClient)
+	redisLocksmith := utils.NewRedisLocksmith(loggerLogger, commonRedisClient)
 	basicService := service.NewBasicService(loggerLogger, db, redisLocksmith, config, emailClient)
 	basicDAO := dao.NewBasicDao(db)
 	departmentDAO := dao.NewDepartmentDAO(basicDAO)

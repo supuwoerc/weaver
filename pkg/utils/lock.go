@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/supuwoerc/weaver/pkg/constant"
@@ -17,11 +18,6 @@ import (
 
 type LocksmithLogger interface {
 	logger.LogCtxInterface
-	Errorw(msg string, keysAndValues ...interface{})
-}
-
-type LocksmithEmailClient interface {
-	Alarm2Admin(ctx context.Context, subject constant.Subject, body string) error
 }
 
 type LocksmithMutex interface {
@@ -30,15 +26,20 @@ type LocksmithMutex interface {
 
 type RedisLocksmith struct {
 	redisClient LocksmithMutex
-	emailClient LocksmithEmailClient
 	logger      LocksmithLogger
 }
 
+const (
+	lockStateUnlocked = 0 // 未锁定
+	lockStateLocked   = 1 // 锁定
+	lockStateReleased = 2 // 释放
+)
+
 type RedisLock struct {
 	*redsync.Mutex
-	duration    time.Duration
-	logger      LocksmithLogger
-	emailClient LocksmithEmailClient
+	duration time.Duration
+	logger   LocksmithLogger
+	state    atomic.Int64
 }
 
 const (
@@ -46,12 +47,10 @@ const (
 	defaultLockDuration = 10 * time.Second
 )
 
-func NewRedisLocksmith(logger LocksmithLogger, redisClient *redis.CommonRedisClient,
-	emailClient LocksmithEmailClient) *RedisLocksmith {
+func NewRedisLocksmith(logger LocksmithLogger, redisClient *redis.CommonRedisClient) *RedisLocksmith {
 	return &RedisLocksmith{
 		logger:      logger,
 		redisClient: redisClient,
-		emailClient: emailClient,
 	}
 }
 
@@ -63,32 +62,36 @@ func (r *RedisLocksmith) NewLock(t constant.Prefix, object ...string) *RedisLock
 			redsync.WithExpiry(defaultLockDuration),
 			redsync.WithTries(defaultMaxRetries),
 		),
-		duration:    defaultLockDuration,
-		logger:      r.logger,
-		emailClient: r.emailClient,
+		duration: defaultLockDuration,
+		logger:   r.logger,
 	}
 }
 
 // Lock 会多次尝试(defaultMaxRetries 次), 如果尝试次数内还未获取到锁则返回错误
 func (l *RedisLock) Lock(ctx context.Context, extend bool) error {
-	err := l.Mutex.Lock()
-	if err != nil {
-		var e *redsync.ErrTaken
-		if errors.As(err, &e) {
-			return response.Busy
-		}
-		return fmt.Errorf("redis lock err: %v", err)
-	}
-	if extend {
-		go l.autoExtend(ctx)
-	}
-	return nil
+	return l.acquire(ctx, l.Mutex.Lock, extend)
 }
 
 // TryLock 获取不到锁直接返回错误
 func (l *RedisLock) TryLock(ctx context.Context, extend bool) error {
-	err := l.Mutex.TryLock()
+	return l.acquire(ctx, l.Mutex.TryLock, extend)
+}
+
+func (l *RedisLock) acquire(ctx context.Context, lockMethod func() error, extend bool) error {
+	if !l.state.CompareAndSwap(lockStateUnlocked, lockStateLocked) {
+		currentState := l.state.Load()
+		switch currentState {
+		case lockStateLocked:
+			return response.Busy
+		case lockStateReleased:
+			return fmt.Errorf("lock has been released")
+		default:
+			return fmt.Errorf("lock is in invalid state: %d", currentState)
+		}
+	}
+	err := lockMethod()
 	if err != nil {
+		l.state.Store(lockStateUnlocked)
 		var e *redsync.ErrTaken
 		if errors.As(err, &e) {
 			return response.Busy
@@ -103,6 +106,17 @@ func (l *RedisLock) TryLock(ctx context.Context, extend bool) error {
 
 // Unlock 解锁
 func (l *RedisLock) Unlock() error {
+	if !l.state.CompareAndSwap(lockStateLocked, lockStateReleased) {
+		currentState := l.state.Load()
+		switch currentState {
+		case lockStateUnlocked:
+			return fmt.Errorf("cannot unlock: lock not held")
+		case lockStateReleased:
+			return nil
+		default:
+			return fmt.Errorf("cannot unlock: lock in invalid state: %d", currentState)
+		}
+	}
 	ok, err := l.Mutex.Unlock()
 	if err != nil {
 		if errors.Is(err, redsync.ErrLockAlreadyExpired) {
@@ -116,31 +130,23 @@ func (l *RedisLock) Unlock() error {
 	return nil
 }
 
-func (l *RedisLock) alarm(ctx context.Context, subject constant.Subject, lockName string, err error) {
-	l.logger.WithContext(ctx).Errorw("redis lock error alarm", "lock", lockName, "subject", subject, "err", err.Error())
-	if err = l.emailClient.Alarm2Admin(
-		ctx,
-		subject,
-		fmt.Sprintf("%s alarm: %v", lockName, err.Error()),
-	); err != nil {
-		l.logger.WithContext(ctx).Errorw("redis lock error alarm to admin err", "err", err.Error())
-	}
-}
-
-func (l *RedisLock) unlockWithAlarm(ctx context.Context) {
+func (l *RedisLock) unlockWithLog(ctx context.Context) {
 	err := l.Unlock()
 	if err != nil {
-		go l.alarm(ctx, constant.UnlockFail, l.Name(), err)
+		l.logger.WithContext(ctx).Errorw("redis unlock fail", "err", err.Error())
 	}
 }
 
-func (l *RedisLock) extendWithAlarm(ctx context.Context) bool {
-	ok, err := l.Extend()
+func (l *RedisLock) extend(ctx context.Context) bool {
+	if l.state.Load() != lockStateLocked {
+		return false
+	}
+	ok, err := l.Mutex.Extend()
 	if err != nil {
-		go l.alarm(ctx, constant.ExtendErr, l.Name(), err)
+		l.logger.WithContext(ctx).Errorw("lock couldn't be extended", "err", err.Error(), "name", l.Name())
 		return false
 	} else if !ok {
-		go l.alarm(ctx, constant.ExtendFail, l.Name(), errors.New("lock couldn't be extended"))
+		l.logger.WithContext(ctx).Errorw("redis extend lock fail ", "name", l.Name())
 		return false
 	}
 	return true
@@ -148,21 +154,21 @@ func (l *RedisLock) extendWithAlarm(ctx context.Context) bool {
 
 // autoExtend 自动延长锁的过期时间
 func (l *RedisLock) autoExtend(ctx context.Context) {
-	ticker := time.NewTicker(l.duration / 4)
+	ticker := time.NewTicker(l.duration / 3)
 	for {
 		select {
 		case <-ctx.Done():
 			ticker.Stop()
-			l.unlockWithAlarm(ctx)
+			l.unlockWithLog(ctx)
 			return
 		case <-ticker.C:
 			select {
 			case <-ctx.Done():
 				ticker.Stop()
-				l.unlockWithAlarm(ctx)
+				l.unlockWithLog(ctx)
 				return
 			default:
-				if success := l.extendWithAlarm(ctx); !success {
+				if success := l.extend(ctx); !success {
 					ticker.Stop()
 					return
 				}

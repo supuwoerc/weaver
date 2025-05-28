@@ -48,7 +48,6 @@ func WireApp() *App {
 
 		initialize.NewRedisClient,
 
-		wire.Bind(new(utils.LocksmithEmailClient), new(*initialize.EmailClient)),
 		initialize.NewEmailClient,
 
 		wire.Bind(new(http.Handler), new(*gin.Engine)),
