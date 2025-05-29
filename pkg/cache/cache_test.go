@@ -109,6 +109,59 @@ func TestSystemCacheManager_Refresh(t *testing.T) {
 	})
 }
 
+func TestSystemCacheManager_Clean(t *testing.T) {
+	cache1 := &testCache{} // mock缓存1
+	cache2 := &testCache{} // mock缓存2
+	cache3 := &testCache{} // mock缓存3
+	ctx := context.Background()
+
+	cache1.On("Key").Return("cache1")
+	cache2.On("Key").Return("cache2")
+	cache3.On("Key").Return("cache3")
+
+	cache1.On("Clean", ctx).Return(nil)
+	cleanErr := fmt.Errorf("cache2:clean err")
+	cache2.On("Clean", ctx).Return(cleanErr)
+	panicMessage := "cache3:clean panic"
+	cache3.On("Clean", ctx).Panic(panicMessage)
+	t.Run("CleanWithoutTarget", func(t *testing.T) {
+		caches := []SystemCache{cache1}
+		manager := NewSystemCacheManager(caches...)
+		err := manager.Clean(ctx)
+		assert.NoError(t, err)
+	})
+	t.Run("CleanEmptyCache", func(t *testing.T) {
+		manager := NewSystemCacheManager()
+		err := manager.Clean(ctx, "cache1")
+		assert.ErrorContains(t, err, "empty")
+	})
+	t.Run("CleanNonExistCache", func(t *testing.T) {
+		caches := []SystemCache{cache1}
+		manager := NewSystemCacheManager(caches...)
+		err := manager.Clean(ctx, "cache3")
+		assert.ErrorContains(t, err, "clean cache fail: cache cache3 not found")
+	})
+	t.Run("CleanExistCache", func(t *testing.T) {
+		caches := []SystemCache{cache1}
+		manager := NewSystemCacheManager(caches...)
+		err := manager.Clean(ctx, "cache1")
+		assert.NoError(t, err)
+	})
+	t.Run("CleanCacheWithErr", func(t *testing.T) {
+		caches := []SystemCache{cache2}
+		manager := NewSystemCacheManager(caches...)
+		err := manager.Clean(ctx, "cache2")
+		assert.ErrorIs(t, err, cleanErr)
+	})
+	t.Run("CleanCacheWithPanic", func(t *testing.T) {
+		caches := []SystemCache{cache3}
+		manager := NewSystemCacheManager(caches...)
+		assert.PanicsWithValue(t, panicMessage, func() {
+			_ = manager.Clean(ctx, "cache3")
+		})
+	})
+}
+
 func Test_operateCache(t *testing.T) {
 	ctx := context.Background()
 	cache1 := &testCache{}
