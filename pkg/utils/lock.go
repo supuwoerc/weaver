@@ -30,21 +30,23 @@ type RedisLocksmith struct {
 }
 
 const (
-	lockStateUnlocked   = 0  // 未锁定
-	lockStateLocked     = 1  // 锁定
-	lockStateReleased   = 2  // 释放
-	defaultMaxRetries   = 32 // 重试时间
-	defaultLockDuration = 10 * time.Second
-	extendFactor        = 3                      // 续期interval次数
-	extendAheadDuration = 500 * time.Millisecond // 续期提前值
+	lockStateUnlocked    = 0  // 未锁定
+	lockStateLocked      = 1  // 锁定
+	lockStateReleased    = 2  // 释放
+	lockStateExtending   = 3  // 正在续期
+	defaultMaxRetries    = 32 // 重试时间
+	defaultLockDuration  = 10 * time.Second
+	defaultExtendTimeout = 2 * time.Second // 默认续期等待超时时间
 )
 
 type RedisLock struct {
 	*redsync.Mutex
-	duration time.Duration
-	logger   LocksmithLogger
-	state    atomic.Int64
-	stopChan chan struct{} // 通知autoExtend停止
+	duration      time.Duration
+	logger        LocksmithLogger
+	state         atomic.Int64
+	stopChan      chan struct{} // 通知autoExtend停止
+	extendDone    chan struct{} // 用于等待extend完成的channel
+	extendTimeout time.Duration // extend最大等待
 }
 
 func NewRedisLocksmith(logger LocksmithLogger, redisClient *redis.CommonRedisClient) *RedisLocksmith {
@@ -57,15 +59,18 @@ func NewRedisLocksmith(logger LocksmithLogger, redisClient *redis.CommonRedisCli
 // NewLock 创建锁
 func (r *RedisLocksmith) NewLock(t constant.Prefix, object ...string) *RedisLock {
 	name := fmt.Sprintf("%s:%s", t, strings.Join(object, "_"))
-	return &RedisLock{
+	lock := &RedisLock{
 		Mutex: r.redisClient.NewMutex(name,
 			redsync.WithExpiry(defaultLockDuration),
 			redsync.WithTries(defaultMaxRetries),
 		),
-		duration: defaultLockDuration,
-		logger:   r.logger,
-		stopChan: make(chan struct{}),
+		duration:      defaultLockDuration,
+		logger:        r.logger,
+		stopChan:      make(chan struct{}),
+		extendDone:    make(chan struct{}),
+		extendTimeout: defaultExtendTimeout,
 	}
+	return lock
 }
 
 // Lock 会多次尝试(defaultMaxRetries 次), 如果尝试次数内还未获取到锁则返回错误
@@ -83,6 +88,8 @@ func (l *RedisLock) acquire(ctx context.Context, lockMethod func() error, extend
 		currentState := l.state.Load()
 		switch currentState {
 		case lockStateLocked:
+			return response.Busy
+		case lockStateExtending:
 			return response.Busy
 		case lockStateReleased:
 			return fmt.Errorf("lock has been released")
@@ -107,18 +114,29 @@ func (l *RedisLock) acquire(ctx context.Context, lockMethod func() error, extend
 
 // Unlock 解锁
 func (l *RedisLock) Unlock() error {
-	if !l.state.CompareAndSwap(lockStateLocked, lockStateReleased) {
-		currentState := l.state.Load()
-		switch currentState {
-		case lockStateUnlocked:
-			return fmt.Errorf("cannot unlock: lock not held")
-		case lockStateReleased:
-			return nil
-		default:
-			return fmt.Errorf("cannot unlock: lock in invalid state: %d", currentState)
+	for {
+		if !l.state.CompareAndSwap(lockStateLocked, lockStateReleased) {
+			currentState := l.state.Load()
+			switch currentState {
+			case lockStateUnlocked:
+				return fmt.Errorf("cannot unlock: lock not held")
+			case lockStateReleased:
+				return nil
+			case lockStateExtending:
+				select {
+				case <-l.extendDone:
+					continue
+				case <-time.After(l.extendTimeout):
+					return fmt.Errorf("timeout waiting for extend to complete")
+				}
+			default:
+				return fmt.Errorf("cannot unlock: lock in invalid state: %d", currentState)
+			}
+		} else {
+			break
 		}
 	}
-	close(l.stopChan) // cancel autoExtend
+	close(l.stopChan) // 取消 autoExtend
 	ok, err := l.Mutex.Unlock()
 	if err != nil {
 		if errors.Is(err, redsync.ErrLockAlreadyExpired) {
@@ -145,24 +163,26 @@ func (l *RedisLock) extend(ctx context.Context) bool {
 		return false
 	default:
 	}
-	if l.state.Load() != lockStateLocked {
+	if !l.state.CompareAndSwap(lockStateLocked, lockStateExtending) {
 		return false
 	}
+	l.extendDone = make(chan struct{})
+	defer func() {
+		l.state.CompareAndSwap(lockStateExtending, lockStateLocked)
+		close(l.extendDone)
+	}()
 	deadline, ok := ctx.Deadline()
-	if ok && time.Until(deadline) < 100*time.Millisecond {
+	if ok && !deadline.After(l.Mutex.Until()) {
 		l.logger.WithContext(ctx).Warnw("skipping extend due to approaching deadline",
 			"name", l.Name(),
-			"remaining", time.Until(deadline))
+			"deadline", deadline,
+			"mutex until", l.Mutex.Until(),
+		)
 		return false
 	}
 	ok, err := l.Mutex.Extend()
 	if err != nil {
-		// ignore context cancel and deadline error
-		if !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
-			l.logger.WithContext(ctx).Errorw("lock couldn't be extended",
-				"err", err.Error(),
-				"name", l.Name())
-		}
+		l.logger.WithContext(ctx).Errorw("lock couldn't be extended", "err", err.Error(), "name", l.Name())
 		return false
 	} else if !ok {
 		l.logger.WithContext(ctx).Errorw("redis extend lock fail ", "name", l.Name())
@@ -173,7 +193,7 @@ func (l *RedisLock) extend(ctx context.Context) bool {
 
 // autoExtend 自动延长锁的过期时间
 func (l *RedisLock) autoExtend(ctx context.Context) {
-	extendInterval := l.duration/extendFactor - extendAheadDuration
+	extendInterval := l.duration / 3
 	ticker := time.NewTicker(extendInterval)
 	defer ticker.Stop()
 	for {
