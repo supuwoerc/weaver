@@ -71,6 +71,13 @@ func TestSystemCacheManager_Refresh(t *testing.T) {
 	cache2.On("Refresh", ctx).Return(refreshErr)
 	panicMessage := "cache3:refresh panic"
 	cache3.On("Refresh", ctx).Panic(panicMessage)
+
+	defer func() {
+		cache1.AssertExpectations(t)
+		cache2.AssertExpectations(t)
+		cache3.AssertExpectations(t)
+	}()
+
 	t.Run("RefreshWithoutTarget", func(t *testing.T) {
 		caches := []SystemCache{cache1}
 		manager := NewSystemCacheManager(caches...)
@@ -124,6 +131,13 @@ func TestSystemCacheManager_Clean(t *testing.T) {
 	cache2.On("Clean", ctx).Return(cleanErr)
 	panicMessage := "cache3:clean panic"
 	cache3.On("Clean", ctx).Panic(panicMessage)
+
+	defer func() {
+		cache1.AssertExpectations(t)
+		cache2.AssertExpectations(t)
+		cache3.AssertExpectations(t)
+	}()
+
 	t.Run("CleanWithoutTarget", func(t *testing.T) {
 		caches := []SystemCache{cache1}
 		manager := NewSystemCacheManager(caches...)
@@ -175,6 +189,13 @@ func Test_operateCache(t *testing.T) {
 	cache3.On("Clean", ctx).Panic("cache3:test clean panic")
 	caches := []SystemCache{cache1, cache2, cache3}
 	manager := NewSystemCacheManager(caches...)
+
+	defer func() {
+		cache1.AssertExpectations(t)
+		cache2.AssertExpectations(t)
+		cache3.AssertExpectations(t)
+	}()
+
 	t.Run("operateCache with invalid op", func(t *testing.T) {
 		err := operateCache(ctx, cacheOperate(100), manager, cache1.Key())
 		assert.ErrorContains(t, err, "is invalid operate")

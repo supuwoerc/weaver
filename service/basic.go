@@ -3,9 +3,10 @@ package service
 import (
 	"context"
 	"database/sql"
-	"errors"
+	"fmt"
 	"runtime/debug"
 
+	"github.com/pkg/errors"
 	"github.com/supuwoerc/weaver/conf"
 	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/pkg/database"
@@ -71,7 +72,7 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 			if err := recover(); err != nil {
 				stackInfo := string(debug.Stack())
 				s.logger.WithContext(wrapContext).Errorw("mysql transaction recover", "panic", err, "stack", stackInfo)
-				execErr = errors.New(stackInfo)
+				execErr = fmt.Errorf("mysql transaction panic: %s", err)
 			}
 		}()
 		execErr = fn(wrapContext)
@@ -81,7 +82,7 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		if !manager.AlreadyCommittedOrRolledBack {
 			manager.AlreadyCommittedOrRolledBack = true
 			if rollback := manager.DB.Rollback(); rollback.Error != nil {
-				return rollback.Error
+				return errors.WithMessage(rollback.Error, execErr.Error())
 			}
 		}
 		return execErr
