@@ -103,8 +103,40 @@ func TestSystemCacheManager_Refresh(t *testing.T) {
 	t.Run("RefreshCacheWithPanic", func(t *testing.T) {
 		caches := []SystemCache{cache3}
 		manager := NewSystemCacheManager(caches...)
-		assert.Panics(t, func() {
+		assert.PanicsWithValue(t, panicMessage, func() {
 			_ = manager.Refresh(ctx, "cache3")
+		})
+	})
+}
+
+func Test_operateCache(t *testing.T) {
+	ctx := context.Background()
+	cache1 := &testCache{}
+	cache1.On("Key").Return("cache1")
+	cache1.On("Clean", ctx).Return(nil)
+	cache2 := &testCache{}
+	cache2.On("Key").Return("cache2")
+	cache2.On("Clean", ctx).Return(fmt.Errorf("cache2:test clean err"))
+	cache3 := &testCache{}
+	cache3.On("Key").Return("cache3")
+	cache3.On("Clean", ctx).Panic("cache3:test clean panic")
+	caches := []SystemCache{cache1, cache2, cache3}
+	manager := NewSystemCacheManager(caches...)
+	t.Run("operateCache with invalid op", func(t *testing.T) {
+		err := operateCache(ctx, cacheOperate(100), manager, cache1.Key())
+		assert.ErrorContains(t, err, "is invalid operate")
+	})
+	t.Run("operateCache with clean success op", func(t *testing.T) {
+		err := operateCache(ctx, clean, manager, cache1.Key())
+		assert.NoError(t, err)
+	})
+	t.Run("operateCache with clean fail op", func(t *testing.T) {
+		err := operateCache(ctx, clean, manager, cache2.Key())
+		assert.ErrorContains(t, err, "cache2:test clean err")
+	})
+	t.Run("operateCache with clean panic op", func(t *testing.T) {
+		assert.PanicsWithValue(t, "cache3:test clean panic", func() {
+			_ = operateCache(ctx, clean, manager, cache3.Key())
 		})
 	})
 }
