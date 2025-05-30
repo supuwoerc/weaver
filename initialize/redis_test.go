@@ -5,7 +5,10 @@ import (
 	"net"
 	"testing"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
+	goredislib "github.com/redis/go-redis/v9"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/supuwoerc/weaver/conf"
 	weaverLogger "github.com/supuwoerc/weaver/pkg/logger"
@@ -138,4 +141,84 @@ func TestRedisLogger_ProcessPipelineHook(t *testing.T) {
 		err := hook(ctx, cmds)
 		require.Error(t, err)
 	})
+}
+
+func TestNewRedisClient(t *testing.T) {
+	mr, err := miniredis.Run()
+	require.NoError(t, err)
+	defer mr.Close()
+	t.Run("successful connection", func(t *testing.T) {
+		c := &conf.Config{
+			Redis: conf.RedisConfig{
+				Addr:     mr.Addr(),
+				Password: "",
+				DB:       0,
+			},
+		}
+		mockHook := &RedisLogger{
+			Logger: nil,
+			Level:  Silent,
+		}
+		client := NewRedisClient(mockHook, c)
+		assert.NotNil(t, client)
+	})
+
+	t.Run("connection failure", func(t *testing.T) {
+		c := &conf.Config{
+			Redis: conf.RedisConfig{
+				Addr:     "localhost:6379",
+				Password: "pwd",
+				DB:       0,
+			},
+		}
+		mockHook := &RedisLogger{
+			Logger: nil,
+			Level:  Silent,
+		}
+		assert.Panics(t, func() {
+			NewRedisClient(mockHook, c)
+		})
+	})
+
+	t.Run("hook is properly added", func(t *testing.T) {
+		c := &conf.Config{
+			Redis: conf.RedisConfig{
+				Addr:     mr.Addr(),
+				Password: "",
+				DB:       0,
+			},
+		}
+		hookCalled := false
+		mockHook := &testHook{
+			onProcess: func(ctx context.Context, cmd goredislib.Cmder) error {
+				hookCalled = true
+				return nil
+			},
+		}
+		client := NewRedisClient(mockHook, c)
+		client.Client.Get(context.Background(), "test-key")
+		assert.True(t, hookCalled)
+	})
+}
+
+// testHook 是一个用于测试的 mock hook
+type testHook struct {
+	onProcess func(ctx context.Context, cmd goredislib.Cmder) error
+}
+
+func (h *testHook) DialHook(next goredislib.DialHook) goredislib.DialHook {
+	return next
+}
+
+func (h *testHook) ProcessHook(next goredislib.ProcessHook) goredislib.ProcessHook {
+	return func(ctx context.Context, cmd goredislib.Cmder) error {
+		if h.onProcess != nil {
+			return h.onProcess(ctx, cmd)
+		}
+		return next(ctx, cmd)
+	}
+}
+
+func (h *testHook) ProcessPipelineHook(next goredislib.ProcessPipelineHook) goredislib.ProcessPipelineHook {
+	return next
 }
