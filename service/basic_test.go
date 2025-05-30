@@ -107,13 +107,10 @@ func TestNewBasicService(t *testing.T) {
 	}
 }
 
-func TestBasicService_Transaction(t *testing.T) {
-	mockLogger := logger.NewLogger(zaptest.NewLogger(t).Sugar())
-	db, mock, err := sqlmock.New()
+func setupDatabase(t *testing.T) (*gorm.DB, *sql.DB, sqlmock.Sqlmock) {
+	// 把匹配器设置成相等匹配器，不设置默认使用正则匹配
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	require.NoError(t, err)
-	defer func() {
-		_ = db.Close()
-	}()
 	mockGormDB, err := gorm.Open(mysql.New(mysql.Config{
 		Conn:                      db,
 		SkipInitializeWithVersion: true,
@@ -121,7 +118,19 @@ func TestBasicService_Transaction(t *testing.T) {
 		DisableAutomaticPing: true,
 	})
 	require.NoError(t, err)
+	return mockGormDB, db, mock
+}
+
+func teardownDatabase(db *sql.DB) {
+	_ = db.Close()
+}
+
+func TestBasicService_TransactionErrorAndPanic(t *testing.T) {
+	mockLogger := logger.NewLogger(zaptest.NewLogger(t).Sugar())
+	mockGormDB, db, mock := setupDatabase(t)
+	defer teardownDatabase(db)
 	service := NewBasicService(mockLogger, mockGormDB, nil, nil, nil)
+	var err error
 	t.Run("Simple Transaction", func(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectCommit()
@@ -261,5 +270,233 @@ func TestBasicService_Transaction(t *testing.T) {
 			return nil
 		})
 		assert.Equal(t, err, expectedErr)
+	})
+}
+
+type TestUser struct {
+	ID   uint
+	Name string
+}
+
+func TestBasicService_Transaction(t *testing.T) {
+	mockLogger := logger.NewLogger(zaptest.NewLogger(t).Sugar())
+	mockGormDB, db, mock := setupDatabase(t)
+	defer teardownDatabase(db)
+	service := NewBasicService(mockLogger, mockGormDB, nil, nil, nil)
+	var err error
+	// 发生错误回滚
+	t.Run("rollback on execution error", func(t *testing.T) {
+		u := TestUser{
+			Name: "test name",
+		}
+		ctx := context.Background()
+		insertRaw := `INSERT INTO test_users (name) VALUES (?)`
+		queryRaw := `SELECT COUNT(*) FROM test_users`
+		var count int64
+		mock.ExpectExec(insertRaw).WithArgs(u.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
+		mock.ExpectBegin()
+		mock.ExpectExec(insertRaw).
+			WithArgs(u.Name).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectRollback()
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
+		defer func() {
+			assert.NoError(t, mock.ExpectationsWereMet())
+		}()
+		beforeTx := mockGormDB.WithContext(ctx)
+		err = beforeTx.Exec(insertRaw, u.Name).Error
+		require.NoError(t, err)
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
+		count = 0 // reset count
+		err = service.Transaction(ctx, false, func(ctx context.Context) error {
+			tx := mockGormDB.WithContext(ctx)
+			e := tx.Exec(insertRaw, u.Name).Error
+			require.NoError(t, e)
+			return fmt.Errorf("force fail")
+		})
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "force fail")
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(1))
+	})
+
+	// 发生panic回滚
+	t.Run("rollback on panic", func(t *testing.T) {
+		u := TestUser{
+			Name: "test name",
+		}
+		ctx := context.Background()
+		insertRaw := `INSERT INTO test_users (name) VALUES (?)`
+		queryRaw := `SELECT COUNT(*) FROM test_users`
+		var count int64
+		mock.ExpectExec(insertRaw).WithArgs(u.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
+		mock.ExpectBegin()
+		mock.ExpectExec(insertRaw).WithArgs(u.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectRollback()
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
+		defer func() {
+			assert.NoError(t, mock.ExpectationsWereMet())
+		}()
+		beforeTx := mockGormDB.WithContext(ctx)
+		err = beforeTx.Exec(insertRaw, u.Name).Error
+		require.NoError(t, err)
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
+		count = 0 // reset count
+		err = service.Transaction(ctx, false, func(ctx context.Context) error {
+			tx := mockGormDB.WithContext(ctx)
+			e := tx.Exec(insertRaw, u.Name).Error
+			require.NoError(t, e)
+			panic("transaction with panic")
+		})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "transaction with panic")
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(1))
+	})
+
+	// 嵌套事务的回滚
+	t.Run("nested transaction rollback", func(t *testing.T) {
+		u := TestUser{
+			Name: "test name",
+		}
+		u2 := TestUser{
+			Name: "test name 2",
+		}
+		ctx := context.Background()
+		insertRaw := `INSERT INTO test_users (name) VALUES (?)`
+		queryRaw := `SELECT COUNT(*) FROM test_users`
+		var count int64
+		mock.ExpectExec(insertRaw).WithArgs(u.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
+		mock.ExpectBegin()
+		mock.ExpectExec(insertRaw).WithArgs(u.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec(insertRaw).WithArgs(u2.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectRollback()
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
+		defer func() {
+			assert.NoError(t, mock.ExpectationsWereMet())
+		}()
+		beforeTx := mockGormDB.WithContext(ctx)
+		err = beforeTx.Exec(insertRaw, u.Name).Error
+		require.NoError(t, err)
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
+		count = 0 // reset count
+		err = service.Transaction(ctx, false, func(ctx context.Context) error {
+			tx := mockGormDB.WithContext(ctx)
+			e := tx.Exec(insertRaw, u.Name).Error
+			require.NoError(t, e)
+			return service.Transaction(ctx, true, func(ctx context.Context) error {
+				e = tx.Exec(insertRaw, u2.Name).Error
+				require.NoError(t, e)
+				return fmt.Errorf("nested transaction error")
+			})
+		})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "nested transaction error")
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(1))
+	})
+
+	// 测试回滚失败的情况
+	t.Run("rollback failure", func(t *testing.T) {
+		u := TestUser{
+			Name: "test name",
+		}
+		ctx := context.Background()
+		insertRaw := `INSERT INTO test_users (name) VALUES (?)`
+		queryRaw := `SELECT COUNT(*) FROM test_users`
+		var count int64
+		mock.ExpectExec(insertRaw).WithArgs(u.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
+		mock.ExpectBegin()
+		mock.ExpectExec(insertRaw).WithArgs(u.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectRollback().WillReturnError(fmt.Errorf("rollback fail"))
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(2))
+		defer func() {
+			assert.NoError(t, mock.ExpectationsWereMet())
+		}()
+		beforeTx := mockGormDB.WithContext(ctx)
+		err = beforeTx.Exec(insertRaw, u.Name).Error
+		require.NoError(t, err)
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
+		count = 0 // reset count
+		err = service.Transaction(ctx, false, func(ctx context.Context) error {
+			tx := mockGormDB.WithContext(ctx)
+			e := tx.Exec(insertRaw, u.Name).Error
+			require.NoError(t, e)
+			return fmt.Errorf("force rollback")
+		})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "rollback fail")
+		assert.Contains(t, err.Error(), "force rollback")
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(2))
+	})
+
+	// 测试部分提交后的回滚
+	t.Run("rollback after partial commit", func(t *testing.T) {
+		u := TestUser{
+			Name: "test name",
+		}
+		updateName := "update name"
+		ctx := context.Background()
+		insertRaw := `INSERT INTO test_users (name) VALUES (?)`
+		updateRaw := `UPDATE test_users set name = ?`
+		queryRaw := `SELECT COUNT(*) FROM test_users`
+		var count int64
+		mock.ExpectExec(insertRaw).WithArgs(u.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
+		mock.ExpectBegin()
+		mock.ExpectExec(insertRaw).WithArgs(u.Name).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec(updateRaw).WithArgs(updateName).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectRollback()
+		mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
+		defer func() {
+			assert.NoError(t, mock.ExpectationsWereMet())
+		}()
+		beforeTx := mockGormDB.WithContext(ctx)
+		err = beforeTx.Exec(insertRaw, u.Name).Error
+		require.NoError(t, err)
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
+		count = 0 // reset count
+		err = service.Transaction(ctx, false, func(ctx context.Context) error {
+			tx := mockGormDB.WithContext(ctx)
+			e := tx.Exec(insertRaw, u.Name).Error
+			require.NoError(t, e)
+			e = tx.Exec(updateRaw, updateName).Error
+			require.NoError(t, e)
+			return fmt.Errorf("force rollback")
+		})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "force rollback")
+		err = beforeTx.Raw(queryRaw).Scan(&count).Error
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 	})
 }

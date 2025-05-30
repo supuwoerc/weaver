@@ -71,8 +71,8 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		defer func() {
 			if err := recover(); err != nil {
 				stackInfo := string(debug.Stack())
-				s.logger.WithContext(wrapContext).Errorw("mysql transaction recover", "panic", err, "stack", stackInfo)
-				execErr = fmt.Errorf("mysql transaction panic: %s", err)
+				s.logger.WithContext(wrapContext).Errorw("transaction recover", "panic", err, "stack", stackInfo)
+				execErr = fmt.Errorf("transaction panic: %s", err)
 			}
 		}()
 		execErr = fn(wrapContext)
@@ -82,6 +82,10 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		if !manager.AlreadyCommittedOrRolledBack {
 			manager.AlreadyCommittedOrRolledBack = true
 			if rollback := manager.DB.Rollback(); rollback.Error != nil {
+				s.logger.WithContext(wrapContext).Errorw("rollback fail",
+					"err", rollback.Error.Error(),
+					"execErr", execErr.Error(),
+				)
 				return errors.WithMessage(rollback.Error, execErr.Error())
 			}
 		}

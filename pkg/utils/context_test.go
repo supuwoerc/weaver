@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"os"
 	"testing"
 
 	"github.com/supuwoerc/weaver/pkg/constant"
@@ -14,14 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
-
-// 测试主函数
-func TestMain(t *testing.M) {
-	// 运行所有测试之前执行的代码
-	code := t.Run()
-	// 运行所有测试之后执行的代码
-	os.Exit(code)
-}
 
 func setupAndTeardownTest(t *testing.T) func() {
 	t.Log("Setting up test data...")
