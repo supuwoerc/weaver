@@ -148,10 +148,10 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	})
 }
 
-func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([]*response.DepartmentTreeResponse, error) {
+func (p *DepartmentService) GetDepartmentTree(ctx context.Context, withCrew bool) ([]*response.DepartmentTreeResponse, error) {
 	key := constant.DepartmentTreeSfgKey
-	if crew {
-		key = constant.DepartmentTreeCrewSfgKey
+	if withCrew {
+		key = constant.DepartmentTreeWithCrewSfgKey
 	}
 	departmentCache, cacheErr := p.processDepartmentCache(ctx, key)
 	if cacheErr != nil {
@@ -165,8 +165,8 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, crew bool) ([
 		if err != nil {
 			return nil, err
 		}
-		if crew {
-			if err = p.processDepartmentCrew(ctx, departments); err != nil {
+		if withCrew {
+			if err = p.processDepartmentWithCrew(ctx, departments); err != nil {
 				return nil, err
 			}
 		}
@@ -192,7 +192,7 @@ func (p *DepartmentService) processDepartmentCache(ctx context.Context, key cons
 	return cache, nil
 }
 
-func (p *DepartmentService) processDepartmentCrew(ctx context.Context, departments []*models.Department) error {
+func (p *DepartmentService) processDepartmentWithCrew(ctx context.Context, departments []*models.Department) error {
 	var users []*models.User
 	var deptLeader []*models.DepartmentLeader
 	var userDept []*models.UserDepartment
@@ -299,11 +299,11 @@ func (p *DepartmentService) Refresh(ctx context.Context) error {
 		return err
 	}
 	sfgKey := constant.DepartmentTreeSfgKey
-	crewSfgKey := constant.DepartmentTreeCrewSfgKey
+	crewSfgKey := constant.DepartmentTreeWithCrewSfgKey
 	if err = p.departmentCache.CacheDepartment(ctx, sfgKey, departments); err != nil {
 		return err
 	}
-	if err = p.processDepartmentCrew(ctx, departments); err != nil {
+	if err = p.processDepartmentWithCrew(ctx, departments); err != nil {
 		return err
 	}
 	return p.departmentCache.CacheDepartment(ctx, crewSfgKey, departments)
@@ -318,5 +318,5 @@ func (p *DepartmentService) Clean(ctx context.Context) error {
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)
 	}()
-	return p.departmentCache.RemoveDepartmentCache(ctx, constant.DepartmentTreeSfgKey, constant.DepartmentTreeCrewSfgKey)
+	return p.departmentCache.RemoveDepartmentCache(ctx, constant.DepartmentTreeSfgKey, constant.DepartmentTreeWithCrewSfgKey)
 }

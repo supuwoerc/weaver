@@ -3,6 +3,6 @@ package constant
 type CacheKey string
 
 const (
-	DepartmentTreeSfgKey     CacheKey = "department_cache:tree"
-	DepartmentTreeCrewSfgKey CacheKey = "department_cache:tree_crew"
+	DepartmentTreeSfgKey         CacheKey = "department_cache:tree"
+	DepartmentTreeWithCrewSfgKey CacheKey = "department_cache:tree_with_crew"
 )

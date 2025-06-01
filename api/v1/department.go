@@ -12,7 +12,7 @@ import (
 
 type DepartmentService interface {
 	CreateDepartment(ctx context.Context, operator uint, params *request.CreateDepartmentRequest) error
-	GetDepartmentTree(ctx context.Context, crew bool) ([]*response.DepartmentTreeResponse, error)
+	GetDepartmentTree(ctx context.Context, withCrew bool) ([]*response.DepartmentTreeResponse, error)
 }
 
 type DepartmentApi struct {
@@ -59,7 +59,7 @@ func (r *DepartmentApi) GetDepartmentTree(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	res, err := r.service.GetDepartmentTree(ctx, params.Crew)
+	res, err := r.service.GetDepartmentTree(ctx, params.WithCrew)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

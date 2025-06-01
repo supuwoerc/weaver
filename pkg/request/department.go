@@ -10,5 +10,5 @@ type CreateDepartmentRequest struct {
 
 // GetDepartmentTreeRequest 查询组织架构树的参数
 type GetDepartmentTreeRequest struct {
-	Crew bool `form:"crew" binding:"boolean"`
+	WithCrew bool `form:"with_crew" binding:"boolean"`
 }
