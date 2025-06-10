@@ -39,8 +39,17 @@ const (
 	defaultExtendTimeout = 2 * time.Second // 默认续期等待超时时间
 )
 
+type Mutex interface {
+	Lock() error
+	TryLock() error
+	Unlock() (bool, error)
+	Extend() (bool, error)
+	Name() string
+	Until() time.Time
+}
+
 type RedisLock struct {
-	*redsync.Mutex
+	Mutex
 	duration      time.Duration
 	logger        LocksmithLogger
 	state         atomic.Int64
@@ -70,6 +79,7 @@ func (r *RedisLocksmith) NewLock(t constant.Prefix, object ...string) *RedisLock
 		extendDone:    make(chan struct{}),
 		extendTimeout: defaultExtendTimeout,
 	}
+	lock.state.Store(lockStateUnlocked)
 	return lock
 }
 

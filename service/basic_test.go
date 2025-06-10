@@ -118,17 +118,18 @@ type BasicServiceSuite struct {
 }
 
 func (s *BasicServiceSuite) SetupSuite() {
+	t := s.T()
 	mockLogger := logger.NewLogger(zaptest.NewLogger(s.T()).Sugar())
 	// 把匹配器设置成相等匹配器，不设置默认使用正则匹配
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
-	require.NoError(s.T(), err)
+	require.NoError(t, err)
 	mockGormDB, err := gorm.Open(mysql.New(mysql.Config{
 		Conn:                      db,
 		SkipInitializeWithVersion: true,
 	}), &gorm.Config{
 		DisableAutomaticPing: true,
 	})
-	require.NoError(s.T(), err)
+	require.NoError(t, err)
 	s.sqlDB = db
 	s.db = mockGormDB
 	s.mock = mock
@@ -146,54 +147,55 @@ func TestBasicServiceSuite(t *testing.T) {
 
 func (s *BasicServiceSuite) TestBasicService_TransactionErrorAndPanic() {
 	var err error
+	t := s.T()
 	s.Run("Simple Transaction", func() {
 		s.mock.ExpectBegin()
 		s.mock.ExpectCommit()
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		err = s.service.Transaction(context.Background(), false, func(ctx context.Context) error {
 			return nil
 		})
-		assert.NoError(s.T(), err)
+		assert.NoError(t, err)
 	})
 	s.Run("Nested Join Transaction", func() {
 		s.mock.ExpectBegin()
 		s.mock.ExpectCommit()
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		err = s.service.Transaction(context.Background(), false, func(ctx context.Context) error {
 			return s.service.Transaction(ctx, true, func(ctx context.Context) error {
 				return nil
 			})
 		})
-		assert.NoError(s.T(), err)
+		assert.NoError(t, err)
 	})
 	s.Run("Rollback On Error", func() {
 		s.mock.ExpectBegin()
 		s.mock.ExpectRollback()
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		e := fmt.Errorf("test error")
 		err = s.service.Transaction(context.Background(), false, func(ctx context.Context) error {
 			return e
 		})
-		assert.ErrorContains(s.T(), err, e.Error())
-		assert.Equal(s.T(), err, e)
+		assert.ErrorContains(t, err, e.Error())
+		assert.Equal(t, err, e)
 	})
 	s.Run("Panic Recovery", func() {
 		s.mock.ExpectBegin()
 		s.mock.ExpectRollback()
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		err = s.service.Transaction(context.Background(), false, func(ctx context.Context) error {
 			panic("test panic")
 		})
-		assert.Error(s.T(), err)
-		assert.ErrorContains(s.T(), err, "test panic")
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "test panic")
 	})
 	s.Run("Transaction With Options", func() {
 		opts := &sql.TxOptions{
@@ -203,60 +205,60 @@ func (s *BasicServiceSuite) TestBasicService_TransactionErrorAndPanic() {
 		s.mock.ExpectBegin()
 		s.mock.ExpectCommit()
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		err = s.service.Transaction(context.Background(), false, func(ctx context.Context) error {
 			return nil
 		}, opts)
-		assert.NoError(s.T(), err)
+		assert.NoError(t, err)
 	})
 	s.Run("Context Propagation", func() {
 		s.mock.ExpectBegin()
 		s.mock.ExpectCommit()
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		var capturedCtx context.Context
 		err = s.service.Transaction(context.Background(), false, func(ctx context.Context) error {
 			capturedCtx = ctx
 			return nil
 		})
-		assert.NoError(s.T(), err)
+		assert.NoError(t, err)
 		manager := database.LoadManager(capturedCtx)
-		assert.NotNil(s.T(), manager)
+		assert.NotNil(t, manager)
 	})
 	s.Run("join=true without existing transaction", func() {
 		s.mock.ExpectBegin()
 		s.mock.ExpectCommit()
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		ctx := context.Background()
 		var capturedManager *database.TransactionManager
 		err = s.service.Transaction(ctx, true, func(newCtx context.Context) error {
 			// 在事务函数内部捕获 TransactionManager
 			capturedManager = database.LoadManager(newCtx)
-			require.NotNil(s.T(), capturedManager)
+			require.NotNil(t, capturedManager)
 			// 验证这是一个新的事务（isStarter = true 的效果）
-			require.False(s.T(), capturedManager.AlreadyCommittedOrRolledBack)
+			require.False(t, capturedManager.AlreadyCommittedOrRolledBack)
 			return nil
 		})
-		assert.NoError(s.T(), err)
-		assert.NotNil(s.T(), capturedManager)
-		assert.True(s.T(), capturedManager.AlreadyCommittedOrRolledBack)
+		assert.NoError(t, err)
+		assert.NotNil(t, capturedManager)
+		assert.True(t, capturedManager.AlreadyCommittedOrRolledBack)
 	})
 	s.Run("Begin error", func() {
 		// 模拟 Begin 操作失败
 		expectedErr := fmt.Errorf("begin transaction error")
 		s.mock.ExpectBegin().WillReturnError(expectedErr)
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		err = s.service.Transaction(context.Background(), false, func(ctx context.Context) error {
-			s.T().Fatal("transaction function should not be called")
+			t.Fatal("transaction function should not be called")
 			return nil
 		})
-		assert.Equal(s.T(), err, expectedErr)
+		assert.Equal(t, err, expectedErr)
 	})
 	s.Run("Rollback error after execution error", func() {
 		// 模拟 Rollback 操作失败
@@ -264,13 +266,13 @@ func (s *BasicServiceSuite) TestBasicService_TransactionErrorAndPanic() {
 		s.mock.ExpectBegin()
 		s.mock.ExpectRollback().WillReturnError(expectedErr)
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		err = s.service.Transaction(context.Background(), false, func(ctx context.Context) error {
 			// 返回一个错误触发回滚
 			return fmt.Errorf("inner execution error")
 		})
-		assert.ErrorContains(s.T(), err, expectedErr.Error())
+		assert.ErrorContains(t, err, expectedErr.Error())
 	})
 	s.Run("Commit error", func() {
 		// 模拟 Commit 操作失败
@@ -278,12 +280,12 @@ func (s *BasicServiceSuite) TestBasicService_TransactionErrorAndPanic() {
 		s.mock.ExpectBegin()
 		s.mock.ExpectCommit().WillReturnError(expectedErr)
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		err = s.service.Transaction(context.Background(), false, func(ctx context.Context) error {
 			return nil
 		})
-		assert.Equal(s.T(), err, expectedErr)
+		assert.Equal(t, err, expectedErr)
 	})
 }
 
@@ -294,6 +296,7 @@ type TestUser struct {
 
 func (s *BasicServiceSuite) TestBasicService_Transaction() {
 	var err error
+	t := s.T()
 	// 发生错误回滚
 	s.Run("rollback on execution error", func() {
 		u := TestUser{
@@ -312,26 +315,26 @@ func (s *BasicServiceSuite) TestBasicService_Transaction() {
 		s.mock.ExpectRollback()
 		s.mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		beforeTx := s.db.WithContext(ctx)
 		err = beforeTx.Exec(insertRaw, u.Name).Error
-		require.NoError(s.T(), err)
+		require.NoError(t, err)
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(1))
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 		count = 0 // reset count
 		err = s.service.Transaction(ctx, false, func(ctx context.Context) error {
 			tx := s.db.WithContext(ctx)
 			e := tx.Exec(insertRaw, u.Name).Error
-			require.NoError(s.T(), e)
+			require.NoError(t, e)
 			return fmt.Errorf("force fail")
 		})
-		assert.Error(s.T(), err)
-		assert.ErrorContains(s.T(), err, "force fail")
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "force fail")
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(1))
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 	})
 
 	// 发生panic回滚
@@ -352,26 +355,26 @@ func (s *BasicServiceSuite) TestBasicService_Transaction() {
 		s.mock.ExpectRollback()
 		s.mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		beforeTx := s.db.WithContext(ctx)
 		err = beforeTx.Exec(insertRaw, u.Name).Error
-		require.NoError(s.T(), err)
+		require.NoError(t, err)
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(1))
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 		count = 0 // reset count
 		err = s.service.Transaction(ctx, false, func(ctx context.Context) error {
 			tx := s.db.WithContext(ctx)
 			e := tx.Exec(insertRaw, u.Name).Error
-			require.NoError(s.T(), e)
+			require.NoError(t, e)
 			panic("transaction with panic")
 		})
-		assert.Error(s.T(), err)
-		assert.Contains(s.T(), err.Error(), "transaction with panic")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "transaction with panic")
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(1))
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 	})
 
 	// 嵌套事务的回滚
@@ -397,30 +400,30 @@ func (s *BasicServiceSuite) TestBasicService_Transaction() {
 		s.mock.ExpectRollback()
 		s.mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		beforeTx := s.db.WithContext(ctx)
 		err = beforeTx.Exec(insertRaw, u.Name).Error
-		require.NoError(s.T(), err)
+		require.NoError(t, err)
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(1))
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 		count = 0 // reset count
 		err = s.service.Transaction(ctx, false, func(ctx context.Context) error {
 			tx := s.db.WithContext(ctx)
 			e := tx.Exec(insertRaw, u.Name).Error
-			require.NoError(s.T(), e)
+			require.NoError(t, e)
 			return s.service.Transaction(ctx, true, func(ctx context.Context) error {
 				e = tx.Exec(insertRaw, u2.Name).Error
-				require.NoError(s.T(), e)
+				require.NoError(t, e)
 				return fmt.Errorf("nested transaction error")
 			})
 		})
-		assert.Error(s.T(), err)
-		assert.Contains(s.T(), err.Error(), "nested transaction error")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "nested transaction error")
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(1))
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 	})
 
 	// 测试回滚失败的情况
@@ -441,27 +444,27 @@ func (s *BasicServiceSuite) TestBasicService_Transaction() {
 		s.mock.ExpectRollback().WillReturnError(fmt.Errorf("rollback fail"))
 		s.mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(2))
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		beforeTx := s.db.WithContext(ctx)
 		err = beforeTx.Exec(insertRaw, u.Name).Error
-		require.NoError(s.T(), err)
+		require.NoError(t, err)
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(1))
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 		count = 0 // reset count
 		err = s.service.Transaction(ctx, false, func(ctx context.Context) error {
 			tx := s.db.WithContext(ctx)
 			e := tx.Exec(insertRaw, u.Name).Error
-			require.NoError(s.T(), e)
+			require.NoError(t, e)
 			return fmt.Errorf("force rollback")
 		})
-		assert.Error(s.T(), err)
-		assert.Contains(s.T(), err.Error(), "rollback fail")
-		assert.Contains(s.T(), err.Error(), "force rollback")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "rollback fail")
+		assert.Contains(t, err.Error(), "force rollback")
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(2))
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(2))
 	})
 
 	// 测试部分提交后的回滚
@@ -486,27 +489,27 @@ func (s *BasicServiceSuite) TestBasicService_Transaction() {
 		s.mock.ExpectRollback()
 		s.mock.ExpectQuery(queryRaw).WillReturnRows(sqlmock.NewRows([]string{"num"}).AddRow(1))
 		defer func() {
-			assert.NoError(s.T(), s.mock.ExpectationsWereMet())
+			assert.NoError(t, s.mock.ExpectationsWereMet())
 		}()
 		beforeTx := s.db.WithContext(ctx)
 		err = beforeTx.Exec(insertRaw, u.Name).Error
-		require.NoError(s.T(), err)
+		require.NoError(t, err)
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(1))
+		require.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 		count = 0 // reset count
 		err = s.service.Transaction(ctx, false, func(ctx context.Context) error {
 			tx := s.db.WithContext(ctx)
 			e := tx.Exec(insertRaw, u.Name).Error
-			require.NoError(s.T(), e)
+			require.NoError(t, e)
 			e = tx.Exec(updateRaw, updateName).Error
-			require.NoError(s.T(), e)
+			require.NoError(t, e)
 			return fmt.Errorf("force rollback")
 		})
-		assert.Error(s.T(), err)
-		assert.Contains(s.T(), err.Error(), "force rollback")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "force rollback")
 		err = beforeTx.Raw(queryRaw).Scan(&count).Error
-		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), count, int64(1))
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(1))
 	})
 }
