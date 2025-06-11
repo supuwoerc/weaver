@@ -125,39 +125,42 @@ func (l *RedisLock) acquire(ctx context.Context, lockMethod func() error, extend
 // Unlock 解锁
 func (l *RedisLock) Unlock() error {
 	for {
-		if !l.state.CompareAndSwap(lockStateLocked, lockStateReleased) {
-			currentState := l.state.Load()
-			switch currentState {
-			case lockStateUnlocked:
-				return fmt.Errorf("cannot unlock: lock not held")
-			case lockStateReleased:
-				return nil
-			case lockStateExtending:
-				select {
-				case <-l.extendDone:
-					continue
-				case <-time.After(l.extendTimeout):
-					return fmt.Errorf("timeout waiting for extend to complete")
-				}
-			default:
-				return fmt.Errorf("cannot unlock: lock in invalid state: %d", currentState)
-			}
-		} else {
-			break
-		}
-	}
-	close(l.stopChan) // 取消 autoExtend
-	ok, err := l.Mutex.Unlock()
-	if err != nil {
-		if errors.Is(err, redsync.ErrLockAlreadyExpired) {
+		currentState := l.state.Load()
+		switch currentState {
+		case lockStateUnlocked:
+			return fmt.Errorf("cannot unlock: lock not held")
+		case lockStateReleased:
 			return nil
+		case lockStateExtending:
+			select {
+			case <-l.extendDone:
+				continue // 重新检查状态
+			case <-time.After(l.extendTimeout):
+				return fmt.Errorf("timeout waiting for extend to complete")
+			}
+		case lockStateLocked:
+			// 先尝试 Redis unlock 操作，不修改状态
+			ok, err := l.Mutex.Unlock()
+			if err != nil {
+				if errors.Is(err, redsync.ErrLockAlreadyExpired) {
+					if l.state.CompareAndSwap(lockStateLocked, lockStateReleased) {
+						close(l.stopChan) // 取消 autoExtend
+					}
+					return nil
+				}
+				return errors.Wrap(err, l.Name())
+			}
+			if !ok {
+				return fmt.Errorf("%s unlock failed", l.Name())
+			}
+			if l.state.CompareAndSwap(lockStateLocked, lockStateReleased) {
+				close(l.stopChan) // 取消 autoExtend
+			}
+			return nil
+		default:
+			return fmt.Errorf("cannot unlock: lock in invalid state: %d", currentState)
 		}
-		return errors.Wrap(err, l.Name())
 	}
-	if !ok {
-		return fmt.Errorf("%s unlock failed", l.Name())
-	}
-	return nil
 }
 
 func (l *RedisLock) unlockWithLog(ctx context.Context) {

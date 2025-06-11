@@ -14,7 +14,10 @@ import (
 	"github.com/supuwoerc/weaver/pkg/logger"
 	"github.com/supuwoerc/weaver/pkg/redis"
 	"github.com/supuwoerc/weaver/pkg/response"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestNewRedisLocksmith(t *testing.T) {
@@ -239,11 +242,21 @@ func (r *RedisLockSuite) TestRedisLock_Lock() {
 		// 设置 mock 期望 - Lock() 成功
 		r.mutex.On("Lock").Return(nil)
 		// 调用 Lock
-		err := r.lock.Lock(ctx, false)
+		err := r.lock.Lock(ctx, true)
 		// 验证结果
 		assert.NoError(t, err)
 		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load())
 		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("lock with invalid state", func() {
+		// 设置未锁定
+		r.lock.state.Store(999)
+		// 调用 Lock
+		err := r.lock.Lock(ctx, true)
+		// 验证结果
+		assert.ErrorContains(t, err, "lock is in invalid state: 999")
+		r.mutex.AssertNotCalled(t, "Lock")
 	})
 
 	r.Run("lock already locked", func() {
@@ -327,4 +340,682 @@ func (r *RedisLockSuite) TestRedisLock_Lock() {
 		r.mutex.AssertNumberOfCalls(t, "Lock", 1)
 	})
 
+}
+
+func (r *RedisLockSuite) TestRedisLock_TryLock() {
+	t := r.T()
+	ctx := context.Background()
+
+	r.Run("successful try lock", func() {
+		// 设置未锁定
+		r.lock.state.Store(lockStateUnlocked)
+		// 设置 mock 期望 - Lock() 成功
+		r.mutex.On("TryLock").Return(nil)
+		// 调用 Lock
+		err := r.lock.TryLock(ctx, true)
+		// 验证结果
+		assert.NoError(t, err)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load())
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("try lock with invalid state", func() {
+		// 设置未锁定
+		r.lock.state.Store(999)
+		// 调用 Lock
+		err := r.lock.TryLock(ctx, true)
+		// 验证结果
+		assert.ErrorContains(t, err, "lock is in invalid state: 999")
+		r.mutex.AssertNotCalled(t, "Lock")
+	})
+
+	r.Run("try lock already locked", func() {
+		// 已经锁定
+		r.lock.state.Store(lockStateLocked)
+		// 调用 Lock
+		err := r.lock.TryLock(ctx, false)
+		// 验证结果
+		assert.Equal(t, response.Busy, err)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load())
+		// 不应该调用底层的 Lock 方法
+		r.mutex.AssertNotCalled(t, "Lock")
+	})
+
+	r.Run("try lock already released", func() {
+		// 已经释放
+		r.lock.state.Store(lockStateReleased)
+		// 调用 Lock
+		err := r.lock.TryLock(ctx, false)
+		// 验证结果
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "lock has been released")
+		assert.Equal(t, int64(lockStateReleased), r.lock.state.Load())
+		// 不应该调用底层的 Lock 方法
+		r.mutex.AssertNotCalled(t, "Lock")
+	})
+
+	r.Run("try lock is extending", func() {
+		// 正在续期
+		r.lock.state.Store(lockStateExtending)
+		// 调用 Lock
+		err := r.lock.TryLock(ctx, false)
+		// 验证结果
+		assert.Equal(t, response.Busy, err)
+		assert.Equal(t, int64(lockStateExtending), r.lock.state.Load())
+		// 不应该调用底层的 Lock 方法
+		r.mutex.AssertNotCalled(t, "Lock")
+	})
+
+	r.Run("try lock with redis lock returns ErrTaken", func() {
+		r.lock.state.Store(lockStateUnlocked)
+		// 设置 mock 期望 - Lock() 返回 ErrTaken
+		lockErr := &redsync.ErrTaken{}
+		r.mutex.On("TryLock").Return(lockErr)
+		// 调用 Lock
+		err := r.lock.TryLock(ctx, false)
+		// 验证结果
+		assert.Equal(t, response.Busy, err)
+		assert.Equal(t, int64(lockStateUnlocked), r.lock.state.Load()) // 状态应该恢复
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("try lock with redis lock returns other error", func() {
+		r.lock.state.Store(lockStateUnlocked)
+		// 设置 mock 期望 - Lock() 返回其他错误
+		lockErr := errors.New("redis connection error")
+		r.mutex.On("TryLock").Return(lockErr)
+		// 调用 Lock
+		err := r.lock.TryLock(ctx, false)
+		// 验证结果
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "redis lock err")
+		assert.Contains(t, err.Error(), "redis connection error")
+		assert.Equal(t, int64(lockStateUnlocked), r.lock.state.Load()) // 状态应该恢复
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("try lock concurrent lock attempts", func() {
+		r.lock.state.Store(lockStateUnlocked)
+		// 设置 mock 期望 - 第一次 Lock() 成功
+		r.mutex.On("TryLock").Return(nil).Once()
+		// 第一次调用应该成功
+		err1 := r.lock.TryLock(ctx, false)
+		assert.NoError(t, err1)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load())
+		// 第二次调用应该失败（锁已被占用）
+		err2 := r.lock.TryLock(ctx, false)
+		assert.Equal(t, response.Busy, err2)
+		// 验证 mock 调用（应该只调用一次）
+		r.mutex.AssertExpectations(t)
+		r.mutex.AssertNumberOfCalls(t, "TryLock", 1)
+	})
+
+}
+
+func (r *RedisLockSuite) TestRedisLock_Unlock() {
+	t := r.T()
+
+	r.Run("successful unlock from locked state", func() {
+		// 设置锁定状态
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock 期望 - Unlock() 成功
+		r.mutex.On("Unlock").Return(true, nil)
+		// 调用 Unlock
+		err := r.lock.Unlock()
+		// 验证结果
+		assert.NoError(t, err)
+		assert.Equal(t, int64(lockStateReleased), r.lock.state.Load())
+		// 验证 stopChan 已关闭
+		select {
+		case <-r.lock.stopChan:
+			// 期望的行为 - stopChan 应该被关闭
+		default:
+			t.Error("stopChan should be closed after unlock")
+		}
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("unlock from unlocked state", func() {
+		// 设置未锁定状态
+		r.lock.state.Store(lockStateUnlocked)
+		// 调用 Unlock
+		err := r.lock.Unlock()
+		// 验证结果
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot unlock: lock not held")
+		assert.Equal(t, int64(lockStateUnlocked), r.lock.state.Load())
+		// 不应该调用底层的 Unlock 方法
+		r.mutex.AssertNotCalled(t, "Unlock")
+	})
+
+	r.Run("unlock from already released state", func() {
+		// 设置已释放状态
+		r.lock.state.Store(lockStateReleased)
+		// 调用 Unlock
+		err := r.lock.Unlock()
+		// 验证结果
+		assert.NoError(t, err)
+		assert.Equal(t, int64(lockStateReleased), r.lock.state.Load())
+		// 不应该调用底层的 Unlock 方法
+		r.mutex.AssertNotCalled(t, "Unlock")
+	})
+
+	r.Run("unlock from extending state - extend completes in time", func() {
+		// 设置正在扩展状态
+		r.lock.state.Store(lockStateExtending)
+		// 模拟 extend 操作完成
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			r.lock.state.Store(lockStateLocked)
+			close(r.lock.extendDone)
+		}()
+		// 设置 mock 期望 - Unlock() 成功
+		r.mutex.On("Unlock").Return(true, nil)
+		// 调用 Unlock
+		err := r.lock.Unlock()
+		// 验证结果
+		assert.NoError(t, err)
+		assert.Equal(t, int64(lockStateReleased), r.lock.state.Load())
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("unlock from extending state - timeout waiting for extend", func() {
+		// 设置正在扩展状态
+		r.lock.state.Store(lockStateExtending)
+		// 调用 Unlock
+		err := r.lock.Unlock()
+		// 验证结果
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "timeout waiting for extend to complete")
+		assert.Equal(t, int64(lockStateExtending), r.lock.state.Load())
+		// 不应该调用底层的 Unlock 方法
+		r.mutex.AssertNotCalled(t, "Unlock")
+	})
+
+	r.Run("unlock with invalid state", func() {
+		// 设置无效状态
+		r.lock.state.Store(999)
+		// 调用 Unlock
+		err := r.lock.Unlock()
+		// 验证结果
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot unlock: lock in invalid state: 999")
+		assert.Equal(t, int64(999), r.lock.state.Load())
+		r.mutex.AssertNotCalled(t, "Unlock")
+	})
+
+	r.Run("redis unlock returns error", func() {
+		// 设置锁定状态
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock 期望 - Unlock() 返回错误
+		unlockErr := errors.New("redis connection error")
+		r.mutex.On("Unlock").Return(false, unlockErr)
+		r.mutex.On("Name").Return("test-lock")
+		// 调用 Unlock
+		err := r.lock.Unlock()
+		// 验证结果
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "redis connection error")
+		assert.Contains(t, err.Error(), "test-lock")
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load())
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("redis unlock returns lock already expired error", func() {
+		// 设置锁定状态
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock 期望 - Unlock() 返回锁已过期错误
+		r.mutex.On("Unlock").Return(false, redsync.ErrLockAlreadyExpired)
+		// 调用 Unlock
+		err := r.lock.Unlock()
+		// 验证结果 - 锁已过期时应该返回 nil（认为解锁成功）
+		assert.NoError(t, err)
+		assert.Equal(t, int64(lockStateReleased), r.lock.state.Load())
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("redis unlock returns false", func() {
+		// 设置锁定状态
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock 期望 - Unlock() 返回 false
+		r.mutex.On("Unlock").Return(false, nil)
+		r.mutex.On("Name").Return("test-lock")
+		// 调用 Unlock
+		err := r.lock.Unlock()
+		// 验证结果
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "test-lock unlock failed")
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load())
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("concurrent unlock attempts", func() {
+		// 设置锁定状态
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock 期望 - 第一次 Unlock() 成功
+		r.mutex.On("Unlock").Return(true, nil).Once()
+		// 第一次调用应该成功
+		err1 := r.lock.Unlock()
+		assert.NoError(t, err1)
+		assert.Equal(t, int64(lockStateReleased), r.lock.state.Load())
+		// 第二次调用应该直接返回 nil（已经释放）
+		err2 := r.lock.Unlock()
+		assert.NoError(t, err2)
+		// 验证 mock 调用（应该只调用一次）
+		r.mutex.AssertExpectations(t)
+		r.mutex.AssertNumberOfCalls(t, "Unlock", 1)
+		r.mutex.AssertNotCalled(t, "Name")
+	})
+
+}
+
+func (r *RedisLockSuite) TestRedisLock_UnlockWithLog() {
+	t := r.T()
+	ctx := context.Background()
+
+	r.Run("unlock succeeds - no log captured", func() {
+		// 使用真实的测试 logger，但可以捕获日志输出
+		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock 期望 - Unlock() 成功
+		r.mutex.On("Unlock").Return(true, nil)
+		// 调用 unlockWithLog
+		r.lock.unlockWithLog(ctx)
+		// 验证 unlock 成功且状态正确
+		assert.Equal(t, int64(lockStateReleased), r.lock.state.Load())
+		r.mutex.AssertExpectations(t)
+		r.mutex.AssertNotCalled(t, "Name")
+	})
+
+	r.Run("unlock fails - error logged", func() {
+		// 使用 observer 来捕获日志
+		observedZapCore, observedLogs := observer.New(zapcore.ErrorLevel)
+		observedLogger := zap.New(observedZapCore).Sugar()
+		testLogger := logger.NewLogger(observedLogger)
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 unlock 失败
+		unlockErr := errors.New("redis connection error")
+		r.mutex.On("Unlock").Return(false, unlockErr)
+		r.mutex.On("Name").Return("test-lock").Maybe()
+		// 调用 unlockWithLog
+		r.lock.unlockWithLog(ctx)
+		// 验证状态仍然是 locked（因为 unlock 失败）
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load())
+		// 验证错误日志被记录
+		logEntries := observedLogs.All()
+		assert.Len(t, logEntries, 1)
+		assert.Equal(t, "redis unlock fail", logEntries[0].Message)
+		assert.Contains(t, logEntries[0].Context[0].String, "redis connection error")
+		assert.Contains(t, logEntries[0].Context[0].String, "test-lock")
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("unlock from unlocked state - error logged", func() {
+		// 使用 observer 来捕获日志
+		observedZapCore, observedLogs := observer.New(zapcore.ErrorLevel)
+		observedLogger := zap.New(observedZapCore).Sugar()
+		testLogger := logger.NewLogger(observedLogger)
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateUnlocked)
+		// 调用 unlockWithLog
+		r.lock.unlockWithLog(ctx)
+		// 验证状态没有改变
+		assert.Equal(t, int64(lockStateUnlocked), r.lock.state.Load())
+		// 验证错误日志被记录
+		logEntries := observedLogs.All()
+		assert.Len(t, logEntries, 1)
+		assert.Equal(t, "redis unlock fail", logEntries[0].Message)
+		assert.Equal(t, "cannot unlock: lock not held", logEntries[0].Context[0].String)
+		// 不应该调用底层的 Unlock 方法
+		r.mutex.AssertNotCalled(t, "Unlock")
+	})
+
+	r.Run("unlock with redis returning lock already expired - no error logged", func() {
+		observedZapCore, observedLogs := observer.New(zapcore.ErrorLevel)
+		observedLogger := zap.New(observedZapCore).Sugar()
+		testLogger := logger.NewLogger(observedLogger)
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 unlock 返回锁已过期错误
+		r.mutex.On("Unlock").Return(false, redsync.ErrLockAlreadyExpired)
+		// 调用 unlockWithLog
+		r.lock.unlockWithLog(ctx)
+		// 验证状态变为 released
+		assert.Equal(t, int64(lockStateReleased), r.lock.state.Load())
+		// 验证没有错误日志被记录
+		logEntries := observedLogs.All()
+		assert.Len(t, logEntries, 0)
+		r.mutex.AssertExpectations(t)
+	})
+}
+
+func (r *RedisLockSuite) TestRedisLock_Extend() {
+	t := r.T()
+
+	r.Run("stopChan is closed - should return false immediately", func() {
+		ctx := context.Background()
+		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 关闭 stopChan
+		close(r.lock.stopChan)
+		// 调用 extend
+		result := r.lock.extend(ctx)
+		// 验证结果
+		assert.False(t, result)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load())
+		// 不应该调用底层的 Extend 方法
+		r.mutex.AssertNotCalled(t, "Extend")
+	})
+
+	r.Run("state is not lockStateLocked - should return false", func() {
+		ctx := context.Background()
+		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
+
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+
+		// 测试不同的非 lockStateLocked 状态
+		testStates := []int64{lockStateUnlocked, lockStateReleased, lockStateExtending}
+		for _, state := range testStates {
+			r.lock.state.Store(state)
+			// 调用 extend
+			result := r.lock.extend(ctx)
+			// 验证结果
+			assert.False(t, result)
+			assert.Equal(t, state, r.lock.state.Load()) // 状态应该不变
+		}
+		// 不应该调用底层的 Extend 方法
+		r.mutex.AssertNotCalled(t, "Extend")
+	})
+
+	r.Run("context deadline approaching - should log warning and return false", func() {
+		observedZapCore, observedLogs := observer.New(zapcore.WarnLevel)
+		observedLogger := zap.New(observedZapCore).Sugar()
+		testLogger := logger.NewLogger(observedLogger)
+		// 创建一个即将到期的 context
+		ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(1*time.Second))
+		defer cancel()
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock - Until() 返回一个更晚的时间
+		futureTime := time.Now().Add(5 * time.Second)
+		r.mutex.On("Until").Return(futureTime)
+		r.mutex.On("Name").Return("test-lock")
+		// 调用 extend
+		result := r.lock.extend(ctx)
+		// 验证结果
+		assert.False(t, result)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load()) // 状态应该恢复
+		// 验证警告日志被记录
+		logEntries := observedLogs.All()
+		assert.Len(t, logEntries, 1)
+		assert.Equal(t, "skipping extend due to approaching deadline", logEntries[0].Message)
+		assert.Equal(t, zapcore.WarnLevel, logEntries[0].Level)
+		// 验证日志字段
+		fields := logEntries[0].Context
+		fieldMap := make(map[string]interface{})
+		for _, field := range fields {
+			fieldMap[field.Key] = field.Interface
+		}
+		assert.Contains(t, fieldMap, "name")
+		assert.Contains(t, fieldMap, "deadline")
+		assert.Contains(t, fieldMap, "mutex until")
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("redis extend returns error - should log error and return false", func() {
+		observedZapCore, observedLogs := observer.New(zapcore.ErrorLevel)
+		observedLogger := zap.New(observedZapCore).Sugar()
+		testLogger := logger.NewLogger(observedLogger)
+		ctx := context.Background()
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock - Extend() 返回错误
+		extendErr := errors.New("redis connection failed")
+		r.mutex.On("Extend").Return(false, extendErr)
+		r.mutex.On("Name").Return("test-lock")
+		// 调用 extend
+		result := r.lock.extend(ctx)
+		// 验证结果
+		assert.False(t, result)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load()) // 状态应该恢复
+		// 验证错误日志被记录
+		logEntries := observedLogs.All()
+		assert.Len(t, logEntries, 1)
+		assert.Equal(t, "lock couldn't be extended", logEntries[0].Message)
+		assert.Equal(t, zapcore.ErrorLevel, logEntries[0].Level)
+		// 验证日志字段
+		fields := logEntries[0].Context
+		assert.Equal(t, "redis connection failed", fields[0].String)
+		assert.Equal(t, "test-lock", fields[1].String)
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("redis extend returns false - should log error and return false", func() {
+		observedZapCore, observedLogs := observer.New(zapcore.ErrorLevel)
+		observedLogger := zap.New(observedZapCore).Sugar()
+		testLogger := logger.NewLogger(observedLogger)
+		ctx := context.Background()
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock - Extend() 返回 false
+		r.mutex.On("Extend").Return(false, nil)
+		r.mutex.On("Name").Return("test-lock")
+		// 调用 extend
+		result := r.lock.extend(ctx)
+		// 验证结果
+		assert.False(t, result)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load()) // 状态应该恢复
+		// 验证错误日志被记录
+		logEntries := observedLogs.All()
+		assert.Len(t, logEntries, 1)
+		assert.Equal(t, "redis extend lock fail ", logEntries[0].Message)
+		assert.Equal(t, zapcore.ErrorLevel, logEntries[0].Level)
+		// 验证日志字段
+		fields := logEntries[0].Context
+		assert.Equal(t, "test-lock", fields[0].String)
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("successful extend - should return true", func() {
+		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
+		ctx := context.Background()
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock - Extend() 成功
+		r.mutex.On("Extend").Return(true, nil)
+		// 调用 extend
+		result := r.lock.extend(ctx)
+		// 验证结果
+		assert.True(t, result)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load()) // 状态应该恢复到 lockStateLocked
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("state transitions correctly during extend", func() {
+		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
+		ctx := context.Background()
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 用于跟踪状态变化的 channel
+		stateChanges := make(chan int64, 1)
+		defer close(stateChanges)
+		// 设置一个会阻塞的 mock，让我们能观察状态变化
+		r.mutex.On("Extend").Run(func(args mock.Arguments) {
+			// 在 Extend 调用期间，状态应该是 lockStateExtending
+			stateChanges <- r.lock.state.Load()
+		}).Return(true, nil)
+		// 在另一个 goroutine 中启动 extend
+		resultChan := make(chan bool)
+		defer close(resultChan)
+		go func() {
+			result := r.lock.extend(ctx)
+			resultChan <- result
+		}()
+		// 等待 extend 完成
+		result := <-resultChan
+		// 验证结果
+		assert.True(t, result)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load()) // 最终状态应该恢复
+		// 验证在 Extend 期间状态是 lockStateExtending
+		select {
+		case state := <-stateChanges:
+			assert.Equal(t, int64(lockStateExtending), state)
+		default:
+			t.Error("Should have captured state change during extend")
+		}
+		r.mutex.AssertExpectations(t)
+	})
+
+	r.Run("extendDone channel is managed correctly", func() {
+		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
+		ctx := context.Background()
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock
+		r.mutex.On("Extend").Return(true, nil)
+		// 验证 extendDone 初始状态（应该是开放的）
+		select {
+		case <-r.lock.extendDone:
+			t.Error("extendDone should not be closed initially")
+		default:
+			// 期望的行为
+		}
+		// 调用 extend
+		result := r.lock.extend(ctx)
+		// 验证结果
+		assert.True(t, result)
+		// 验证 extendDone 被关闭了（defer 函数应该关闭它）
+		select {
+		case <-r.lock.extendDone:
+			// 期望的行为 - channel 应该被关闭
+		default:
+			t.Error("extendDone should be closed after extend completes")
+		}
+		r.mutex.AssertExpectations(t)
+		r.mutex.AssertNumberOfCalls(t, "Extend", 1)
+	})
+
+	r.Run("context without deadline - should proceed normally", func() {
+		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
+		ctx := context.Background() // 没有 deadline 的 context
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      defaultLockDuration,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 mock - Extend() 成功
+		r.mutex.On("Extend").Return(true, nil)
+		// 调用 extend
+		result := r.lock.extend(ctx)
+		// 验证结果
+		assert.True(t, result)
+		assert.Equal(t, int64(lockStateLocked), r.lock.state.Load())
+		// 不应该调用 Until() 因为没有 deadline
+		r.mutex.AssertNotCalled(t, "Until")
+		r.mutex.AssertExpectations(t)
+	})
 }
