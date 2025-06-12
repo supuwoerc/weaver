@@ -1019,3 +1019,164 @@ func (r *RedisLockSuite) TestRedisLock_Extend() {
 		r.mutex.AssertExpectations(t)
 	})
 }
+
+// ... existing code ...
+
+func (r *RedisLockSuite) TestRedisLock_AutoExtend() {
+	t := r.T()
+
+	r.Run("context canceled immediately - should call unlockWithLog", func() {
+		testLogger := logger.NewLogger(zaptest.NewLogger(t).Sugar())
+		// 创建一个已经取消的 context
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // 立即取消
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      100 * time.Millisecond, // 使用较短的时间便于测试
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 unlock mock
+		r.mutex.On("Unlock").Return(true, nil)
+		// 用于等待 autoExtend 完成的 channel
+		done := make(chan struct{})
+		defer close(done)
+		// 启动 autoExtend
+		go func() {
+			defer func() { done <- struct{}{} }()
+			r.lock.autoExtend(ctx)
+		}()
+		// 等待 autoExtend 完成
+		select {
+		case <-done:
+			// 期望的行为
+		case <-time.After(time.Second):
+			t.Error("autoExtend should complete quickly when context is canceled")
+		}
+		// 验证 unlock 被调用
+		r.mutex.AssertExpectations(t)
+		r.mutex.AssertNumberOfCalls(t, "Unlock", 1)
+	})
+
+	r.Run("stopChan closed - should exit without unlocking", func() {
+		ctx := context.Background()
+		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      100 * time.Millisecond,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 关闭 stopChan
+		close(r.lock.stopChan)
+		// 用于等待 autoExtend 完成的 channel
+		done := make(chan struct{})
+		defer close(done)
+		// 启动 autoExtend
+		go func() {
+			defer func() { done <- struct{}{} }()
+			r.lock.autoExtend(ctx)
+		}()
+
+		// 等待 autoExtend 完成
+		select {
+		case <-done:
+			// 期望的行为
+		case <-time.After(1 * time.Second):
+			t.Error("autoExtend should complete quickly when stopChan is closed")
+		}
+
+		// 不应该调用 unlock
+		r.mutex.AssertNotCalled(t, "Unlock")
+	})
+
+	r.Run("ticker triggers extend - successful case", func() {
+		ctx := context.Background()
+		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
+		// 重新初始化 lock，使用非常短的 duration 使 ticker 快速触发
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      90 * time.Millisecond, // duration/3 = 30ms
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 extend mock - 第一次成功，第二次失败触发退出
+		r.mutex.On("Extend").Return(true, nil).Once()  // 第一次成功
+		r.mutex.On("Extend").Return(false, nil).Once() // 第二次失败
+		r.mutex.On("Name").Return("test-lock")
+		// 用于等待 autoExtend 完成的 channel
+		done := make(chan struct{})
+		defer close(done)
+		// 启动 autoExtend
+		go func() {
+			defer func() { done <- struct{}{} }()
+			r.lock.autoExtend(ctx)
+		}()
+		// 等待 autoExtend 完成（应该在第二次 extend 失败后退出）
+		select {
+		case <-done:
+			// 期望的行为
+		case <-time.After(1 * time.Second):
+			t.Error("autoExtend should complete after extend fails")
+		}
+		// 验证 extend 被调用了两次
+		r.mutex.AssertExpectations(t)
+		r.mutex.AssertNumberOfCalls(t, "Extend", 2)
+		r.mutex.AssertNumberOfCalls(t, "Name", 1)
+	})
+
+	r.Run("extend fails - should exit autoExtend", func() {
+		observedZapCore, observedLogs := observer.New(zapcore.ErrorLevel)
+		observedLogger := zap.New(observedZapCore).Sugar()
+		testLogger := logger.NewLogger(observedLogger)
+
+		ctx := context.Background()
+
+		// 重新初始化 lock
+		r.lock = &RedisLock{
+			Mutex:         r.mutex,
+			duration:      30 * time.Millisecond,
+			logger:        testLogger,
+			stopChan:      make(chan struct{}),
+			extendDone:    make(chan struct{}),
+			extendTimeout: defaultExtendTimeout,
+		}
+		r.lock.state.Store(lockStateLocked)
+		// 设置 extend mock - 失败
+		r.mutex.On("Extend").Return(false, errors.New("extend failed"))
+		r.mutex.On("Name").Return("test-lock")
+		// 用于等待 autoExtend 完成的 channel
+		done := make(chan struct{})
+		defer close(done)
+		// 启动 autoExtend
+		go func() {
+			defer func() { done <- struct{}{} }()
+			r.lock.autoExtend(ctx)
+		}()
+		// 等待 autoExtend 完成
+		select {
+		case <-done:
+			// 期望的行为
+		case <-time.After(1 * time.Second):
+			t.Error("autoExtend should complete when extend fails")
+		}
+		// 验证 extend 被调用并且有错误日志
+		r.mutex.AssertExpectations(t)
+		r.mutex.AssertCalled(t, "Extend")
+		// 验证错误日志
+		logEntries := observedLogs.All()
+		assert.Equal(t, len(logEntries), 1)
+		assert.Contains(t, logEntries[0].Entry.Message, "lock couldn't be extended")
+	})
+}
