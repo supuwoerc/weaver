@@ -36,6 +36,10 @@ type DataList[T any] struct {
 	List  []T   `json:"list"`
 }
 
+type ILocalizer interface {
+	MustLocalize(lc *i18n.LocalizeConfig) string
+}
+
 // HttpResponse json响应
 func HttpResponse[T any](ctx *gin.Context, code StatusCode, data T, config *i18n.LocalizeConfig, message *string) {
 	translator, exists := ctx.Get(string(I18nTranslatorKey))
@@ -44,7 +48,7 @@ func HttpResponse[T any](ctx *gin.Context, code StatusCode, data T, config *i18n
 		msg = *message
 	}
 	if exists && message == nil {
-		loc := translator.(*i18n.Localizer)
+		loc := translator.(ILocalizer)
 		if config != nil {
 			msg = loc.MustLocalize(config)
 		} else {
