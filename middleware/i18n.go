@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/supuwoerc/weaver/conf"
 	"github.com/supuwoerc/weaver/pkg/response"
 
@@ -26,6 +27,9 @@ import (
 const (
 	CN string = "cn"
 	EN string = "en"
+
+	defaultZhJsonPath = "./pkg/locale/zh"
+	defaultEnJsonPath = "./pkg/locale/en"
 )
 
 var languages = []string{CN, EN}
@@ -68,7 +72,8 @@ func (i *I18NMiddleware) I18N() gin.HandlerFunc {
 	// 注册一个JSON加载器
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 	// 加载语言文件
-	enMessages, err := loadJsonFiles("./pkg/locale/en")
+	enJsonPath := lo.Ternary(i.conf.System.LocalePath.En == "", defaultEnJsonPath, i.conf.System.LocalePath.En)
+	enMessages, err := loadJsonFiles(enJsonPath)
 	if err != nil {
 		panic(err)
 	}
@@ -76,7 +81,8 @@ func (i *I18NMiddleware) I18N() gin.HandlerFunc {
 	if err != nil {
 		panic(err)
 	}
-	cnMessages, err := loadJsonFiles("./pkg/locale/zh")
+	zhJsonPath := lo.Ternary(i.conf.System.LocalePath.Zh == "", defaultZhJsonPath, i.conf.System.LocalePath.Zh)
+	cnMessages, err := loadJsonFiles(zhJsonPath)
 	if err != nil {
 		panic(err)
 	}
