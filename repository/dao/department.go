@@ -54,6 +54,7 @@ func (r *DepartmentDAO) GetById(ctx context.Context, id uint) (*models.Departmen
 	return &dept, nil
 }
 
+// GetAll 查询全部部门数据 TODO:优化查询
 func (r *DepartmentDAO) GetAll(ctx context.Context) ([]*models.Department, error) {
 	var depts []*models.Department
 	err := r.Datasource(ctx).Model(&models.Department{}).Find(&depts).Error
@@ -63,6 +64,7 @@ func (r *DepartmentDAO) GetAll(ctx context.Context) ([]*models.Department, error
 	return depts, nil
 }
 
+// GetAllUserDepartment 查询全部部门-人员关联数据 TODO:优化查询
 func (r *DepartmentDAO) GetAllUserDepartment(ctx context.Context) ([]*models.UserDepartment, error) {
 	var res []*models.UserDepartment
 	err := r.Datasource(ctx).Model(&models.UserDepartment{}).Find(&res).Error
@@ -72,6 +74,7 @@ func (r *DepartmentDAO) GetAllUserDepartment(ctx context.Context) ([]*models.Use
 	return res, nil
 }
 
+// GetAllDepartmentLeader 查询全部部门-Leader关联数据 TODO:优化查询
 func (r *DepartmentDAO) GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error) {
 	var res []*models.DepartmentLeader
 	err := r.Datasource(ctx).Model(&models.DepartmentLeader{}).Find(&res).Error

@@ -144,7 +144,10 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 			}
 		}
 		// 创建部门 & 建立关联关系
-		return p.departmentDAO.Create(ctx, dept)
+		if temp = p.departmentDAO.Create(ctx, dept); temp != nil {
+			return temp
+		}
+		return p.Refresh(ctx)
 	})
 }
 
@@ -294,19 +297,22 @@ func (p *DepartmentService) Refresh(ctx context.Context) error {
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)
 	}()
-	departments, err := p.departmentDAO.GetAll(ctx)
-	if err != nil {
-		return err
-	}
-	sfgKey := constant.DepartmentTreeSfgKey
-	crewSfgKey := constant.DepartmentTreeWithCrewSfgKey
-	if err = p.departmentCache.CacheDepartment(ctx, sfgKey, departments); err != nil {
-		return err
-	}
-	if err = p.processDepartmentWithCrew(ctx, departments); err != nil {
-		return err
-	}
-	return p.departmentCache.CacheDepartment(ctx, crewSfgKey, departments)
+	_, err, _ := p.deptTreeSfg.Do(string(constant.DepartmentTreeRefreshSfgKey), func() (interface{}, error) {
+		departments, err := p.departmentDAO.GetAll(ctx)
+		if err != nil {
+			return nil, err
+		}
+		sfgKey := constant.DepartmentTreeSfgKey
+		crewSfgKey := constant.DepartmentTreeWithCrewSfgKey
+		if err = p.departmentCache.CacheDepartment(ctx, sfgKey, departments); err != nil {
+			return nil, err
+		}
+		if err = p.processDepartmentWithCrew(ctx, departments); err != nil {
+			return nil, err
+		}
+		return nil, p.departmentCache.CacheDepartment(ctx, crewSfgKey, departments)
+	})
+	return err
 }
 
 func (p *DepartmentService) Clean(ctx context.Context) error {
@@ -318,5 +324,9 @@ func (p *DepartmentService) Clean(ctx context.Context) error {
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)
 	}()
-	return p.departmentCache.RemoveDepartmentCache(ctx, constant.DepartmentTreeSfgKey, constant.DepartmentTreeWithCrewSfgKey)
+	_, err, _ := p.deptTreeSfg.Do(string(constant.DepartmentTreeCleanSfgKey), func() (interface{}, error) {
+		keys := []constant.CacheKey{constant.DepartmentTreeSfgKey, constant.DepartmentTreeWithCrewSfgKey}
+		return nil, p.departmentCache.RemoveDepartmentCache(ctx, keys...)
+	})
+	return err
 }
