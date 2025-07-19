@@ -13,3 +13,4 @@ upload/
 
 /coverage.out
 /coverage.html
+/docker/minio/

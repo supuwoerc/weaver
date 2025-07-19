@@ -24,3 +24,21 @@ services:
       - "6379"
     volumes:
       - ./redis:/data
+  minio:
+    container_name: "gin-web-minio"
+    restart: always
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    environment:
+      MINIO_ROOT_USER: "minio_admin"
+      MINIO_ROOT_PASSWORD: "minio_password"
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"  # API端口
+      - "9001:9001"  # Web控制台端口
+    expose:
+      - "9000"
+      - "9001"
+    volumes:
+      - ./minio/data:/data
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
