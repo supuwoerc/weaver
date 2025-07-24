@@ -166,7 +166,7 @@ func TestNewRedisClient(t *testing.T) {
 	t.Run("connection failure", func(t *testing.T) {
 		c := &conf.Config{
 			Redis: conf.RedisConfig{
-				Addr:     "localhost:6379",
+				Addr:     "localhost:-1",
 				Password: "pwd",
 				DB:       0,
 			},
