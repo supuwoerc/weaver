@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "运行测试并检查覆盖率..."
-if ! go test ./... -coverprofile=coverage.out -covermode=atomic -coverpkg=./...; then
+if ! go test ./... -v -coverprofile=coverage.out -covermode=atomic -coverpkg=./...; then
   echo "::error::单元测试失败"
   exit 1
 fi
