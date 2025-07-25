@@ -3,7 +3,6 @@ package initialize
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -13,13 +12,42 @@ import (
 	"github.com/supuwoerc/weaver/pkg/constant"
 )
 
+// OSSClient 定义兼容S3协议的客户端接口，便于mock和单元测试
+type OSSClient interface {
+	s3.HeadBucketAPIClient
+	s3.HeadObjectAPIClient
+	s3.ListBucketsAPIClient
+	s3.ListDirectoryBucketsAPIClient
+	s3.ListMultipartUploadsAPIClient
+	s3.ListObjectVersionsAPIClient
+	s3.ListPartsAPIClient
+}
+
 type S3CompatibleStorage struct {
-	client *s3.Client
+	client OSSClient
 	config *conf.OSSConfig
 }
 
 // NewS3CompatibleStorage 创建兼容S3协议的存储客户端
-func NewS3CompatibleStorage(cfg *conf.OSSConfig) *S3CompatibleStorage {
+func NewS3CompatibleStorage(cfg *conf.OSSConfig, client OSSClient) *S3CompatibleStorage {
+	return &S3CompatibleStorage{
+		client: client,
+		config: cfg,
+	}
+}
+
+// GetClient 获取S3客户端
+func (s *S3CompatibleStorage) GetClient() OSSClient {
+	return s.client
+}
+
+// GetConfig 获取配置
+func (s *S3CompatibleStorage) GetConfig() *conf.OSSConfig {
+	return s.config
+}
+
+// NewS3Client 创建兼容s3的客户端
+func NewS3Client(cfg *conf.OSSConfig) *s3.Client {
 	// 验证配置
 	if err := cfg.Validate(); err != nil {
 		panic(err)
@@ -64,38 +92,10 @@ func NewS3CompatibleStorage(cfg *conf.OSSConfig) *S3CompatibleStorage {
 		panic(fmt.Errorf("failed to load AWS config: %w", err))
 	}
 	// 创建S3客户端
-	client := s3.NewFromConfig(awsConfig, func(o *s3.Options) {
+	return s3.NewFromConfig(awsConfig, func(o *s3.Options) {
 		// 对于MinIO等需要强制路径样式
 		if cfg.ForcePathStyle {
 			o.UsePathStyle = true
 		}
 	})
-	return &S3CompatibleStorage{
-		client: client,
-		config: cfg,
-	}
-}
-
-// GetClient 获取S3客户端
-func (s *S3CompatibleStorage) GetClient() *s3.Client {
-	return s.client
-}
-
-// GetConfig 获取配置
-func (s *S3CompatibleStorage) GetConfig() *conf.OSSConfig {
-	return s.config
-}
-
-// Ping 测试连接
-func (s *S3CompatibleStorage) Ping() error {
-	// 设置超时上下文
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	_, err := s.client.HeadBucket(timeoutCtx, &s3.HeadBucketInput{
-		Bucket: aws.String("default"),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to connect to default bucket %v", err)
-	}
-	return nil
 }

@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/supuwoerc/weaver/pkg/constant"
 )
@@ -23,7 +24,7 @@ type OSSConfig struct {
 
 // Validate 验证OSS配置
 func (c *OSSConfig) Validate() error {
-	if c.Type == "" {
+	if strings.TrimSpace(c.Type) == "" {
 		return fmt.Errorf("storage type is required")
 	}
 	if c.AccessKeyID == "" {
