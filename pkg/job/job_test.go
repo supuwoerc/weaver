@@ -162,12 +162,14 @@ func TestSystemJobManager_delay(t *testing.T) {
 }
 
 func TestSystemJobManager_RegisterJobsAndStart(t *testing.T) {
+	t.Parallel()
 	zapLogger := logger.NewLogger(zaptest.NewLogger(t).Sugar())
 	emailClient := &initialize.EmailClient{}
 	cronLogger := initialize.NewCronLogger(zapLogger, emailClient)
 	cronClient := initialize.NewCronClient(cronLogger)
 
 	t.Run("register for skip mode jobs", func(t *testing.T) {
+		t.Parallel()
 		mockJob := &MockSystemJob{
 			name:           "test-skip-job",
 			ifStillRunning: constant.Skip,
@@ -180,13 +182,14 @@ func TestSystemJobManager_RegisterJobsAndStart(t *testing.T) {
 		assert.Len(t, manager.jobsMap, 1)
 		assert.Contains(t, manager.jobsMap, "test-skip-job")
 		// 等待任务执行
-		time.Sleep(2 * time.Second)
+		time.Sleep(1200 * time.Millisecond)
 		assert.True(t, mockJob.handleCalled)
 		// 清理
 		manager.Stop()
 	})
 
 	t.Run("register for delay mode jobs", func(t *testing.T) {
+		t.Parallel()
 		mockJob := &MockSystemJob{
 			name:           "test-delay-job",
 			ifStillRunning: constant.Delay,
@@ -206,6 +209,7 @@ func TestSystemJobManager_RegisterJobsAndStart(t *testing.T) {
 	})
 
 	t.Run("register for none mode jobs", func(t *testing.T) {
+		t.Parallel()
 		mockJob := &MockSystemJob{
 			name:           "test-none-job",
 			ifStillRunning: constant.None,
@@ -225,6 +229,7 @@ func TestSystemJobManager_RegisterJobsAndStart(t *testing.T) {
 	})
 
 	t.Run("register for multiple jobs", func(t *testing.T) {
+		t.Parallel()
 		mockJob1 := &MockSystemJob{
 			name:           "test-job-1",
 			ifStillRunning: constant.Skip,
@@ -261,6 +266,7 @@ func TestSystemJobManager_RegisterJobsAndStart(t *testing.T) {
 	})
 
 	t.Run("invalid cron expression", func(t *testing.T) {
+		t.Parallel()
 		mockJob := &MockSystemJob{
 			name:           "test-invalid-job",
 			ifStillRunning: constant.Skip,
@@ -273,12 +279,14 @@ func TestSystemJobManager_RegisterJobsAndStart(t *testing.T) {
 }
 
 func TestSystemJobManager_Stop(t *testing.T) {
+	t.Parallel()
 	zapLogger := logger.NewLogger(zaptest.NewLogger(t).Sugar())
 	emailClient := &initialize.EmailClient{}
 	cronLogger := initialize.NewCronLogger(zapLogger, emailClient)
 	cronClient := initialize.NewCronClient(cronLogger)
 
 	t.Run("stop with jobs SystemJobManager", func(t *testing.T) {
+		t.Parallel()
 		mockJob := &MockSystemJob{
 			name:           "test-stop-job",
 			ifStillRunning: constant.Skip,
@@ -292,14 +300,14 @@ func TestSystemJobManager_Stop(t *testing.T) {
 		assert.Len(t, manager.jobsMap, 1)
 		assert.Contains(t, manager.jobsMap, "test-stop-job")
 		// 等待任务执行一次
-		time.Sleep(2 * time.Second)
+		time.Sleep(1200 * time.Millisecond)
 		assert.True(t, mockJob.handleCalled)
 		// 记录执行次数
 		executionCount := mockJob.handleCount
 		// 停止
 		manager.Stop()
 		// 等待一段时间，验证任务不再执行
-		time.Sleep(3 * time.Second)
+		time.Sleep(1 * time.Second)
 		assert.Equal(t, executionCount, mockJob.handleCount)
 	})
 
