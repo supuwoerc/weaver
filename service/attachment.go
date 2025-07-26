@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
@@ -26,15 +27,28 @@ import (
 type AttachmentDAO interface {
 	Create(ctx context.Context, records []*models.Attachment) error
 }
-type AttachmentService struct {
-	*BasicService
-	dao AttachmentDAO
+
+type AttachmentStorage interface {
+	s3.HeadBucketAPIClient
+	s3.HeadObjectAPIClient
+	s3.ListBucketsAPIClient
+	s3.ListDirectoryBucketsAPIClient
+	s3.ListMultipartUploadsAPIClient
+	s3.ListObjectVersionsAPIClient
+	s3.ListPartsAPIClient
 }
 
-func NewAttachmentService(basic *BasicService, dao AttachmentDAO) *AttachmentService {
+type AttachmentService struct {
+	*BasicService
+	dao     AttachmentDAO
+	storage AttachmentStorage
+}
+
+func NewAttachmentService(basic *BasicService, dao AttachmentDAO, storage AttachmentStorage) *AttachmentService {
 	return &AttachmentService{
 		BasicService: basic,
 		dao:          dao,
+		storage:      storage,
 	}
 }
 

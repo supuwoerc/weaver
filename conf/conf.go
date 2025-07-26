@@ -10,7 +10,7 @@ type Config struct {
 	Account AccountConfig `mapstructure:"account"` // 账户相关配置
 	Redis   RedisConfig   `mapstructure:"redis"`   // redis配置
 	Mysql   MysqlConfig   `mapstructure:"mysql"`   // mysql配置
-	OSS     string        `mapstructure:"oss"`     // oss配置
+	OSS     OSSConfig     `mapstructure:"oss"`     // oss配置
 }
 
 func (c *Config) IsProd() bool {

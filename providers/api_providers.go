@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 	"github.com/mojocn/base64Captcha"
 	v1 "github.com/supuwoerc/weaver/api/v1"
+	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/pkg/captcha"
 	"github.com/supuwoerc/weaver/repository/cache"
 	"github.com/supuwoerc/weaver/repository/dao"
@@ -25,6 +26,8 @@ var basicServiceProvider = wire.NewSet(
 var attachmentApiProvider = wire.NewSet(
 	wire.Bind(new(v1.AttachmentService), new(*service.AttachmentService)),
 	wire.Bind(new(service.AttachmentDAO), new(*dao.AttachmentDAO)),
+	wire.Bind(new(service.AttachmentStorage), new(*initialize.S3CompatibleStorage)),
+	initialize.NewS3CompatibleStorage,
 	dao.NewAttachmentDAO,
 	service.NewAttachmentService,
 	v1.NewAttachmentApi,

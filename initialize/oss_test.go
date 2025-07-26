@@ -16,6 +16,10 @@ type MockOSSClient struct {
 	headBucketCalled bool
 }
 
+func (m *MockOSSClient) ListObjectsV2(_ context.Context, _ *s3.ListObjectsV2Input, _ ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+	return &s3.ListObjectsV2Output{}, nil
+}
+
 func (m *MockOSSClient) HeadBucket(_ context.Context, _ *s3.HeadBucketInput, _ ...func(*s3.Options)) (*s3.HeadBucketOutput, error) {
 	m.headBucketCalled = true
 	return &s3.HeadBucketOutput{}, nil
@@ -43,40 +47,46 @@ func (m *MockOSSClient) ListParts(_ context.Context, _ *s3.ListPartsInput, _ ...
 
 func TestNewS3CompatibleStorage(t *testing.T) {
 	t.Parallel()
-	cfg := &conf.OSSConfig{
-		Type:            constant.AWSS3,
-		Region:          "us-east-1",
-		AccessKeyID:     "test-access-key",
-		SecretAccessKey: "test-secret-key",
+	cfg := &conf.Config{
+		OSS: conf.OSSConfig{
+			Type:            constant.AWSS3,
+			Region:          "us-east-1",
+			AccessKeyID:     "test-access-key",
+			SecretAccessKey: "test-secret-key",
+		},
 	}
 	mockClient := &MockOSSClient{}
 	storage := NewS3CompatibleStorage(cfg, mockClient)
 	assert.NotNil(t, storage)
-	assert.Equal(t, cfg, storage.GetConfig())
+	assert.Same(t, &cfg.OSS, storage.GetConfig())
 	assert.Equal(t, mockClient, storage.GetClient())
 }
 
 func TestS3CompatibleStorage_GetClientAndConfig(t *testing.T) {
 	t.Parallel()
-	cfg := &conf.OSSConfig{
-		Type:            constant.AWSS3,
-		Region:          "us-east-1",
-		AccessKeyID:     "test-access-key",
-		SecretAccessKey: "test-secret-key",
+	cfg := &conf.Config{
+		OSS: conf.OSSConfig{
+			Type:            constant.AWSS3,
+			Region:          "us-east-1",
+			AccessKeyID:     "test-access-key",
+			SecretAccessKey: "test-secret-key",
+		},
 	}
 	mockClient := &MockOSSClient{}
 	storage := NewS3CompatibleStorage(cfg, mockClient)
 	assert.Equal(t, mockClient, storage.GetClient())
-	assert.Equal(t, cfg, storage.GetConfig())
+	assert.Same(t, &cfg.OSS, storage.GetConfig())
 }
 
 func TestNewS3Client_AwsS3(t *testing.T) {
 	t.Parallel()
-	cfg := &conf.OSSConfig{
-		Type:            constant.AWSS3,
-		Region:          "us-east-1",
-		AccessKeyID:     "test-access-key",
-		SecretAccessKey: "test-secret-key",
+	cfg := &conf.Config{
+		OSS: conf.OSSConfig{
+			Type:            constant.AWSS3,
+			Region:          "us-east-1",
+			AccessKeyID:     "test-access-key",
+			SecretAccessKey: "test-secret-key",
+		},
 	}
 	client := NewS3Client(cfg)
 	assert.NotNil(t, client)
@@ -84,12 +94,14 @@ func TestNewS3Client_AwsS3(t *testing.T) {
 
 func TestNewS3Client_MinIO(t *testing.T) {
 	t.Parallel()
-	cfg := &conf.OSSConfig{
-		Type:            constant.MinIO,
-		Endpoint:        "http://localhost:9000",
-		Region:          "us-east-1",
-		AccessKeyID:     "minio_admin",
-		SecretAccessKey: "minio_admin",
+	cfg := &conf.Config{
+		OSS: conf.OSSConfig{
+			Type:            constant.MinIO,
+			Endpoint:        "http://localhost:9000",
+			Region:          "us-east-1",
+			AccessKeyID:     "minio_admin",
+			SecretAccessKey: "minio_admin",
+		},
 	}
 	client := NewS3Client(cfg)
 	assert.NotNil(t, client)
@@ -97,11 +109,13 @@ func TestNewS3Client_MinIO(t *testing.T) {
 
 func TestNewS3Client_InvalidType(t *testing.T) {
 	t.Parallel()
-	cfg := &conf.OSSConfig{
-		Type:            "invalid-type",
-		Region:          "us-east-1",
-		AccessKeyID:     "test-access-key",
-		SecretAccessKey: "test-secret-key",
+	cfg := &conf.Config{
+		OSS: conf.OSSConfig{
+			Type:            "invalid-type",
+			Region:          "us-east-1",
+			AccessKeyID:     "test-access-key",
+			SecretAccessKey: "test-secret-key",
+		},
 	}
 	assert.Panics(t, func() {
 		NewS3Client(cfg)
@@ -110,11 +124,13 @@ func TestNewS3Client_InvalidType(t *testing.T) {
 
 func TestNewS3Client_InvalidConfig(t *testing.T) {
 	t.Parallel()
-	cfg := &conf.OSSConfig{
-		Type:            constant.AWSS3,
-		Region:          "us-east-1",
-		AccessKeyID:     "",
-		SecretAccessKey: "",
+	cfg := &conf.Config{
+		OSS: conf.OSSConfig{
+			Type:            constant.AWSS3,
+			Region:          "us-east-1",
+			AccessKeyID:     "",
+			SecretAccessKey: "",
+		},
 	}
 	assert.Panics(t, func() {
 		NewS3Client(cfg)
