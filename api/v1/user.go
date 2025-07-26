@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/supuwoerc/weaver/models"
@@ -92,11 +91,7 @@ func (r *UserApi) Login(ctx *gin.Context) {
 	}
 	res, err := r.service.Login(ctx, params.Email, params.Password)
 	if err != nil {
-		if errors.Is(err, response.UserInactive) || errors.Is(err, response.UserDisabled) {
-			response.FailWithError(ctx, err)
-		} else {
-			response.FailWithCode(ctx, response.UserLoginFail)
-		}
+		response.FailWithError(ctx, err)
 		return
 	}
 	response.SuccessWithData(ctx, res)
