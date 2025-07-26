@@ -97,19 +97,21 @@ func TestServerStatus_Interval(t *testing.T) {
 }
 
 func TestServerStatus_Handle(t *testing.T) {
+	t.Parallel()
 	t.Run("handle with different intervals", func(t *testing.T) {
 		testCases := []struct {
 			name     string
 			interval time.Duration
 		}{
 			{"100ms", 100 * time.Millisecond},
-			{"500ms", 500 * time.Millisecond},
-			{"1s", time.Second},
-			{"2s", 2 * time.Second},
+			{"200ms", 200 * time.Millisecond},
+			{"300ms", 300 * time.Millisecond},
+			{"400ms", 400 * time.Millisecond},
 		}
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
 				l := logger.NewLogger(zaptest.NewLogger(t).Sugar())
 				status := NewServerStatus(tc.interval, l)
 				assert.NotPanics(t, func() {
@@ -120,7 +122,8 @@ func TestServerStatus_Handle(t *testing.T) {
 	})
 
 	t.Run("handle with nil logger", func(t *testing.T) {
-		status := NewServerStatus(time.Second, nil)
+		t.Parallel()
+		status := NewServerStatus(100*time.Millisecond, nil)
 		assert.Panics(t, func() {
 			status.Handle()
 		})
