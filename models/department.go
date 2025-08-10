@@ -1,6 +1,10 @@
 package models
 
-import "github.com/supuwoerc/weaver/pkg/database"
+import (
+	"encoding/json"
+
+	"github.com/supuwoerc/weaver/pkg/database"
+)
 
 type Department struct {
 	Name      string        `json:"name" gorm:"not null;"`
@@ -15,4 +19,24 @@ type Department struct {
 	UpdaterId uint          `json:"-" gorm:"not null;"`
 	Updater   User          `json:"updater" gorm:"foreignKey:UpdaterId;references:ID"`
 	database.BasicModel
+}
+
+// MarshalBinary 实现 encoding.BinaryMarshaler 接口
+func (d *Department) MarshalBinary() ([]byte, error) {
+	return json.Marshal(d)
+}
+
+// UnmarshalBinary 实现 encoding.BinaryUnmarshaler 接口
+func (d *Department) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, d)
+}
+
+type Departments []*Department
+
+func (dl Departments) MarshalBinary() ([]byte, error) {
+	return json.Marshal(dl)
+}
+
+func (dl Departments) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, &dl)
 }

@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -29,12 +28,8 @@ func (d *DepartmentCache) cacheKeyWithPid(key constant.CacheKey) string {
 	return fmt.Sprintf("%s:%d", key, d.pid)
 }
 
-func (d *DepartmentCache) CacheDepartment(ctx context.Context, key constant.CacheKey, depts []*models.Department) error {
-	result, err := json.Marshal(depts)
-	if err != nil {
-		return err
-	}
-	return d.redis.Client.Set(ctx, d.cacheKeyWithPid(key), string(result), 0).Err()
+func (d *DepartmentCache) CacheDepartment(ctx context.Context, key constant.CacheKey, depts models.Departments) error {
+	return d.redis.Client.Set(ctx, d.cacheKeyWithPid(key), depts, 0).Err()
 }
 
 func (d *DepartmentCache) RemoveDepartmentCache(ctx context.Context, keys ...constant.CacheKey) error {
@@ -43,13 +38,10 @@ func (d *DepartmentCache) RemoveDepartmentCache(ctx context.Context, keys ...con
 	})...).Err()
 }
 
-func (d *DepartmentCache) GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
-	result, err := d.redis.Client.Get(ctx, d.cacheKeyWithPid(key)).Result()
+func (d *DepartmentCache) GetDepartmentCache(ctx context.Context, key constant.CacheKey) (models.Departments, error) {
+	var depts models.Departments
+	err := d.redis.Client.Get(ctx, d.cacheKeyWithPid(key)).Scan(&depts)
 	if err != nil {
-		return nil, err
-	}
-	var depts []*models.Department
-	if err = json.Unmarshal([]byte(result), &depts); err != nil {
 		return nil, err
 	}
 	return depts, nil

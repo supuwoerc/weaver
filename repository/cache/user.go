@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -24,11 +23,7 @@ func (u *UserCache) CacheTokenPair(ctx context.Context, email string, pair *mode
 	if pair == nil {
 		return response.UserLoginTokenPairCacheErr
 	}
-	result, err := json.Marshal(pair)
-	if err != nil {
-		return err
-	}
-	return u.redis.Client.HSet(ctx, constant.UserTokenPairKey, email, result).Err()
+	return u.redis.Client.HSet(ctx, constant.UserTokenPairKey, email, pair).Err()
 }
 
 func (u *UserCache) GetTokenPairIsExist(ctx context.Context, email string) (bool, error) {
@@ -40,13 +35,12 @@ func (u *UserCache) HDelTokenPair(ctx context.Context, email string) error {
 }
 
 func (u *UserCache) GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error) {
-	result, err := u.redis.Client.HGet(ctx, constant.UserTokenPairKey, email).Result()
+	var ret models.TokenPair
+	err := u.redis.Client.HGet(ctx, constant.UserTokenPairKey, email).Scan(&ret)
 	if err != nil {
 		return nil, err
 	}
-	var ret models.TokenPair
-	err = json.Unmarshal([]byte(result), &ret)
-	return &ret, err
+	return &ret, nil
 }
 
 func (u *UserCache) activeAccountKey(id uint) string {

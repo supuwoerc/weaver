@@ -29,8 +29,8 @@ type DepartmentDAO interface {
 }
 
 type DepartmentCache interface {
-	CacheDepartment(ctx context.Context, key constant.CacheKey, depts []*models.Department) error
-	GetDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error)
+	CacheDepartment(ctx context.Context, key constant.CacheKey, depts models.Departments) error
+	GetDepartmentCache(ctx context.Context, key constant.CacheKey) (models.Departments, error)
 	RemoveDepartmentCache(ctx context.Context, keys ...constant.CacheKey) error
 }
 

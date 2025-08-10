@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/supuwoerc/weaver/pkg/constant"
@@ -24,4 +25,12 @@ type User struct {
 type TokenPair struct {
 	AccessToken  string
 	RefreshToken string
+}
+
+func (t *TokenPair) MarshalBinary() (data []byte, err error) {
+	return json.Marshal(t)
+}
+
+func (t *TokenPair) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, t)
 }
