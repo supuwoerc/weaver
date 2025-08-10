@@ -43,12 +43,27 @@ func NewPermissionApi(basic *BasicApi, service PermissionService) *PermissionApi
 	return permissionApi
 }
 
+// CreatePermission
+//
+//	@Summary		创建权限
+//	@Description	创建新的权限
+//	@Tags			权限管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		request.CreatePermissionRequest	true	"创建权限请求参数"
+//	@Success		10000	{object}	response.BasicResponse[any]		"创建成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]		"参数验证失败，code=10002"
+//	@Failure		10008	{object}	response.BasicResponse[any]		"认证失败，code=10008"
+//	@Failure		10001	{object}	response.BasicResponse[any]		"业务逻辑失败，code=10001"
+//	@Router			/permission/create [post]
 func (r *PermissionApi) CreatePermission(ctx *gin.Context) {
 	var params request.CreatePermissionRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
+	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)
@@ -62,6 +77,21 @@ func (r *PermissionApi) CreatePermission(ctx *gin.Context) {
 	response.Success(ctx)
 }
 
+// GetPermissionList
+//
+//	@Summary		获取权限列表
+//	@Description	分页获取权限列表，支持关键词搜索
+//	@Tags			权限管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			keyword	query		string																			false	"搜索关键词"
+//	@Param			limit	query		int																				false	"每页数量"	default(10)
+//	@Param			offset	query		int																				false	"偏移量"	default(0)
+//	@Success		10000	{object}	response.BasicResponse[response.DataList[response.PermissionListRowResponse]]	"获取成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]														"参数验证失败，code=10002"
+//	@Failure		10001	{object}	response.BasicResponse[any]														"服务器内部错误，code=10001"
+//	@Router			/permission/list [get]
 func (r *PermissionApi) GetPermissionList(ctx *gin.Context) {
 	var params request.GetPermissionListRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
@@ -76,6 +106,19 @@ func (r *PermissionApi) GetPermissionList(ctx *gin.Context) {
 	response.SuccessWithPageData(ctx, total, list)
 }
 
+// GetPermissionDetail
+//
+//	@Summary		获取权限详情
+//	@Description	根据权限ID获取权限详细信息
+//	@Tags			权限管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id		query		uint														true	"权限ID"
+//	@Success		10000	{object}	response.BasicResponse[response.PermissionDetailResponse]	"获取成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]									"参数验证失败，code=10002"
+//	@Failure		10001	{object}	response.BasicResponse[any]									"服务器内部错误，code=10001"
+//	@Router			/permission/detail [get]
 func (r *PermissionApi) GetPermissionDetail(ctx *gin.Context) {
 	var params request.GetPermissionDetailRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
@@ -90,12 +133,27 @@ func (r *PermissionApi) GetPermissionDetail(ctx *gin.Context) {
 	response.SuccessWithData(ctx, detail)
 }
 
+// UpdatePermission
+//
+//	@Summary		更新权限
+//	@Description	更新权限信息
+//	@Tags			权限管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		request.UpdatePermissionRequest	true	"更新权限请求参数"
+//	@Success		10000	{object}	response.BasicResponse[any]		"更新成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]		"参数验证失败，code=10002"
+//	@Failure		10008	{object}	response.BasicResponse[any]		"认证失败，code=10008"
+//	@Failure		10001	{object}	response.BasicResponse[any]		"业务逻辑失败，code=10001"
+//	@Router			/permission/update [post]
 func (r *PermissionApi) UpdatePermission(ctx *gin.Context) {
 	var params request.UpdatePermissionRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
+	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)
@@ -109,12 +167,27 @@ func (r *PermissionApi) UpdatePermission(ctx *gin.Context) {
 	response.Success(ctx)
 }
 
+// DeletePermission
+//
+//	@Summary		删除权限
+//	@Description	根据权限ID删除权限
+//	@Tags			权限管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		request.DeletePermissionRequest	true	"删除权限请求参数"
+//	@Success		10000	{object}	response.BasicResponse[any]		"删除成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]		"参数验证失败，code=10002"
+//	@Failure		10008	{object}	response.BasicResponse[any]		"认证失败，code=10008"
+//	@Failure		10001	{object}	response.BasicResponse[any]		"业务逻辑失败，code=10001"
+//	@Router			/permission/delete [post]
 func (r *PermissionApi) DeletePermission(ctx *gin.Context) {
 	var params request.DeletePermissionRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
+	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)

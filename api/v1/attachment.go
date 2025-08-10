@@ -51,6 +51,7 @@ func (a *AttachmentApi) MultipleUpload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.InvalidAttachmentLength)
 		return
 	}
+	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)
@@ -74,6 +75,7 @@ func (a *AttachmentApi) Upload(ctx *gin.Context) {
 		response.FailWithError(ctx, err)
 		return
 	}
+	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)

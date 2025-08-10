@@ -1,0 +1,2233 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Testing Swagger APIs.",
+        "title": "Weaver Service",
+        "termsOfService": "https://github.com/supuwoerc/weaver",
+        "contact": {
+            "name": "API Support",
+            "url": "https://github.com/supuwoerc/weaver/issues",
+            "email": "zhangzhouou@gmain.com"
+        },
+        "license": {
+            "name": "MIT License",
+            "url": "https://github.com/supuwoerc/weaver/blob/main/LICENSE"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8804",
+    "basePath": "/api/v1",
+    "paths": {
+        "/department/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "创建新的部门",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "部门管理"
+                ],
+                "summary": "创建部门",
+                "parameters": [
+                    {
+                        "description": "创建部门请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDepartmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "创建成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "业务逻辑失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10008": {
+                        "description": "认证失败，code=10008",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/department/tree": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取部门树形结构，可选择是否包含人员信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "部门管理"
+                ],
+                "summary": "获取部门树",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "是否包含人员信息",
+                        "name": "withCrew",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "获取成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-array_response_DepartmentTreeResponse"
+                        }
+                    },
+                    "10001": {
+                        "description": "服务器内部错误，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/permission/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "创建新的权限",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "权限管理"
+                ],
+                "summary": "创建权限",
+                "parameters": [
+                    {
+                        "description": "创建权限请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreatePermissionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "创建成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "业务逻辑失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10008": {
+                        "description": "认证失败，code=10008",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/permission/delete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "根据权限ID删除权限",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "权限管理"
+                ],
+                "summary": "删除权限",
+                "parameters": [
+                    {
+                        "description": "删除权限请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeletePermissionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "删除成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "业务逻辑失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10008": {
+                        "description": "认证失败，code=10008",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/permission/detail": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "根据权限ID获取权限详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "权限管理"
+                ],
+                "summary": "获取权限详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "权限ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "获取成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_PermissionDetailResponse"
+                        }
+                    },
+                    "10001": {
+                        "description": "服务器内部错误，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/permission/list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页获取权限列表，支持关键词搜索",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "权限管理"
+                ],
+                "summary": "获取权限列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "搜索关键词",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每页数量",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "偏移量",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "获取成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_DataList-response_PermissionListRowResponse"
+                        }
+                    },
+                    "10001": {
+                        "description": "服务器内部错误，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/permission/update": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新权限信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "权限管理"
+                ],
+                "summary": "更新权限",
+                "parameters": [
+                    {
+                        "description": "更新权限请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdatePermissionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "更新成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "业务逻辑失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10008": {
+                        "description": "认证失败，code=10008",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/ping": {
+            "get": {
+                "description": "简单的健康检查接口，返回pong",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "健康检查",
+                "responses": {
+                    "10000": {
+                        "description": "健康检查成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ping/check-lock": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "测试权限字段锁功能",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "锁测试",
+                "responses": {
+                    "10000": {
+                        "description": "锁测试成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "锁测试失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/ping/check-permission": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "检查用户权限的测试接口",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "权限检查测试",
+                "responses": {}
+            }
+        },
+        "/ping/exception": {
+            "get": {
+                "description": "故意触发除零异常进行测试",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "异常测试",
+                "responses": {
+                    "10000": {
+                        "description": "异常测试成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-int"
+                        }
+                    }
+                }
+            }
+        },
+        "/ping/logger-trace": {
+            "get": {
+                "description": "测试日志追踪功能",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "日志追踪测试",
+                "responses": {}
+            }
+        },
+        "/ping/slow": {
+            "get": {
+                "description": "模拟慢响应的测试接口",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "慢响应测试",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "睡眠秒数",
+                        "name": "t",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/public/captcha/signup": {
+            "get": {
+                "description": "生成用户注册时使用的验证码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "验证码管理"
+                ],
+                "summary": "生成注册验证码",
+                "responses": {
+                    "10000": {
+                        "description": "生成成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_GetCaptchaResponse"
+                        }
+                    },
+                    "10001": {
+                        "description": "生成失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/user/login": {
+            "post": {
+                "description": "用户通过邮箱和密码进行登录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "description": "登录请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "登录成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_LoginResponse"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "20001": {
+                        "description": "登录失败，code=20001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/user/signup": {
+            "post": {
+                "description": "用户通过邮箱和密码进行注册",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户注册",
+                "parameters": [
+                    {
+                        "description": "注册请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "注册成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "业务逻辑失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "20003": {
+                        "description": "密码格式错误，code=20003",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "20004": {
+                        "description": "邮箱格式错误，code=20004",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/role/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "创建新的角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "角色管理"
+                ],
+                "summary": "创建角色",
+                "parameters": [
+                    {
+                        "description": "创建角色请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "创建成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "业务逻辑失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10008": {
+                        "description": "认证失败，code=10008",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/role/delete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "根据角色ID删除角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "角色管理"
+                ],
+                "summary": "删除角色",
+                "parameters": [
+                    {
+                        "description": "删除角色请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "删除成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "业务逻辑失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10008": {
+                        "description": "认证失败，code=10008",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/role/detail": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "根据角色ID获取角色详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "角色管理"
+                ],
+                "summary": "获取角色详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "角色ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "获取成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_RoleDetailResponse"
+                        }
+                    },
+                    "10001": {
+                        "description": "服务器内部错误，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/role/list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页获取角色列表，支持关键词搜索",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "角色管理"
+                ],
+                "summary": "获取角色列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "搜索关键词",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每页数量",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "偏移量",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "获取成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_DataList-response_RoleListRowResponse"
+                        }
+                    },
+                    "10001": {
+                        "description": "服务器内部错误，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/role/update": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新角色信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "角色管理"
+                ],
+                "summary": "更新角色",
+                "parameters": [
+                    {
+                        "description": "更新角色请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "更新成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "业务逻辑失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10008": {
+                        "description": "认证失败，code=10008",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页获取用户列表，支持关键词搜索",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取用户列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "搜索关键词",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每页数量",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "偏移量",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "获取成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_DataList-response_UserListRowResponse"
+                        }
+                    },
+                    "10001": {
+                        "description": "服务器内部错误，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/profile": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取当前登录用户的详细资料信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取用户资料",
+                "responses": {
+                    "10000": {
+                        "description": "获取成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_ProfileResponse"
+                        }
+                    },
+                    "10001": {
+                        "description": "服务器内部错误，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "20005": {
+                        "description": "用户不存在，code=20005",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "constant.ResourceType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-comments": {
+                "ApiRoute": "apiRoute",
+                "ViewResource": "viewResource",
+                "ViewRoute": "viewRoute"
+            },
+            "x-enum-descriptions": [
+                "viewRoute",
+                "viewResource",
+                "apiRoute"
+            ],
+            "x-enum-varnames": [
+                "ViewRoute",
+                "ViewResource",
+                "ApiRoute"
+            ]
+        },
+        "constant.UserGender": {
+            "type": "integer",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-comments": {
+                "Females": "females",
+                "Male": "male"
+            },
+            "x-enum-descriptions": [
+                "male",
+                "females"
+            ],
+            "x-enum-varnames": [
+                "Male",
+                "Females"
+            ]
+        },
+        "constant.UserStatus": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-comments": {
+                "Disabled": "disabled",
+                "Inactive": "inactive",
+                "Normal": "normal"
+            },
+            "x-enum-descriptions": [
+                "inactive",
+                "normal",
+                "disabled"
+            ],
+            "x-enum-varnames": [
+                "Inactive",
+                "Normal",
+                "Disabled"
+            ]
+        },
+        "models.Department": {
+            "type": "object",
+            "properties": {
+                "ancestors": {
+                    "description": "祖先部门路径逗号拼接的字符串",
+                    "type": "string"
+                },
+                "children": {
+                    "description": "不建议使用 gorm 预加载",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Department"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "leaders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent": {
+                    "$ref": "#/definitions/models.Department"
+                },
+                "parent_id": {
+                    "description": "父级部门ID,nil则为顶级部门",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                }
+            }
+        },
+        "models.Permission": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                },
+                "type": {
+                    "$ref": "#/definitions/constant.ResourceType"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {
+                    "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "models.Role": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Permission"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "birthday": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "departments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Department"
+                    }
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {
+                    "$ref": "#/definitions/constant.UserGender"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                },
+                "status": {
+                    "$ref": "#/definitions/constant.UserStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateDepartmentRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "leaders": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 1
+                },
+                "parent_id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "request.CreatePermissionRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "resource",
+                "type"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 1
+                },
+                "resource": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "type": {
+                    "enum": [
+                        1,
+                        2,
+                        3
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constant.ResourceType"
+                        }
+                    ]
+                }
+            }
+        },
+        "request.CreateRoleRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 1
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "request.DeletePermissionRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "request.DeleteRoleRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "request.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string"
+                }
+            }
+        },
+        "request.SignUpRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email",
+                "id",
+                "password"
+            ],
+            "properties": {
+                "code": {
+                    "description": "验证码内容",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "id": {
+                    "description": "验证码ID",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdatePermissionRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "resource",
+                "type"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 1
+                },
+                "resource": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "type": {
+                    "enum": [
+                        1,
+                        2,
+                        3
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constant.ResourceType"
+                        }
+                    ]
+                }
+            }
+        },
+        "request.UpdateRoleRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 1
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "response.BasicResponse-any": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-array_response_DepartmentTreeResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DepartmentTreeResponse"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-int": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-response_DataList-response_PermissionListRowResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.DataList-response_PermissionListRowResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-response_DataList-response_RoleListRowResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.DataList-response_RoleListRowResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-response_DataList-response_UserListRowResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.DataList-response_UserListRowResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-response_GetCaptchaResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.GetCaptchaResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-response_LoginResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.LoginResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-response_PermissionDetailResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.PermissionDetailResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-response_ProfileResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.ProfileResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-response_RoleDetailResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.RoleDetailResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-string": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Creator": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "birthday": {},
+                "created_at": {},
+                "departments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Department"
+                    }
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {},
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "roles": {},
+                "status": {},
+                "updated_at": {}
+            }
+        },
+        "response.DataList-response_PermissionListRowResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.PermissionListRowResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.DataList-response_RoleListRowResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RoleListRowResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.DataList-response_UserListRowResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.UserListRowResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.DepartmentTreeResponse": {
+            "type": "object",
+            "properties": {
+                "ancestors": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DepartmentTreeResponse"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/response.Creator"
+                },
+                "full_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "leaders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SimpleUser"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent": {},
+                "parent_id": {
+                    "description": "父级部门ID,nil则为顶级部门",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {
+                    "$ref": "#/definitions/response.Updater"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SimpleUser"
+                    }
+                }
+            }
+        },
+        "response.GetCaptchaResponse": {
+            "type": "object",
+            "properties": {
+                "base64": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/response.LoginUser"
+                }
+            }
+        },
+        "response.LoginUser": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PermissionDetailResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {},
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.PermissionDetailRole"
+                    }
+                },
+                "type": {
+                    "$ref": "#/definitions/constant.ResourceType"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {}
+            }
+        },
+        "response.PermissionDetailRole": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {},
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {},
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {},
+                "users": {}
+            }
+        },
+        "response.PermissionListRowResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/response.Creator"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "roles": {},
+                "type": {
+                    "$ref": "#/definitions/constant.ResourceType"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {
+                    "$ref": "#/definitions/response.Updater"
+                }
+            }
+        },
+        "response.ProfileResponse": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "birthday": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "departments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ProfileResponseDept"
+                    }
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {
+                    "$ref": "#/definitions/constant.UserGender"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ProfileResponseRole"
+                    }
+                },
+                "status": {
+                    "$ref": "#/definitions/constant.UserStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ProfileResponseDept": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ProfileResponseRole": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RoleDetailPermission": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {},
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "roles": {},
+                "type": {
+                    "$ref": "#/definitions/constant.ResourceType"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {}
+            }
+        },
+        "response.RoleDetailResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {},
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RoleDetailPermission"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {},
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SimpleUser"
+                    }
+                }
+            }
+        },
+        "response.RoleListRowResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/response.Creator"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {},
+                "updated_at": {
+                    "type": "string"
+                },
+                "updater": {
+                    "$ref": "#/definitions/response.Updater"
+                },
+                "users": {}
+            }
+        },
+        "response.SimpleUser": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "birthday": {},
+                "created_at": {},
+                "departments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Department"
+                    }
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {},
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "roles": {},
+                "status": {},
+                "updated_at": {}
+            }
+        },
+        "response.Updater": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "birthday": {},
+                "created_at": {},
+                "departments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Department"
+                    }
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {},
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "roles": {},
+                "status": {},
+                "updated_at": {}
+            }
+        },
+        "response.UserListRowResponse": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "birthday": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "departments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ProfileResponseDept"
+                    }
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {
+                    "$ref": "#/definitions/constant.UserGender"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ProfileResponseRole"
+                    }
+                },
+                "status": {
+                    "$ref": "#/definitions/constant.UserStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

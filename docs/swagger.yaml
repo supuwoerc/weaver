@@ -1,0 +1,1476 @@
+basePath: /api/v1
+definitions:
+  constant.ResourceType:
+    enum:
+    - 1
+    - 2
+    - 3
+    format: int32
+    type: integer
+    x-enum-comments:
+      ApiRoute: apiRoute
+      ViewResource: viewResource
+      ViewRoute: viewRoute
+    x-enum-descriptions:
+    - viewRoute
+    - viewResource
+    - apiRoute
+    x-enum-varnames:
+    - ViewRoute
+    - ViewResource
+    - ApiRoute
+  constant.UserGender:
+    enum:
+    - 1
+    - 2
+    type: integer
+    x-enum-comments:
+      Females: females
+      Male: male
+    x-enum-descriptions:
+    - male
+    - females
+    x-enum-varnames:
+    - Male
+    - Females
+  constant.UserStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-comments:
+      Disabled: disabled
+      Inactive: inactive
+      Normal: normal
+    x-enum-descriptions:
+    - inactive
+    - normal
+    - disabled
+    x-enum-varnames:
+    - Inactive
+    - Normal
+    - Disabled
+  models.Department:
+    properties:
+      ancestors:
+        description: 祖先部门路径逗号拼接的字符串
+        type: string
+      children:
+        description: 不建议使用 gorm 预加载
+        items:
+          $ref: '#/definitions/models.Department'
+        type: array
+      created_at:
+        type: string
+      creator:
+        $ref: '#/definitions/models.User'
+      id:
+        type: integer
+      leaders:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      name:
+        type: string
+      parent:
+        $ref: '#/definitions/models.Department'
+      parent_id:
+        description: 父级部门ID,nil则为顶级部门
+        type: integer
+      updated_at:
+        type: string
+      updater:
+        $ref: '#/definitions/models.User'
+      users:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+    type: object
+  models.Permission:
+    properties:
+      created_at:
+        type: string
+      creator:
+        $ref: '#/definitions/models.User'
+      id:
+        type: integer
+      name:
+        type: string
+      resource:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
+      type:
+        $ref: '#/definitions/constant.ResourceType'
+      updated_at:
+        type: string
+      updater:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.Role:
+    properties:
+      created_at:
+        type: string
+      creator:
+        $ref: '#/definitions/models.User'
+      id:
+        type: integer
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/models.Permission'
+        type: array
+      updated_at:
+        type: string
+      updater:
+        $ref: '#/definitions/models.User'
+      users:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+    type: object
+  models.User:
+    properties:
+      about:
+        type: string
+      avatar:
+        type: string
+      birthday:
+        type: string
+      created_at:
+        type: string
+      departments:
+        items:
+          $ref: '#/definitions/models.Department'
+        type: array
+      email:
+        type: string
+      gender:
+        $ref: '#/definitions/constant.UserGender'
+      id:
+        type: integer
+      nickname:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
+      status:
+        $ref: '#/definitions/constant.UserStatus'
+      updated_at:
+        type: string
+    type: object
+  request.CreateDepartmentRequest:
+    properties:
+      leaders:
+        items:
+          type: integer
+        type: array
+      name:
+        maxLength: 20
+        minLength: 1
+        type: string
+      parent_id:
+        minimum: 1
+        type: integer
+      users:
+        items:
+          type: integer
+        type: array
+    required:
+    - name
+    type: object
+  request.CreatePermissionRequest:
+    properties:
+      name:
+        maxLength: 20
+        minLength: 1
+        type: string
+      resource:
+        maxLength: 255
+        minLength: 1
+        type: string
+      roles:
+        items:
+          type: integer
+        type: array
+      type:
+        allOf:
+        - $ref: '#/definitions/constant.ResourceType'
+        enum:
+        - 1
+        - 2
+        - 3
+    required:
+    - name
+    - resource
+    - type
+    type: object
+  request.CreateRoleRequest:
+    properties:
+      name:
+        maxLength: 20
+        minLength: 1
+        type: string
+      permissions:
+        items:
+          type: integer
+        type: array
+      users:
+        items:
+          type: integer
+        type: array
+    required:
+    - name
+    type: object
+  request.DeletePermissionRequest:
+    properties:
+      id:
+        minimum: 1
+        type: integer
+    required:
+    - id
+    type: object
+  request.DeleteRoleRequest:
+    properties:
+      id:
+        minimum: 1
+        type: integer
+    required:
+    - id
+    type: object
+  request.LoginRequest:
+    properties:
+      email:
+        description: 邮箱
+        maxLength: 50
+        type: string
+      password:
+        description: 密码
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  request.SignUpRequest:
+    properties:
+      code:
+        description: 验证码内容
+        type: string
+      email:
+        description: 邮箱
+        maxLength: 50
+        type: string
+      id:
+        description: 验证码ID
+        type: string
+      password:
+        description: 密码
+        type: string
+    required:
+    - code
+    - email
+    - id
+    - password
+    type: object
+  request.UpdatePermissionRequest:
+    properties:
+      id:
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 20
+        minLength: 1
+        type: string
+      resource:
+        maxLength: 255
+        minLength: 1
+        type: string
+      roles:
+        items:
+          type: integer
+        type: array
+      type:
+        allOf:
+        - $ref: '#/definitions/constant.ResourceType'
+        enum:
+        - 1
+        - 2
+        - 3
+    required:
+    - id
+    - name
+    - resource
+    - type
+    type: object
+  request.UpdateRoleRequest:
+    properties:
+      id:
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 20
+        minLength: 1
+        type: string
+      permissions:
+        items:
+          type: integer
+        type: array
+      users:
+        items:
+          type: integer
+        type: array
+    required:
+    - id
+    - name
+    type: object
+  response.BasicResponse-any:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+  response.BasicResponse-array_response_DepartmentTreeResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/response.DepartmentTreeResponse'
+        type: array
+      message:
+        type: string
+    type: object
+  response.BasicResponse-int:
+    properties:
+      code:
+        type: integer
+      data:
+        type: integer
+      message:
+        type: string
+    type: object
+  response.BasicResponse-response_DataList-response_PermissionListRowResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.DataList-response_PermissionListRowResponse'
+      message:
+        type: string
+    type: object
+  response.BasicResponse-response_DataList-response_RoleListRowResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.DataList-response_RoleListRowResponse'
+      message:
+        type: string
+    type: object
+  response.BasicResponse-response_DataList-response_UserListRowResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.DataList-response_UserListRowResponse'
+      message:
+        type: string
+    type: object
+  response.BasicResponse-response_GetCaptchaResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.GetCaptchaResponse'
+      message:
+        type: string
+    type: object
+  response.BasicResponse-response_LoginResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.LoginResponse'
+      message:
+        type: string
+    type: object
+  response.BasicResponse-response_PermissionDetailResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.PermissionDetailResponse'
+      message:
+        type: string
+    type: object
+  response.BasicResponse-response_ProfileResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.ProfileResponse'
+      message:
+        type: string
+    type: object
+  response.BasicResponse-response_RoleDetailResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.RoleDetailResponse'
+      message:
+        type: string
+    type: object
+  response.BasicResponse-string:
+    properties:
+      code:
+        type: integer
+      data:
+        type: string
+      message:
+        type: string
+    type: object
+  response.Creator:
+    properties:
+      about:
+        type: string
+      avatar:
+        type: string
+      birthday: {}
+      created_at: {}
+      departments:
+        items:
+          $ref: '#/definitions/models.Department'
+        type: array
+      email:
+        type: string
+      gender: {}
+      id:
+        type: integer
+      nickname:
+        type: string
+      roles: {}
+      status: {}
+      updated_at: {}
+    type: object
+  response.DataList-response_PermissionListRowResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.PermissionListRowResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.DataList-response_RoleListRowResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.RoleListRowResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.DataList-response_UserListRowResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.UserListRowResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.DepartmentTreeResponse:
+    properties:
+      ancestors:
+        items:
+          type: integer
+        type: array
+      children:
+        items:
+          $ref: '#/definitions/response.DepartmentTreeResponse'
+        type: array
+      created_at:
+        type: string
+      creator:
+        $ref: '#/definitions/response.Creator'
+      full_ids:
+        items:
+          type: integer
+        type: array
+      full_name:
+        type: string
+      id:
+        type: integer
+      leaders:
+        items:
+          $ref: '#/definitions/response.SimpleUser'
+        type: array
+      name:
+        type: string
+      parent: {}
+      parent_id:
+        description: 父级部门ID,nil则为顶级部门
+        type: integer
+      updated_at:
+        type: string
+      updater:
+        $ref: '#/definitions/response.Updater'
+      users:
+        items:
+          $ref: '#/definitions/response.SimpleUser'
+        type: array
+    type: object
+  response.GetCaptchaResponse:
+    properties:
+      base64:
+        type: string
+      id:
+        type: string
+    type: object
+  response.LoginResponse:
+    properties:
+      refresh_token:
+        type: string
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/response.LoginUser'
+    type: object
+  response.LoginUser:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+    type: object
+  response.PermissionDetailResponse:
+    properties:
+      created_at:
+        type: string
+      creator: {}
+      id:
+        type: integer
+      name:
+        type: string
+      resource:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/response.PermissionDetailRole'
+        type: array
+      type:
+        $ref: '#/definitions/constant.ResourceType'
+      updated_at:
+        type: string
+      updater: {}
+    type: object
+  response.PermissionDetailRole:
+    properties:
+      created_at:
+        type: string
+      creator: {}
+      id:
+        type: integer
+      name:
+        type: string
+      permissions: {}
+      updated_at:
+        type: string
+      updater: {}
+      users: {}
+    type: object
+  response.PermissionListRowResponse:
+    properties:
+      created_at:
+        type: string
+      creator:
+        $ref: '#/definitions/response.Creator'
+      id:
+        type: integer
+      name:
+        type: string
+      resource:
+        type: string
+      roles: {}
+      type:
+        $ref: '#/definitions/constant.ResourceType'
+      updated_at:
+        type: string
+      updater:
+        $ref: '#/definitions/response.Updater'
+    type: object
+  response.ProfileResponse:
+    properties:
+      about:
+        type: string
+      avatar:
+        type: string
+      birthday:
+        type: string
+      created_at:
+        type: string
+      departments:
+        items:
+          $ref: '#/definitions/response.ProfileResponseDept'
+        type: array
+      email:
+        type: string
+      gender:
+        $ref: '#/definitions/constant.UserGender'
+      id:
+        type: integer
+      nickname:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/response.ProfileResponseRole'
+        type: array
+      status:
+        $ref: '#/definitions/constant.UserStatus'
+      updated_at:
+        type: string
+    type: object
+  response.ProfileResponseDept:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  response.ProfileResponseRole:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  response.RoleDetailPermission:
+    properties:
+      created_at:
+        type: string
+      creator: {}
+      id:
+        type: integer
+      name:
+        type: string
+      resource:
+        type: string
+      roles: {}
+      type:
+        $ref: '#/definitions/constant.ResourceType'
+      updated_at:
+        type: string
+      updater: {}
+    type: object
+  response.RoleDetailResponse:
+    properties:
+      created_at:
+        type: string
+      creator: {}
+      id:
+        type: integer
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/response.RoleDetailPermission'
+        type: array
+      updated_at:
+        type: string
+      updater: {}
+      users:
+        items:
+          $ref: '#/definitions/response.SimpleUser'
+        type: array
+    type: object
+  response.RoleListRowResponse:
+    properties:
+      created_at:
+        type: string
+      creator:
+        $ref: '#/definitions/response.Creator'
+      id:
+        type: integer
+      name:
+        type: string
+      permissions: {}
+      updated_at:
+        type: string
+      updater:
+        $ref: '#/definitions/response.Updater'
+      users: {}
+    type: object
+  response.SimpleUser:
+    properties:
+      about:
+        type: string
+      avatar:
+        type: string
+      birthday: {}
+      created_at: {}
+      departments:
+        items:
+          $ref: '#/definitions/models.Department'
+        type: array
+      email:
+        type: string
+      gender: {}
+      id:
+        type: integer
+      nickname:
+        type: string
+      roles: {}
+      status: {}
+      updated_at: {}
+    type: object
+  response.Updater:
+    properties:
+      about:
+        type: string
+      avatar:
+        type: string
+      birthday: {}
+      created_at: {}
+      departments:
+        items:
+          $ref: '#/definitions/models.Department'
+        type: array
+      email:
+        type: string
+      gender: {}
+      id:
+        type: integer
+      nickname:
+        type: string
+      roles: {}
+      status: {}
+      updated_at: {}
+    type: object
+  response.UserListRowResponse:
+    properties:
+      about:
+        type: string
+      avatar:
+        type: string
+      birthday:
+        type: string
+      created_at:
+        type: string
+      departments:
+        items:
+          $ref: '#/definitions/response.ProfileResponseDept'
+        type: array
+      email:
+        type: string
+      gender:
+        $ref: '#/definitions/constant.UserGender'
+      id:
+        type: integer
+      nickname:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/response.ProfileResponseRole'
+        type: array
+      status:
+        $ref: '#/definitions/constant.UserStatus'
+      updated_at:
+        type: string
+    type: object
+host: localhost:8804
+info:
+  contact:
+    email: zhangzhouou@gmain.com
+    name: API Support
+    url: https://github.com/supuwoerc/weaver/issues
+  description: Testing Swagger APIs.
+  license:
+    name: MIT License
+    url: https://github.com/supuwoerc/weaver/blob/main/LICENSE
+  termsOfService: https://github.com/supuwoerc/weaver
+  title: Weaver Service
+  version: "1.0"
+paths:
+  /department/create:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的部门
+      parameters:
+      - description: 创建部门请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDepartmentRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 创建成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 业务逻辑失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10008":
+          description: 认证失败，code=10008
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 创建部门
+      tags:
+      - 部门管理
+  /department/tree:
+    get:
+      consumes:
+      - application/json
+      description: 获取部门树形结构，可选择是否包含人员信息
+      parameters:
+      - default: false
+        description: 是否包含人员信息
+        in: query
+        name: withCrew
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 获取成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-array_response_DepartmentTreeResponse'
+        "10001":
+          description: 服务器内部错误，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 获取部门树
+      tags:
+      - 部门管理
+  /permission/create:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的权限
+      parameters:
+      - description: 创建权限请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreatePermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 创建成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 业务逻辑失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10008":
+          description: 认证失败，code=10008
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 创建权限
+      tags:
+      - 权限管理
+  /permission/delete:
+    post:
+      consumes:
+      - application/json
+      description: 根据权限ID删除权限
+      parameters:
+      - description: 删除权限请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeletePermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 删除成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 业务逻辑失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10008":
+          description: 认证失败，code=10008
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 删除权限
+      tags:
+      - 权限管理
+  /permission/detail:
+    get:
+      consumes:
+      - application/json
+      description: 根据权限ID获取权限详细信息
+      parameters:
+      - description: 权限ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 获取成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_PermissionDetailResponse'
+        "10001":
+          description: 服务器内部错误，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 获取权限详情
+      tags:
+      - 权限管理
+  /permission/list:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取权限列表，支持关键词搜索
+      parameters:
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      - default: 10
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: 偏移量
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 获取成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_DataList-response_PermissionListRowResponse'
+        "10001":
+          description: 服务器内部错误，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 获取权限列表
+      tags:
+      - 权限管理
+  /permission/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新权限信息
+      parameters:
+      - description: 更新权限请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdatePermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 更新成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 业务逻辑失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10008":
+          description: 认证失败，code=10008
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 更新权限
+      tags:
+      - 权限管理
+  /ping:
+    get:
+      consumes:
+      - application/json
+      description: 简单的健康检查接口，返回pong
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 健康检查成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-string'
+      summary: 健康检查
+      tags:
+      - 系统监控
+  /ping/check-lock:
+    get:
+      consumes:
+      - application/json
+      description: 测试权限字段锁功能
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 锁测试成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 锁测试失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 锁测试
+      tags:
+      - 系统监控
+  /ping/check-permission:
+    get:
+      consumes:
+      - application/json
+      description: 检查用户权限的测试接口
+      produces:
+      - text/plain
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: 权限检查测试
+      tags:
+      - 系统监控
+  /ping/exception:
+    get:
+      consumes:
+      - application/json
+      description: 故意触发除零异常进行测试
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 异常测试成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-int'
+      summary: 异常测试
+      tags:
+      - 系统监控
+  /ping/logger-trace:
+    get:
+      consumes:
+      - application/json
+      description: 测试日志追踪功能
+      produces:
+      - text/plain
+      responses: {}
+      summary: 日志追踪测试
+      tags:
+      - 系统监控
+  /ping/slow:
+    get:
+      consumes:
+      - application/json
+      description: 模拟慢响应的测试接口
+      parameters:
+      - description: 睡眠秒数
+        in: query
+        name: t
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses: {}
+      summary: 慢响应测试
+      tags:
+      - 系统监控
+  /public/captcha/signup:
+    get:
+      consumes:
+      - application/json
+      description: 生成用户注册时使用的验证码
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 生成成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_GetCaptchaResponse'
+        "10001":
+          description: 生成失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      summary: 生成注册验证码
+      tags:
+      - 验证码管理
+  /public/user/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户通过邮箱和密码进行登录
+      parameters:
+      - description: 登录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 登录成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_LoginResponse'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "20001":
+          description: 登录失败，code=20001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      summary: 用户登录
+      tags:
+      - 用户管理
+  /public/user/signup:
+    post:
+      consumes:
+      - application/json
+      description: 用户通过邮箱和密码进行注册
+      parameters:
+      - description: 注册请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 注册成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 业务逻辑失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "20003":
+          description: 密码格式错误，code=20003
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "20004":
+          description: 邮箱格式错误，code=20004
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      summary: 用户注册
+      tags:
+      - 用户管理
+  /role/create:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的角色
+      parameters:
+      - description: 创建角色请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 创建成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 业务逻辑失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10008":
+          description: 认证失败，code=10008
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 创建角色
+      tags:
+      - 角色管理
+  /role/delete:
+    post:
+      consumes:
+      - application/json
+      description: 根据角色ID删除角色
+      parameters:
+      - description: 删除角色请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 删除成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 业务逻辑失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10008":
+          description: 认证失败，code=10008
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 删除角色
+      tags:
+      - 角色管理
+  /role/detail:
+    get:
+      consumes:
+      - application/json
+      description: 根据角色ID获取角色详细信息
+      parameters:
+      - description: 角色ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 获取成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_RoleDetailResponse'
+        "10001":
+          description: 服务器内部错误，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 获取角色详情
+      tags:
+      - 角色管理
+  /role/list:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取角色列表，支持关键词搜索
+      parameters:
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      - default: 10
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: 偏移量
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 获取成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_DataList-response_RoleListRowResponse'
+        "10001":
+          description: 服务器内部错误，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 获取角色列表
+      tags:
+      - 角色管理
+  /role/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新角色信息
+      parameters:
+      - description: 更新角色请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 更新成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 业务逻辑失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10008":
+          description: 认证失败，code=10008
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 更新角色
+      tags:
+      - 角色管理
+  /user/list:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取用户列表，支持关键词搜索
+      parameters:
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      - default: 10
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: 偏移量
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 获取成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_DataList-response_UserListRowResponse'
+        "10001":
+          description: 服务器内部错误，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 获取用户列表
+      tags:
+      - 用户管理
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户的详细资料信息
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 获取成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_ProfileResponse'
+        "10001":
+          description: 服务器内部错误，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "20005":
+          description: 用户不存在，code=20005
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 获取用户资料
+      tags:
+      - 用户管理
+schemes:
+- http
+- https
+swagger: "2.0"

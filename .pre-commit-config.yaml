@@ -4,16 +4,23 @@ repos:
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=10240"]
+        exclude: ^docs/
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.37.1
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
+        exclude: ^docs/
   - repo: https://github.com/dnephin/pre-commit-golang
     rev: v0.5.1
     hooks:
       - id: go-fmt
+        exclude: ^docs/
       - id: go-imports
+        exclude: ^docs/
       - id: no-go-testing
+        exclude: ^docs/
       - id: golangci-lint
+        exclude: ^docs/
       - id: go-unit-tests
+        exclude: ^docs/

@@ -38,6 +38,15 @@ func (c *CaptchaApi) commonGenerate(ctx *gin.Context, t constant.CaptchaType) {
 }
 
 // GenerateSignUpCaptcha 注册验证码
+//
+//	@Summary		生成注册验证码
+//	@Description	生成用户注册时使用的验证码
+//	@Tags			验证码管理
+//	@Accept			json
+//	@Produce		json
+//	@Success		10000	{object}	response.BasicResponse[response.GetCaptchaResponse]	"生成成功，code=10000"
+//	@Failure		10001	{object}	response.BasicResponse[any]							"生成失败，code=10001"
+//	@Router			/public/captcha/signup [get]
 func (c *CaptchaApi) GenerateSignUpCaptcha(ctx *gin.Context) {
 	c.commonGenerate(ctx, constant.SignUp)
 }

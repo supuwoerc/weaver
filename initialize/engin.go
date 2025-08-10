@@ -32,6 +32,8 @@ func NewEngine(emailClient *EmailClient, logger *logger.Logger, conf *conf.Confi
 	r.Use(middleware.NewCorsMiddleware(conf).Cors())
 	// 系统相关路由
 	router.InitSystemWebRouter(r)
+	// swag相关路由
+	router.InitSwagWebRouter(r, conf)
 	return r
 }
 

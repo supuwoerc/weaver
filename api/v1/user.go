@@ -56,6 +56,20 @@ func NewUserApi(basic *BasicApi, service UserService) *UserApi {
 	return userApi
 }
 
+// SignUp
+//
+//	@Summary		用户注册
+//	@Description	用户通过邮箱和密码进行注册
+//	@Tags			用户管理
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request.SignUpRequest		true	"注册请求参数"
+//	@Success		10000	{object}	response.BasicResponse[any]	"注册成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]	"参数验证失败，code=10002"
+//	@Failure		20004	{object}	response.BasicResponse[any]	"邮箱格式错误，code=20004"
+//	@Failure		20003	{object}	response.BasicResponse[any]	"密码格式错误，code=20003"
+//	@Failure		10001	{object}	response.BasicResponse[any]	"业务逻辑失败，code=10001"
+//	@Router			/public/user/signup [post]
 func (r *UserApi) SignUp(ctx *gin.Context) {
 	var params request.SignUpRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
@@ -83,6 +97,18 @@ func (r *UserApi) SignUp(ctx *gin.Context) {
 	response.Success(ctx)
 }
 
+// Login
+//
+//	@Summary		用户登录
+//	@Description	用户通过邮箱和密码进行登录
+//	@Tags			用户管理
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request.LoginRequest							true	"登录请求参数"
+//	@Success		10000	{object}	response.BasicResponse[response.LoginResponse]	"登录成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]						"参数验证失败，code=10002"
+//	@Failure		20001	{object}	response.BasicResponse[any]						"登录失败，code=20001"
+//	@Router			/public/user/login [post]
 func (r *UserApi) Login(ctx *gin.Context) {
 	var params request.LoginRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
@@ -97,6 +123,18 @@ func (r *UserApi) Login(ctx *gin.Context) {
 	response.SuccessWithData(ctx, res)
 }
 
+// Profile
+//
+//	@Summary		获取用户资料
+//	@Description	获取当前登录用户的详细资料信息
+//	@Tags			用户管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		10000	{object}	response.BasicResponse[response.ProfileResponse]	"获取成功，code=10000"
+//	@Failure		20005	{object}	response.BasicResponse[any]							"用户不存在，code=20005"
+//	@Failure		10001	{object}	response.BasicResponse[any]							"服务器内部错误，code=10001"
+//	@Router			/user/profile [get]
 func (r *UserApi) Profile(ctx *gin.Context) {
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
@@ -111,6 +149,21 @@ func (r *UserApi) Profile(ctx *gin.Context) {
 	response.SuccessWithData(ctx, detail)
 }
 
+// GetUserList
+//
+//	@Summary		获取用户列表
+//	@Description	分页获取用户列表，支持关键词搜索
+//	@Tags			用户管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			keyword	query		string																	false	"搜索关键词"
+//	@Param			limit	query		int																		false	"每页数量"	default(10)
+//	@Param			offset	query		int																		false	"偏移量"	default(0)
+//	@Success		10000	{object}	response.BasicResponse[response.DataList[response.UserListRowResponse]]	"获取成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]												"参数验证失败，code=10002"
+//	@Failure		10001	{object}	response.BasicResponse[any]												"服务器内部错误，code=10001"
+//	@Router			/user/list [get]
 func (r *UserApi) GetUserList(ctx *gin.Context) {
 	var params request.GetUserListRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {

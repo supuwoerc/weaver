@@ -2,16 +2,16 @@ package request
 
 // SignUpRequest 注册请求参数
 type SignUpRequest struct {
-	Email    string `json:"email" binding:"required,email,max=50"`
-	Password string `json:"password" binding:"required"`
-	ID       string `json:"id" binding:"required"`
-	Code     string `json:"code" binding:"required"`
+	Email    string `json:"email" binding:"required,email,max=50"` // 邮箱
+	Password string `json:"password" binding:"required"`           // 密码
+	ID       string `json:"id" binding:"required"`                 // 验证码ID
+	Code     string `json:"code" binding:"required"`               // 验证码内容
 }
 
 // LoginRequest 登录请求参数
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email,max=50"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required,email,max=50"` // 邮箱
+	Password string `json:"password" binding:"required"`           // 密码
 }
 
 // GetUserListRequest 查询用户列表的参数
