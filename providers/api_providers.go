@@ -4,11 +4,25 @@ import (
 	"github.com/google/wire"
 	"github.com/mojocn/base64Captcha"
 	v1 "github.com/supuwoerc/weaver/api/v1"
+	attachment2 "github.com/supuwoerc/weaver/api/v1/attachment"
+	captcha3 "github.com/supuwoerc/weaver/api/v1/captcha"
+	department2 "github.com/supuwoerc/weaver/api/v1/department"
+	permission2 "github.com/supuwoerc/weaver/api/v1/permission"
+	ping2 "github.com/supuwoerc/weaver/api/v1/ping"
+	role2 "github.com/supuwoerc/weaver/api/v1/role"
+	user2 "github.com/supuwoerc/weaver/api/v1/user"
 	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/pkg/captcha"
 	"github.com/supuwoerc/weaver/repository/cache"
 	"github.com/supuwoerc/weaver/repository/dao"
 	"github.com/supuwoerc/weaver/service"
+	"github.com/supuwoerc/weaver/service/attachment"
+	captcha2 "github.com/supuwoerc/weaver/service/captcha"
+	"github.com/supuwoerc/weaver/service/department"
+	"github.com/supuwoerc/weaver/service/permission"
+	"github.com/supuwoerc/weaver/service/ping"
+	"github.com/supuwoerc/weaver/service/role"
+	"github.com/supuwoerc/weaver/service/user"
 )
 
 var basicApiProvider = wire.NewSet(
@@ -24,71 +38,81 @@ var basicServiceProvider = wire.NewSet(
 )
 
 var attachmentApiProvider = wire.NewSet(
-	wire.Bind(new(v1.AttachmentService), new(*service.AttachmentService)),
-	wire.Bind(new(service.AttachmentDAO), new(*dao.AttachmentDAO)),
-	wire.Bind(new(service.AttachmentStorage), new(*initialize.S3CompatibleStorage)),
+	wire.Bind(new(attachment2.Service), new(*attachment.Service)),
+	wire.Bind(new(attachment.DAO), new(*dao.AttachmentDAO)),
+	wire.Bind(new(attachment.Storage), new(*initialize.S3CompatibleStorage)),
 	initialize.NewS3CompatibleStorage,
 	dao.NewAttachmentDAO,
-	service.NewAttachmentService,
-	v1.NewAttachmentApi,
+	attachment.NewAttachmentService,
+	attachment2.NewAttachmentApi,
 )
 
 var captchaApiProvider = wire.NewSet(
-	wire.Bind(new(v1.CaptchaService), new(*service.CaptchaService)),
+	wire.Bind(new(captcha3.Service), new(*captcha2.Service)),
 	wire.Bind(new(base64Captcha.Store), new(*captcha.RedisStore)),
 	captcha.NewRedisStore,
-	service.NewCaptchaService,
-	v1.NewCaptchaApi,
+	captcha2.NewCaptchaService,
+	captcha3.NewCaptchaApi,
 )
 
 var departmentServiceProvider = wire.NewSet(
-	wire.Bind(new(DepartmentCache), new(*service.DepartmentService)),
-	wire.Bind(new(v1.DepartmentService), new(*service.DepartmentService)),
-	wire.Bind(new(service.DepartmentDAO), new(*dao.DepartmentDAO)),
-	wire.Bind(new(service.DepartmentCache), new(*cache.DepartmentCache)),
+	wire.Bind(new(DepartmentCache), new(*department.Service)),
+	wire.Bind(new(department2.Service), new(*department.Service)),
+	wire.Bind(new(department.DAO), new(*dao.DepartmentDAO)),
+	wire.Bind(new(department.DepartmentCache), new(*cache.DepartmentCache)),
 	dao.NewDepartmentDAO,
 	cache.NewDepartmentCache,
-	service.NewDepartmentService,
+	department.NewDepartmentService,
 )
 
 var departmentApiProvider = wire.NewSet(
 	departmentServiceProvider,
-	v1.NewDepartmentApi,
+	department2.NewDepartmentApi,
+)
+
+var roleDAOProvider = wire.NewSet(
+	wire.Bind(new(permission.RoleDAO), new(*dao.RoleDAO)),
+	wire.Bind(new(role.DAO), new(*dao.RoleDAO)),
+	dao.NewRoleDAO,
+)
+
+var permissionDAOProvider = wire.NewSet(
+	wire.Bind(new(permission.DAO), new(*dao.PermissionDAO)),
+	wire.Bind(new(role.PermissionDAO), new(*dao.PermissionDAO)),
+	dao.NewPermissionDAO,
 )
 
 var permissionServiceProvider = wire.NewSet(
-	wire.Bind(new(PermissionCache), new(*service.PermissionService)),
-	wire.Bind(new(v1.PermissionService), new(*service.PermissionService)),
-	wire.Bind(new(service.PermissionDAO), new(*dao.PermissionDAO)),
-	dao.NewPermissionDAO,
-	service.NewPermissionService,
+	wire.Bind(new(PermissionCache), new(*permission.Service)),
+	wire.Bind(new(permission2.Service), new(*permission.Service)),
+	permissionDAOProvider,
+	permission.NewPermissionService,
 )
 
 var permissionApiProvider = wire.NewSet(
 	permissionServiceProvider,
-	v1.NewPermissionApi,
+	permission2.NewPermissionApi,
 )
 
 var pingApiProvider = wire.NewSet(
-	wire.Bind(new(v1.PingService), new(*service.PingService)),
-	service.NewPingService,
-	v1.NewPingApi,
+	wire.Bind(new(ping2.Service), new(*ping.Service)),
+	ping.NewPingService,
+	ping2.NewPingApi,
 )
 
 var roleApiProvider = wire.NewSet(
-	wire.Bind(new(v1.RoleService), new(*service.RoleService)),
-	wire.Bind(new(service.RoleDAO), new(*dao.RoleDAO)),
-	dao.NewRoleDAO,
-	service.NewRoleService,
-	v1.NewRoleApi,
+	wire.Bind(new(role2.Service), new(*role.Service)),
+	roleDAOProvider,
+	role.NewRoleService,
+	role2.NewRoleApi,
 )
 
 var userApiProvider = wire.NewSet(
-	wire.Bind(new(v1.UserService), new(*service.UserService)),
-	wire.Bind(new(service.UserDAO), new(*dao.UserDAO)),
+	wire.Bind(new(user2.Service), new(*user.Service)),
+	wire.Bind(new(user.DAO), new(*dao.UserDAO)),
 	dao.NewUserDAO,
-	service.NewUserService,
-	v1.NewUserApi,
+	user.NewUserService,
+	user2.NewUserApi,
 )
 
 var ApiProvider = wire.NewSet(

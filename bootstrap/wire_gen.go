@@ -8,6 +8,13 @@ package bootstrap
 
 import (
 	v1 "github.com/supuwoerc/weaver/api/v1"
+	attachment2 "github.com/supuwoerc/weaver/api/v1/attachment"
+	captcha3 "github.com/supuwoerc/weaver/api/v1/captcha"
+	department2 "github.com/supuwoerc/weaver/api/v1/department"
+	permission2 "github.com/supuwoerc/weaver/api/v1/permission"
+	ping2 "github.com/supuwoerc/weaver/api/v1/ping"
+	role2 "github.com/supuwoerc/weaver/api/v1/role"
+	user2 "github.com/supuwoerc/weaver/api/v1/user"
 	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/middleware"
 	cache2 "github.com/supuwoerc/weaver/pkg/cache"
@@ -21,6 +28,13 @@ import (
 	"github.com/supuwoerc/weaver/repository/dao"
 	"github.com/supuwoerc/weaver/router"
 	"github.com/supuwoerc/weaver/service"
+	"github.com/supuwoerc/weaver/service/attachment"
+	captcha2 "github.com/supuwoerc/weaver/service/captcha"
+	"github.com/supuwoerc/weaver/service/department"
+	"github.com/supuwoerc/weaver/service/permission"
+	"github.com/supuwoerc/weaver/service/ping"
+	"github.com/supuwoerc/weaver/service/role"
+	"github.com/supuwoerc/weaver/service/user"
 )
 
 // Injectors from wire.go:
@@ -46,10 +60,10 @@ func WireApp() *App {
 	departmentDAO := dao.NewDepartmentDAO(basicDAO)
 	departmentCache := cache.NewDepartmentCache(commonRedisClient)
 	userDAO := dao.NewUserDAO(basicDAO)
-	departmentService := service.NewDepartmentService(basicService, departmentDAO, departmentCache, userDAO)
+	departmentService := department.NewDepartmentService(basicService, departmentDAO, departmentCache, userDAO)
 	permissionDAO := dao.NewPermissionDAO(basicDAO)
 	roleDAO := dao.NewRoleDAO(basicDAO)
-	permissionService := service.NewPermissionService(basicService, permissionDAO, roleDAO)
+	permissionService := permission.NewPermissionService(basicService, permissionDAO, roleDAO)
 	v2 := providers.SystemCaches(departmentService, permissionService)
 	systemCacheManager := cache2.NewSystemCacheManager(v2...)
 	engine := initialize.NewEngine(emailClient, loggerLogger, config)
@@ -62,19 +76,19 @@ func WireApp() *App {
 	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
 	client := initialize.NewS3Client(config)
 	s3CompatibleStorage := initialize.NewS3CompatibleStorage(config, client)
-	attachmentService := service.NewAttachmentService(basicService, attachmentDAO, s3CompatibleStorage)
-	attachmentApi := v1.NewAttachmentApi(basicApi, attachmentService)
+	attachmentService := attachment.NewAttachmentService(basicService, attachmentDAO, s3CompatibleStorage)
+	attachmentApi := attachment2.NewAttachmentApi(basicApi, attachmentService)
 	redisStore := captcha.NewRedisStore(commonRedisClient, config)
-	captchaService := service.NewCaptchaService(redisStore)
-	captchaApi := v1.NewCaptchaApi(basicApi, captchaService)
-	departmentApi := v1.NewDepartmentApi(basicApi, departmentService)
-	permissionApi := v1.NewPermissionApi(basicApi, permissionService)
-	pingService := service.NewPingService(basicService)
-	pingApi := v1.NewPingApi(basicApi, pingService)
-	roleService := service.NewRoleService(basicService, roleDAO, userDAO, permissionDAO)
-	roleApi := v1.NewRoleApi(basicApi, roleService)
-	userService := service.NewUserService(basicService, captchaService, userDAO, userCache, emailClient, tokenBuilder)
-	userApi := v1.NewUserApi(basicApi, userService)
+	captchaService := captcha2.NewCaptchaService(redisStore)
+	captchaApi := captcha3.NewCaptchaApi(basicApi, captchaService)
+	departmentApi := department2.NewDepartmentApi(basicApi, departmentService)
+	permissionApi := permission2.NewPermissionApi(basicApi, permissionService)
+	pingService := ping.NewPingService(basicService)
+	pingApi := ping2.NewPingApi(basicApi, pingService)
+	roleService := role.NewRoleService(basicService, roleDAO, userDAO, permissionDAO)
+	roleApi := role2.NewRoleApi(basicApi, roleService)
+	userService := user.NewUserService(basicService, captchaService, userDAO, userCache, tokenBuilder)
+	userApi := user2.NewUserApi(basicApi, userService)
 	app := &App{
 		logger:        loggerLogger,
 		conf:          config,

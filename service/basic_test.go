@@ -49,7 +49,7 @@ func TestNewBasicService(t *testing.T) {
 			wantNil:     false,
 		},
 		{
-			name:        "nil db",
+			name:        "nil DB",
 			logger:      &logger.Logger{},
 			db:          nil,
 			locksmith:   &utils.RedisLocksmith{},
@@ -98,11 +98,11 @@ func TestNewBasicService(t *testing.T) {
 				assert.Nil(t, service, "service should be nil")
 			} else {
 				assert.NotNil(t, service, "service should not be nil")
-				assert.Equal(t, tc.logger, service.logger, "logger not properly set")
-				assert.Equal(t, tc.db, service.db, "db not properly set")
-				assert.Equal(t, tc.locksmith, service.locksmith, "locksmith not properly set")
-				assert.Equal(t, tc.conf, service.conf, "config not properly set")
-				assert.Equal(t, tc.emailClient, service.emailClient, "email client not properly set")
+				assert.Equal(t, tc.logger, service.Logger, "logger not properly set")
+				assert.Equal(t, tc.db, service.DB, "DB not properly set")
+				assert.Equal(t, tc.locksmith, service.Locksmith, "locksmith not properly set")
+				assert.Equal(t, tc.conf, service.Conf, "config not properly set")
+				assert.Equal(t, tc.emailClient, service.EmailClient, "email client not properly set")
 			}
 		})
 	}

@@ -1,20 +1,20 @@
-package service
+package permission
 
 import (
 	"context"
 	"strconv"
 
+	"github.com/samber/lo"
 	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/database"
 	"github.com/supuwoerc/weaver/pkg/request"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
-
-	"github.com/samber/lo"
+	"github.com/supuwoerc/weaver/service"
 )
 
-type PermissionDAO interface {
+type DAO interface {
 	Create(ctx context.Context, permission *models.Permission) error
 	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Permission, error)
 	GetById(ctx context.Context, id uint, preload ...string) (*models.Permission, error)
@@ -26,37 +26,41 @@ type PermissionDAO interface {
 	GetByNameOrResource(ctx context.Context, name, resource string) ([]*models.Permission, error)
 }
 
-type PermissionService struct {
-	*BasicService
-	permissionDAO PermissionDAO
+type RoleDAO interface {
+	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Role, error)
+}
+
+type Service struct {
+	*service.BasicService
+	permissionDAO DAO
 	roleDAO       RoleDAO
 }
 
-func NewPermissionService(basic *BasicService, permissionDAO PermissionDAO, roleDAO RoleDAO) *PermissionService {
-	return &PermissionService{
+func NewPermissionService(basic *service.BasicService, permissionDAO DAO, roleDAO RoleDAO) *Service {
+	return &Service{
 		BasicService:  basic,
 		permissionDAO: permissionDAO,
 		roleDAO:       roleDAO,
 	}
 }
 
-func (p *PermissionService) lockPermissionField(ctx context.Context, name, resource string, roleIds []uint) ([]*utils.RedisLock, error) {
+func (p *Service) lockPermissionField(ctx context.Context, name, resource string, roleIds []uint) ([]*utils.RedisLock, error) {
 	locks := make([]*utils.RedisLock, 0, len(roleIds)+2)
 	// 权限名称锁
-	permissionNameLock := p.locksmith.NewLock(constant.PermissionNamePrefix, name)
+	permissionNameLock := p.Locksmith.NewLock(constant.PermissionNamePrefix, name)
 	if err := permissionNameLock.Lock(ctx, true); err != nil {
 		return locks, err
 	}
 	locks = append(locks, permissionNameLock)
 	// 权限资源锁
-	permissionResourceLock := p.locksmith.NewLock(constant.PermissionResourcePrefix, resource)
+	permissionResourceLock := p.Locksmith.NewLock(constant.PermissionResourcePrefix, resource)
 	if err := permissionResourceLock.Lock(ctx, true); err != nil {
 		return locks, err
 	}
 	locks = append(locks, permissionResourceLock)
 	// 角色锁
 	for _, roleId := range roleIds {
-		roleIdLock := p.locksmith.NewLock(constant.RoleIdPrefix, strconv.Itoa(int(roleId)))
+		roleIdLock := p.Locksmith.NewLock(constant.RoleIdPrefix, strconv.Itoa(int(roleId)))
 		if err := roleIdLock.Lock(ctx, true); err != nil {
 			return locks, err
 		}
@@ -65,12 +69,12 @@ func (p *PermissionService) lockPermissionField(ctx context.Context, name, resou
 	return locks, nil
 }
 
-func (p *PermissionService) CreatePermission(ctx context.Context, operator uint, params *request.CreatePermissionRequest) error {
+func (p *Service) CreatePermission(ctx context.Context, operator uint, params *request.CreatePermissionRequest) error {
 	locks, err := p.lockPermissionField(ctx, params.Name, params.Resource, params.Roles)
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
-				p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
+				p.Logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -106,7 +110,7 @@ func (p *PermissionService) CreatePermission(ctx context.Context, operator uint,
 	})
 }
 
-func (p *PermissionService) GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*response.PermissionListRowResponse, int64, error) {
+func (p *Service) GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*response.PermissionListRowResponse, int64, error) {
 	list, total, err := p.permissionDAO.GetList(ctx, keyword, limit, offset)
 	if err != nil {
 		return nil, 0, err
@@ -116,7 +120,7 @@ func (p *PermissionService) GetPermissionList(ctx context.Context, keyword strin
 	}), total, nil
 }
 
-func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error) {
+func (p *Service) GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error) {
 	permission, err := p.permissionDAO.GetById(ctx, id, "Roles")
 	if err != nil {
 		return nil, err
@@ -124,9 +128,9 @@ func (p *PermissionService) GetPermissionDetail(ctx context.Context, id uint) (*
 	return response.ToPermissionDetailResponse(permission), nil
 }
 
-func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint, params *request.UpdatePermissionRequest) error {
+func (p *Service) UpdatePermission(ctx context.Context, operator uint, params *request.UpdatePermissionRequest) error {
 	// 对权限自身加锁
-	permissionLock := p.locksmith.NewLock(constant.PermissionIdPrefix, strconv.Itoa(int(params.ID)))
+	permissionLock := p.Locksmith.NewLock(constant.PermissionIdPrefix, strconv.Itoa(int(params.ID)))
 	if err := permissionLock.Lock(ctx, true); err != nil {
 		return err
 	}
@@ -136,7 +140,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
+			p.Logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(permissionLock)
 	// 对 name & resource & roleIds 加锁
@@ -144,7 +148,7 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
-				p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
+				p.Logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -187,15 +191,15 @@ func (p *PermissionService) UpdatePermission(ctx context.Context, operator uint,
 	})
 }
 
-func (p *PermissionService) DeletePermission(ctx context.Context, id, operator uint) error {
+func (p *Service) DeletePermission(ctx context.Context, id, operator uint) error {
 	// 对权限自身加锁
-	permissionLock := p.locksmith.NewLock(constant.PermissionIdPrefix, strconv.Itoa(int(id)))
+	permissionLock := p.Locksmith.NewLock(constant.PermissionIdPrefix, strconv.Itoa(int(id)))
 	if err := permissionLock.Lock(ctx, true); err != nil {
 		return err
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
+			p.Logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(permissionLock)
 	count := p.permissionDAO.GetRolesCount(ctx, id)
@@ -205,17 +209,17 @@ func (p *PermissionService) DeletePermission(ctx context.Context, id, operator u
 	return p.permissionDAO.DeleteById(ctx, id, operator)
 }
 
-func (p *PermissionService) Key() string {
+func (p *Service) Key() string {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p *PermissionService) Refresh(context.Context) error {
+func (p *Service) Refresh(context.Context) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p *PermissionService) Clean(context.Context) error {
+func (p *Service) Clean(context.Context) error {
 	//TODO implement me
 	panic("implement me")
 }

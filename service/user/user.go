@@ -1,4 +1,4 @@
-package service
+package user
 
 import (
 	"context"
@@ -7,19 +7,20 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/jwt"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
+	"github.com/supuwoerc/weaver/service"
+	"github.com/supuwoerc/weaver/service/captcha"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserDAO interface {
+type DAO interface {
 	Create(ctx context.Context, user *models.User) error
 	GetByEmail(ctx context.Context, email string, preload ...string) (*models.User, error)
 	GetById(ctx context.Context, uid uint, preload ...string) (*models.User, error)
@@ -28,7 +29,7 @@ type UserDAO interface {
 	GetAll(ctx context.Context) ([]*models.User, error)
 	UpdateAccountStatus(ctx context.Context, id uint, status constant.UserStatus) error
 }
-type UserCache interface {
+type Cache interface {
 	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
 	GetTokenPairIsExist(ctx context.Context, email string) (bool, error)
 	GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error)
@@ -37,39 +38,36 @@ type UserCache interface {
 	RemoveActiveAccountCode(ctx context.Context, id uint) error
 }
 
-type UserEmailClient interface {
+type EmailClient interface {
 	SendHTML(ctx context.Context, to string, subject constant.Subject, templatePath constant.Template, data any) error
 }
 
-type UserService struct {
-	*BasicService
-	*CaptchaService
-	userDAO      UserDAO
-	userCache    UserCache
-	emailClient  UserEmailClient
+type Service struct {
+	*service.BasicService
+	*captcha.Service
+	userDAO      DAO
+	userCache    Cache
 	tokenBuilder *jwt.TokenBuilder
 }
 
 func NewUserService(
-	basic *BasicService,
-	captchaService *CaptchaService,
-	userDAO UserDAO,
-	userCache UserCache,
-	ec *initialize.EmailClient,
+	basic *service.BasicService,
+	captchaService *captcha.Service,
+	userDAO DAO,
+	userCache Cache,
 	tb *jwt.TokenBuilder,
-) *UserService {
-	return &UserService{
-		BasicService:   basic,
-		CaptchaService: captchaService,
-		userDAO:        userDAO,
-		userCache:      userCache,
-		emailClient:    ec,
-		tokenBuilder:   tb,
+) *Service {
+	return &Service{
+		BasicService: basic,
+		Service:      captchaService,
+		userDAO:      userDAO,
+		userCache:    userCache,
+		tokenBuilder: tb,
 	}
 }
 
-func (u *UserService) SignUp(ctx context.Context, id string, code string, user *models.User) error {
-	verify := u.CaptchaService.Verify(constant.SignUp, id, code)
+func (u *Service) SignUp(ctx context.Context, id string, code string, user *models.User) error {
+	verify := u.Service.Verify(constant.SignUp, id, code)
 	if !verify {
 		return response.CaptchaVerifyFail
 	}
@@ -80,13 +78,13 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	var pwd = string(password)
 	user.Password = pwd
 	user.Status = constant.Inactive
-	emailLock := u.locksmith.NewLock(constant.SignUpEmailPrefix, user.Email)
+	emailLock := u.Locksmith.NewLock(constant.SignUpEmailPrefix, user.Email)
 	if err = emailLock.Lock(ctx, true); err != nil {
 		return err
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			u.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
+			u.Logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(emailLock)
 	existUser, err := u.userDAO.GetByEmail(ctx, user.Email)
@@ -104,30 +102,30 @@ func (u *UserService) SignUp(ctx context.Context, id string, code string, user *
 	})
 }
 
-func (u *UserService) sendActiveEmail(ctx context.Context, uid uint, email string) error {
+func (u *Service) sendActiveEmail(ctx context.Context, uid uint, email string) error {
 	activeURL, makeErr := u.generateActiveURL(ctx, uid)
 	if makeErr != nil {
 		return makeErr
 	}
 	variable := models.SignUpVariable{ActiveURL: activeURL}
-	err := u.emailClient.SendHTML(ctx, email, constant.Signup, constant.SignupTemplate, variable)
+	err := u.EmailClient.SendHTML(ctx, email, constant.Signup, constant.SignupTemplate, variable)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (u *UserService) generateActiveURL(ctx context.Context, uid uint) (string, error) {
+func (u *Service) generateActiveURL(ctx context.Context, uid uint) (string, error) {
 	activeCode := lo.RandomString(constant.UserActiveCodeLength, lo.LettersCharset)
-	baseURL := u.conf.System.BaseURL
-	expiration := u.conf.Account.Expiration
+	baseURL := u.Conf.System.BaseURL
+	expiration := u.Conf.Account.Expiration
 	if err := u.userCache.CacheActiveAccountCode(ctx, uid, activeCode, expiration*time.Second); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%s/view/v1/public/user/active?active_code=%s&id=%d", baseURL, activeCode, uid), nil
 }
 
-func (u *UserService) Login(ctx context.Context, email string, password string) (*response.LoginResponse, error) {
+func (u *Service) Login(ctx context.Context, email string, password string) (*response.LoginResponse, error) {
 	user, err := u.userDAO.GetByEmail(ctx, email, "Roles")
 	switch {
 	case err != nil:
@@ -183,7 +181,7 @@ func (u *UserService) Login(ctx context.Context, email string, password string) 
 	}, nil
 }
 
-func (u *UserService) Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error) {
+func (u *Service) Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error) {
 	user, err := u.userDAO.GetById(ctx, uid, "Roles", "Roles.Permissions", "Departments")
 	if err != nil {
 		return nil, err
@@ -205,7 +203,7 @@ func (u *UserService) Profile(ctx context.Context, uid uint) (*response.ProfileR
 	}, nil
 }
 
-func (u *UserService) GetUserList(
+func (u *Service) GetUserList(
 	ctx context.Context, keyword string, limit, offset int,
 ) ([]*response.UserListRowResponse, int64, error) {
 	list, total, err := u.userDAO.GetList(ctx, keyword, limit, offset)
@@ -217,14 +215,14 @@ func (u *UserService) GetUserList(
 	}), total, nil
 }
 
-func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode string) error {
-	userLock := u.locksmith.NewLock(constant.UserIdPrefix, strconv.Itoa(int(uid)))
+func (u *Service) ActiveAccount(ctx context.Context, uid uint, activeCode string) error {
+	userLock := u.Locksmith.NewLock(constant.UserIdPrefix, strconv.Itoa(int(uid)))
 	if lockErr := userLock.Lock(ctx, true); lockErr != nil {
 		return lockErr
 	}
 	defer func(lock *utils.RedisLock) {
 		if e := lock.Unlock(); e != nil {
-			u.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
+			u.Logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(userLock)
 	code, err := u.userCache.GetActiveAccountCode(ctx, uid)
@@ -236,7 +234,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 			if err == nil && user.Status == constant.Inactive {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
-						u.logger.WithContext(ctx).Errorf("send active email fail %s", err.Error())
+						u.Logger.WithContext(ctx).Errorf("send active email fail %s", err.Error())
 					}
 				}()
 			}
@@ -261,7 +259,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 			if err = u.userDAO.UpdateAccountStatus(ctx, uid, constant.Normal); err != nil {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
-						u.logger.WithContext(ctx).Errorf("send active email fail %s", err.Error())
+						u.Logger.WithContext(ctx).Errorf("send active email fail %s", err.Error())
 					}
 				}()
 				return err
@@ -269,7 +267,7 @@ func (u *UserService) ActiveAccount(ctx context.Context, uid uint, activeCode st
 			if err = u.userCache.RemoveActiveAccountCode(ctx, uid); err != nil {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
-						u.logger.WithContext(ctx).Errorf("send active email fail %s", err.Error())
+						u.Logger.WithContext(ctx).Errorf("send active email fail %s", err.Error())
 					}
 				}()
 				return err

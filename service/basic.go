@@ -17,11 +17,11 @@ import (
 )
 
 type BasicService struct {
-	logger      *logger.Logger
-	db          *gorm.DB
-	locksmith   *utils.RedisLocksmith
-	conf        *conf.Config
-	emailClient *initialize.EmailClient
+	Logger      *logger.Logger
+	DB          *gorm.DB
+	Locksmith   *utils.RedisLocksmith
+	Conf        *conf.Config
+	EmailClient *initialize.EmailClient
 }
 
 func NewBasicService(
@@ -32,11 +32,11 @@ func NewBasicService(
 	emailClient *initialize.EmailClient,
 ) *BasicService {
 	return &BasicService{
-		logger:      logger,
-		db:          db,
-		locksmith:   locksmith,
-		conf:        conf,
-		emailClient: emailClient,
+		Logger:      logger,
+		DB:          db,
+		Locksmith:   locksmith,
+		Conf:        conf,
+		EmailClient: emailClient,
 	}
 }
 
@@ -44,7 +44,7 @@ func NewBasicService(
 func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.Action, options ...*sql.TxOptions) error {
 	isStarter := false // 是否是事务开启者
 	manager := &database.TransactionManager{
-		DB:                           s.db,
+		DB:                           s.DB,
 		AlreadyCommittedOrRolledBack: false,
 	}
 	if join {
@@ -71,7 +71,7 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		defer func() {
 			if err := recover(); err != nil {
 				stackInfo := string(debug.Stack())
-				s.logger.WithContext(wrapContext).Errorw("transaction recover", "panic", err, "stack", stackInfo)
+				s.Logger.WithContext(wrapContext).Errorw("transaction recover", "panic", err, "stack", stackInfo)
 				execErr = fmt.Errorf("transaction panic: %s", err)
 			}
 		}()
@@ -82,7 +82,7 @@ func (s *BasicService) Transaction(ctx context.Context, join bool, fn database.A
 		if !manager.AlreadyCommittedOrRolledBack {
 			manager.AlreadyCommittedOrRolledBack = true
 			if rollback := manager.DB.Rollback(); rollback.Error != nil {
-				s.logger.WithContext(wrapContext).Errorw("rollback fail",
+				s.Logger.WithContext(wrapContext).Errorw("rollback fail",
 					"err", rollback.Error.Error(),
 					"execErr", execErr.Error(),
 				)

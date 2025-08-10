@@ -1,8 +1,9 @@
-package v1
+package permission
 
 import (
 	"context"
 
+	v1 "github.com/supuwoerc/weaver/api/v1"
 	"github.com/supuwoerc/weaver/pkg/request"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
@@ -10,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type PermissionService interface {
+type Service interface {
 	CreatePermission(ctx context.Context, operator uint, params *request.CreatePermissionRequest) error
 	GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*response.PermissionListRowResponse, int64, error)
 	GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error)
@@ -18,20 +19,20 @@ type PermissionService interface {
 	DeletePermission(ctx context.Context, id, operator uint) error
 }
 
-type PermissionApi struct {
-	*BasicApi
-	service PermissionService
+type Api struct {
+	*v1.BasicApi
+	service Service
 }
 
-func NewPermissionApi(basic *BasicApi, service PermissionService) *PermissionApi {
-	permissionApi := &PermissionApi{
+func NewPermissionApi(basic *v1.BasicApi, service Service) *Api {
+	permissionApi := &Api{
 		BasicApi: basic,
 		service:  service,
 	}
 	// 挂载路由
-	permissionAccessGroup := basic.route.Group("permission").Use(
-		basic.auth.LoginRequired(),
-		basic.auth.PermissionRequired(),
+	permissionAccessGroup := basic.Route.Group("permission").Use(
+		basic.Auth.LoginRequired(),
+		basic.Auth.PermissionRequired(),
 	)
 	{
 		permissionAccessGroup.POST("create", permissionApi.CreatePermission)
@@ -57,7 +58,7 @@ func NewPermissionApi(basic *BasicApi, service PermissionService) *PermissionApi
 //	@Failure		10008	{object}	response.BasicResponse[any]		"认证失败，code=10008"
 //	@Failure		10001	{object}	response.BasicResponse[any]		"业务逻辑失败，code=10001"
 //	@Router			/permission/create [post]
-func (r *PermissionApi) CreatePermission(ctx *gin.Context) {
+func (r *Api) CreatePermission(ctx *gin.Context) {
 	var params request.CreatePermissionRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -92,7 +93,7 @@ func (r *PermissionApi) CreatePermission(ctx *gin.Context) {
 //	@Failure		10002	{object}	response.BasicResponse[any]														"参数验证失败，code=10002"
 //	@Failure		10001	{object}	response.BasicResponse[any]														"服务器内部错误，code=10001"
 //	@Router			/permission/list [get]
-func (r *PermissionApi) GetPermissionList(ctx *gin.Context) {
+func (r *Api) GetPermissionList(ctx *gin.Context) {
 	var params request.GetPermissionListRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -119,7 +120,7 @@ func (r *PermissionApi) GetPermissionList(ctx *gin.Context) {
 //	@Failure		10002	{object}	response.BasicResponse[any]									"参数验证失败，code=10002"
 //	@Failure		10001	{object}	response.BasicResponse[any]									"服务器内部错误，code=10001"
 //	@Router			/permission/detail [get]
-func (r *PermissionApi) GetPermissionDetail(ctx *gin.Context) {
+func (r *Api) GetPermissionDetail(ctx *gin.Context) {
 	var params request.GetPermissionDetailRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -147,7 +148,7 @@ func (r *PermissionApi) GetPermissionDetail(ctx *gin.Context) {
 //	@Failure		10008	{object}	response.BasicResponse[any]		"认证失败，code=10008"
 //	@Failure		10001	{object}	response.BasicResponse[any]		"业务逻辑失败，code=10001"
 //	@Router			/permission/update [post]
-func (r *PermissionApi) UpdatePermission(ctx *gin.Context) {
+func (r *Api) UpdatePermission(ctx *gin.Context) {
 	var params request.UpdatePermissionRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -181,7 +182,7 @@ func (r *PermissionApi) UpdatePermission(ctx *gin.Context) {
 //	@Failure		10008	{object}	response.BasicResponse[any]		"认证失败，code=10008"
 //	@Failure		10001	{object}	response.BasicResponse[any]		"业务逻辑失败，code=10001"
 //	@Router			/permission/delete [post]
-func (r *PermissionApi) DeletePermission(ctx *gin.Context) {
+func (r *Api) DeletePermission(ctx *gin.Context) {
 	var params request.DeletePermissionRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)

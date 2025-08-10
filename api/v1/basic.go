@@ -8,10 +8,10 @@ import (
 )
 
 type BasicApi struct {
-	route  *gin.RouterGroup
-	logger *logger.Logger
-	conf   *conf.Config
-	auth   *middleware.AuthMiddleware
+	Route  *gin.RouterGroup
+	Logger *logger.Logger
+	Conf   *conf.Config
+	Auth   *middleware.AuthMiddleware
 }
 
 func NewBasicApi(
@@ -21,9 +21,9 @@ func NewBasicApi(
 	auth *middleware.AuthMiddleware,
 ) *BasicApi {
 	return &BasicApi{
-		route:  route,
-		logger: logger,
-		conf:   conf,
-		auth:   auth,
+		Route:  route,
+		Logger: logger,
+		Conf:   conf,
+		Auth:   auth,
 	}
 }

@@ -3,7 +3,13 @@ package bootstrap
 import (
 	"context"
 
-	v1 "github.com/supuwoerc/weaver/api/v1"
+	v1 "github.com/supuwoerc/weaver/api/v1/attachment"
+	"github.com/supuwoerc/weaver/api/v1/captcha"
+	"github.com/supuwoerc/weaver/api/v1/department"
+	"github.com/supuwoerc/weaver/api/v1/permission"
+	"github.com/supuwoerc/weaver/api/v1/ping"
+	"github.com/supuwoerc/weaver/api/v1/role"
+	"github.com/supuwoerc/weaver/api/v1/user"
 	"github.com/supuwoerc/weaver/conf"
 	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/pkg/cache"
@@ -18,13 +24,13 @@ type App struct {
 	jobManager    *job.SystemJobManager
 	cacheManager  *cache.SystemCacheManager
 	httpServer    *initialize.HttpServer
-	attachmentApi *v1.AttachmentApi
-	captchaApi    *v1.CaptchaApi
-	departmentApi *v1.DepartmentApi
-	permissionApi *v1.PermissionApi
-	pingApi       *v1.PingApi
-	roleApi       *v1.RoleApi
-	userApi       *v1.UserApi
+	attachmentApi *v1.Api
+	captchaApi    *captcha.Api
+	departmentApi *department.Api
+	permissionApi *permission.Api
+	pingApi       *ping.Api
+	roleApi       *role.Api
+	userApi       *user.Api
 }
 
 func (a *App) Run() {

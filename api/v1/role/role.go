@@ -1,8 +1,9 @@
-package v1
+package role
 
 import (
 	"context"
 
+	v1 "github.com/supuwoerc/weaver/api/v1"
 	"github.com/supuwoerc/weaver/pkg/request"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
@@ -10,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type RoleService interface {
+type Service interface {
 	CreateRole(ctx context.Context, operator uint, params *request.CreateRoleRequest) error
 	GetRoleList(ctx context.Context, keyword string, limit, offset int) ([]*response.RoleListRowResponse, int64, error)
 	GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error)
@@ -18,19 +19,19 @@ type RoleService interface {
 	DeleteRole(ctx context.Context, id, operator uint) error
 }
 
-type RoleApi struct {
-	*BasicApi
-	service RoleService
+type Api struct {
+	*v1.BasicApi
+	service Service
 }
 
-func NewRoleApi(basic *BasicApi, service RoleService) *RoleApi {
-	roleApi := &RoleApi{
+func NewRoleApi(basic *v1.BasicApi, service Service) *Api {
+	roleApi := &Api{
 		BasicApi: basic,
 		service:  service,
 	}
-	roleAccessGroup := basic.route.Group("role").Use(
-		basic.auth.LoginRequired(),
-		basic.auth.PermissionRequired(),
+	roleAccessGroup := basic.Route.Group("role").Use(
+		basic.Auth.LoginRequired(),
+		basic.Auth.PermissionRequired(),
 	)
 	{
 		roleAccessGroup.POST("create", roleApi.CreateRole)
@@ -56,7 +57,7 @@ func NewRoleApi(basic *BasicApi, service RoleService) *RoleApi {
 //	@Failure		10008	{object}	response.BasicResponse[any]	"认证失败，code=10008"
 //	@Failure		10001	{object}	response.BasicResponse[any]	"业务逻辑失败，code=10001"
 //	@Router			/role/create [post]
-func (r *RoleApi) CreateRole(ctx *gin.Context) {
+func (r *Api) CreateRole(ctx *gin.Context) {
 	var params request.CreateRoleRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -91,7 +92,7 @@ func (r *RoleApi) CreateRole(ctx *gin.Context) {
 //	@Failure		10002	{object}	response.BasicResponse[any]												"参数验证失败，code=10002"
 //	@Failure		10001	{object}	response.BasicResponse[any]												"服务器内部错误，code=10001"
 //	@Router			/role/list [get]
-func (r *RoleApi) GetRoleList(ctx *gin.Context) {
+func (r *Api) GetRoleList(ctx *gin.Context) {
 	var params request.GetRoleListRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -118,7 +119,7 @@ func (r *RoleApi) GetRoleList(ctx *gin.Context) {
 //	@Failure		10002	{object}	response.BasicResponse[any]							"参数验证失败，code=10002"
 //	@Failure		10001	{object}	response.BasicResponse[any]							"服务器内部错误，code=10001"
 //	@Router			/role/detail [get]
-func (r *RoleApi) GetRoleDetail(ctx *gin.Context) {
+func (r *Api) GetRoleDetail(ctx *gin.Context) {
 	var params request.GetRoleDetailRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -146,7 +147,7 @@ func (r *RoleApi) GetRoleDetail(ctx *gin.Context) {
 //	@Failure		10008	{object}	response.BasicResponse[any]	"认证失败，code=10008"
 //	@Failure		10001	{object}	response.BasicResponse[any]	"业务逻辑失败，code=10001"
 //	@Router			/role/update [post]
-func (r *RoleApi) UpdateRole(ctx *gin.Context) {
+func (r *Api) UpdateRole(ctx *gin.Context) {
 	var params request.UpdateRoleRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -180,7 +181,7 @@ func (r *RoleApi) UpdateRole(ctx *gin.Context) {
 //	@Failure		10008	{object}	response.BasicResponse[any]	"认证失败，code=10008"
 //	@Failure		10001	{object}	response.BasicResponse[any]	"业务逻辑失败，code=10001"
 //	@Router			/role/delete [post]
-func (r *RoleApi) DeleteRole(ctx *gin.Context) {
+func (r *Api) DeleteRole(ctx *gin.Context) {
 	var params request.DeleteRoleRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)

@@ -1,4 +1,4 @@
-package service
+package department
 
 import (
 	"context"
@@ -12,6 +12,8 @@ import (
 	"github.com/supuwoerc/weaver/pkg/request"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
+	"github.com/supuwoerc/weaver/service"
+	"github.com/supuwoerc/weaver/service/user"
 
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
@@ -19,7 +21,7 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-type DepartmentDAO interface {
+type DAO interface {
 	Create(ctx context.Context, dept *models.Department) error
 	GetByName(ctx context.Context, name string) (*models.Department, error)
 	GetById(ctx context.Context, id uint) (*models.Department, error)
@@ -34,21 +36,21 @@ type DepartmentCache interface {
 	RemoveDepartmentCache(ctx context.Context, keys ...constant.CacheKey) error
 }
 
-type DepartmentService struct {
-	*BasicService
-	departmentDAO   DepartmentDAO
+type Service struct {
+	*service.BasicService
+	departmentDAO   DAO
 	departmentCache DepartmentCache
-	userDAO         UserDAO
+	userDAO         user.DAO
 	deptTreeSfg     singleflight.Group
 }
 
 func NewDepartmentService(
-	basic *BasicService,
-	deptDAO DepartmentDAO,
+	basic *service.BasicService,
+	deptDAO DAO,
 	deptCache DepartmentCache,
-	userDAO UserDAO,
-) *DepartmentService {
-	return &DepartmentService{
+	userDAO user.DAO,
+) *Service {
+	return &Service{
 		BasicService:    basic,
 		departmentDAO:   deptDAO,
 		departmentCache: deptCache,
@@ -56,17 +58,17 @@ func NewDepartmentService(
 	}
 }
 
-func (p *DepartmentService) lockDepartmentField(ctx context.Context, name string, parentId *uint) ([]*utils.RedisLock, error) {
+func (p *Service) lockDepartmentField(ctx context.Context, name string, parentId *uint) ([]*utils.RedisLock, error) {
 	locks := make([]*utils.RedisLock, 0)
 	// 名称锁
-	deptNameLock := p.locksmith.NewLock(constant.DepartmentNamePrefix, name)
+	deptNameLock := p.Locksmith.NewLock(constant.DepartmentNamePrefix, name)
 	if err := deptNameLock.Lock(ctx, true); err != nil {
 		return locks, err
 	}
 	locks = append(locks, deptNameLock)
 	if parentId != nil {
 		// 父部门锁
-		parentLock := p.locksmith.NewLock(constant.DepartmentIdPrefix, strconv.Itoa(int(*parentId)))
+		parentLock := p.Locksmith.NewLock(constant.DepartmentIdPrefix, strconv.Itoa(int(*parentId)))
 		if err := parentLock.Lock(ctx, true); err != nil {
 			return locks, err
 		}
@@ -75,12 +77,12 @@ func (p *DepartmentService) lockDepartmentField(ctx context.Context, name string
 	return locks, nil
 }
 
-func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint, params *request.CreateDepartmentRequest) error {
+func (p *Service) CreateDepartment(ctx context.Context, operator uint, params *request.CreateDepartmentRequest) error {
 	locks, err := p.lockDepartmentField(ctx, params.Name, params.ParentId)
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
-				p.logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
+				p.Logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 			}
 		}
 	}()
@@ -151,7 +153,7 @@ func (p *DepartmentService) CreateDepartment(ctx context.Context, operator uint,
 	})
 }
 
-func (p *DepartmentService) GetDepartmentTree(ctx context.Context, withCrew bool) ([]*response.DepartmentTreeResponse, error) {
+func (p *Service) GetDepartmentTree(ctx context.Context, withCrew bool) ([]*response.DepartmentTreeResponse, error) {
 	key := constant.DepartmentTreeSfgKey
 	if withCrew {
 		key = constant.DepartmentTreeWithCrewSfgKey
@@ -184,7 +186,7 @@ func (p *DepartmentService) GetDepartmentTree(ctx context.Context, withCrew bool
 	return result.([]*response.DepartmentTreeResponse), nil
 }
 
-func (p *DepartmentService) processDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
+func (p *Service) processDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
 	cache, err := p.departmentCache.GetDepartmentCache(ctx, key)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -195,7 +197,7 @@ func (p *DepartmentService) processDepartmentCache(ctx context.Context, key cons
 	return cache, nil
 }
 
-func (p *DepartmentService) processDepartmentWithCrew(ctx context.Context, departments []*models.Department) error {
+func (p *Service) processDepartmentWithCrew(ctx context.Context, departments []*models.Department) error {
 	var users []*models.User
 	var deptLeader []*models.DepartmentLeader
 	var userDept []*models.UserDepartment
@@ -249,7 +251,7 @@ func (p *DepartmentService) processDepartmentWithCrew(ctx context.Context, depar
 	return nil
 }
 
-func (p *DepartmentService) processTree(departments []*models.Department) ([]*response.DepartmentTreeResponse, error) {
+func (p *Service) processTree(departments []*models.Department) ([]*response.DepartmentTreeResponse, error) {
 	var res []*response.DepartmentTreeResponse
 	nodeMap := make(map[uint]*response.DepartmentTreeResponse)
 	deptMap := make(map[uint]*models.Department)
@@ -284,15 +286,15 @@ func (p *DepartmentService) processTree(departments []*models.Department) ([]*re
 	return res, nil
 }
 
-func (p *DepartmentService) Key() string {
+func (p *Service) Key() string {
 	return constant.AutoManageDeptCache
 }
 
-func (p *DepartmentService) Refresh(ctx context.Context) error {
+func (p *Service) Refresh(ctx context.Context) error {
 	start := time.Now()
-	p.logger.WithContext(ctx).Infow("refresh department", "begin", start.Format(time.DateTime))
+	p.Logger.WithContext(ctx).Infow("refresh department", "begin", start.Format(time.DateTime))
 	defer func() {
-		p.logger.WithContext(ctx).Infow("refresh department",
+		p.Logger.WithContext(ctx).Infow("refresh department",
 			"end", time.Now().Format(time.DateTime), "cost",
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)
@@ -315,11 +317,11 @@ func (p *DepartmentService) Refresh(ctx context.Context) error {
 	return err
 }
 
-func (p *DepartmentService) Clean(ctx context.Context) error {
+func (p *Service) Clean(ctx context.Context) error {
 	start := time.Now()
-	p.logger.WithContext(ctx).Infow("clean department", "begin", start.Format(time.DateTime))
+	p.Logger.WithContext(ctx).Infow("clean department", "begin", start.Format(time.DateTime))
 	defer func() {
-		p.logger.WithContext(ctx).Infow("clean department",
+		p.Logger.WithContext(ctx).Infow("clean department",
 			"end", time.Now().Format(time.DateTime), "cost",
 			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
 		)

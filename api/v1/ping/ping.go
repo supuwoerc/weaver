@@ -1,4 +1,4 @@
-package v1
+package ping
 
 import (
 	"context"
@@ -9,27 +9,28 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	v1 "github.com/supuwoerc/weaver/api/v1"
 	"github.com/supuwoerc/weaver/pkg/response"
 )
 
-type PingService interface {
+type Service interface {
 	LockPermissionField(ctx context.Context) error
 }
-type PingApi struct {
-	*BasicApi
-	service PingService
+type Api struct {
+	*v1.BasicApi
+	service Service
 }
 
-func NewPingApi(basic *BasicApi, service PingService) *PingApi {
-	pinApi := &PingApi{
+func NewPingApi(basic *v1.BasicApi, service Service) *Api {
+	pinApi := &Api{
 		BasicApi: basic,
 		service:  service,
 	}
-	group := basic.route.Group("ping")
+	group := basic.Route.Group("ping")
 	{
 		group.GET("", pinApi.Ping)
 		group.GET("exception", pinApi.Exception)
-		group.GET("check-permission", basic.auth.LoginRequired(), basic.auth.PermissionRequired(), pinApi.CheckPermission)
+		group.GET("check-permission", basic.Auth.LoginRequired(), basic.Auth.PermissionRequired(), pinApi.CheckPermission)
 		group.GET("slow", pinApi.SlowResponse)
 		group.GET("check-lock", pinApi.LockResponse)
 		group.GET("logger-trace", pinApi.LoggerTrace)
@@ -46,7 +47,7 @@ func NewPingApi(basic *BasicApi, service PingService) *PingApi {
 //	@Produce		json
 //	@Success		10000	{object}	response.BasicResponse[string]	"健康检查成功，code=10000"
 //	@Router			/ping [get]
-func (p *PingApi) Ping(ctx *gin.Context) {
+func (p *Api) Ping(ctx *gin.Context) {
 	response.SuccessWithData[string](ctx, "pong")
 }
 
@@ -59,7 +60,7 @@ func (p *PingApi) Ping(ctx *gin.Context) {
 //	@Produce		json
 //	@Success		10000	{object}	response.BasicResponse[int]	"异常测试成功，code=10000"
 //	@Router			/ping/exception [get]
-func (p *PingApi) Exception(ctx *gin.Context) {
+func (p *Api) Exception(ctx *gin.Context) {
 	num := 100 - (99 + 1)
 	response.SuccessWithData[int](ctx, 1/num)
 }
@@ -73,7 +74,7 @@ func (p *PingApi) Exception(ctx *gin.Context) {
 //	@Produce		text/plain
 //	@Security		BearerAuth
 //	@Router			/ping/check-permission [get]
-func (p *PingApi) CheckPermission(ctx *gin.Context) {
+func (p *Api) CheckPermission(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "ok")
 }
 
@@ -86,7 +87,7 @@ func (p *PingApi) CheckPermission(ctx *gin.Context) {
 //	@Produce		text/plain
 //	@Param			t	query	int	true	"睡眠秒数"
 //	@Router			/ping/slow [get]
-func (p *PingApi) SlowResponse(ctx *gin.Context) {
+func (p *Api) SlowResponse(ctx *gin.Context) {
 	value := ctx.Query("t")
 	second, err := strconv.Atoi(value)
 	if err != nil {
@@ -107,7 +108,7 @@ func (p *PingApi) SlowResponse(ctx *gin.Context) {
 //	@Success		10000	{object}	response.BasicResponse[any]	"锁测试成功，code=10000"
 //	@Failure		10001	{object}	response.BasicResponse[any]	"锁测试失败，code=10001"
 //	@Router			/ping/check-lock [get]
-func (p *PingApi) LockResponse(ctx *gin.Context) {
+func (p *Api) LockResponse(ctx *gin.Context) {
 	err := p.service.LockPermissionField(ctx)
 	if err != nil {
 		response.FailWithError(ctx, err)
@@ -124,7 +125,7 @@ func (p *PingApi) LockResponse(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		text/plain
 //	@Router			/ping/logger-trace [get]
-func (p *PingApi) LoggerTrace(ctx *gin.Context) {
-	p.logger.WithContext(ctx).Infow("test message", "content", "hello trace!!!")
+func (p *Api) LoggerTrace(ctx *gin.Context) {
+	p.Logger.WithContext(ctx).Infow("test message", "content", "hello trace!!!")
 	ctx.String(http.StatusOK, "ok")
 }

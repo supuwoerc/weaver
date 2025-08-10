@@ -1,9 +1,10 @@
-package v1
+package user
 
 import (
 	"context"
 	"net/http"
 
+	v1 "github.com/supuwoerc/weaver/api/v1"
 	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/request"
@@ -14,7 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserService interface {
+type Service interface {
 	SignUp(ctx context.Context, id string, code string, user *models.User) error
 	Login(ctx context.Context, email string, password string) (*response.LoginResponse, error)
 	Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error)
@@ -22,16 +23,16 @@ type UserService interface {
 	ActiveAccount(ctx context.Context, uid uint, activeCode string) error
 }
 
-type UserApi struct {
-	*BasicApi
+type Api struct {
+	*v1.BasicApi
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
 	phoneRegexExp    *regexp.Regexp
-	service          UserService
+	service          Service
 }
 
-func NewUserApi(basic *BasicApi, service UserService) *UserApi {
-	userApi := &UserApi{
+func NewUserApi(basic *v1.BasicApi, service Service) *Api {
+	userApi := &Api{
 		BasicApi:         basic,
 		emailRegexExp:    regexp.MustCompile(constant.EmailRegexPattern, regexp.None),
 		passwordRegexExp: regexp.MustCompile(constant.PasswdRegexPattern, regexp.None),
@@ -39,7 +40,7 @@ func NewUserApi(basic *BasicApi, service UserService) *UserApi {
 		service:          service,
 	}
 	// 挂载路由
-	userPublicGroup := basic.route.Group("public/user")
+	userPublicGroup := basic.Route.Group("public/user")
 	{
 		userPublicGroup.POST("signup", userApi.SignUp)
 		userPublicGroup.POST("login", userApi.Login)
@@ -47,7 +48,7 @@ func NewUserApi(basic *BasicApi, service UserService) *UserApi {
 		userPublicGroup.GET("active-success", userApi.ActiveSuccess)
 		userPublicGroup.GET("active-failure", userApi.ActiveFailure)
 	}
-	userAccessGroup := basic.route.Group("user").Use(basic.auth.LoginRequired())
+	userAccessGroup := basic.Route.Group("user").Use(basic.Auth.LoginRequired())
 	{
 		userAccessGroup.GET("refresh-token")
 		userAccessGroup.GET("profile", userApi.Profile)
@@ -70,7 +71,7 @@ func NewUserApi(basic *BasicApi, service UserService) *UserApi {
 //	@Failure		20003	{object}	response.BasicResponse[any]	"密码格式错误，code=20003"
 //	@Failure		10001	{object}	response.BasicResponse[any]	"业务逻辑失败，code=10001"
 //	@Router			/public/user/signup [post]
-func (r *UserApi) SignUp(ctx *gin.Context) {
+func (r *Api) SignUp(ctx *gin.Context) {
 	var params request.SignUpRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -109,7 +110,7 @@ func (r *UserApi) SignUp(ctx *gin.Context) {
 //	@Failure		10002	{object}	response.BasicResponse[any]						"参数验证失败，code=10002"
 //	@Failure		20001	{object}	response.BasicResponse[any]						"登录失败，code=20001"
 //	@Router			/public/user/login [post]
-func (r *UserApi) Login(ctx *gin.Context) {
+func (r *Api) Login(ctx *gin.Context) {
 	var params request.LoginRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -135,7 +136,7 @@ func (r *UserApi) Login(ctx *gin.Context) {
 //	@Failure		20005	{object}	response.BasicResponse[any]							"用户不存在，code=20005"
 //	@Failure		10001	{object}	response.BasicResponse[any]							"服务器内部错误，code=10001"
 //	@Router			/user/profile [get]
-func (r *UserApi) Profile(ctx *gin.Context) {
+func (r *Api) Profile(ctx *gin.Context) {
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.UserNotExist)
@@ -164,7 +165,7 @@ func (r *UserApi) Profile(ctx *gin.Context) {
 //	@Failure		10002	{object}	response.BasicResponse[any]												"参数验证失败，code=10002"
 //	@Failure		10001	{object}	response.BasicResponse[any]												"服务器内部错误，code=10001"
 //	@Router			/user/list [get]
-func (r *UserApi) GetUserList(ctx *gin.Context) {
+func (r *Api) GetUserList(ctx *gin.Context) {
 	var params request.GetUserListRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -178,7 +179,7 @@ func (r *UserApi) GetUserList(ctx *gin.Context) {
 	response.SuccessWithPageData(ctx, total, list)
 }
 
-func (r *UserApi) Active(ctx *gin.Context) {
+func (r *Api) Active(ctx *gin.Context) {
 	var params request.ActiveAccountRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		ctx.Redirect(http.StatusMovedPermanently, "/view/v1/public/user/active-failure")
@@ -191,10 +192,10 @@ func (r *UserApi) Active(ctx *gin.Context) {
 		ctx.Redirect(http.StatusMovedPermanently, "/view/v1/public/user/active-success")
 	}
 }
-func (r *UserApi) ActiveSuccess(ctx *gin.Context) {
+func (r *Api) ActiveSuccess(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "active-success.html", nil)
 }
 
-func (r *UserApi) ActiveFailure(ctx *gin.Context) {
+func (r *Api) ActiveFailure(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "active-failure.html", nil)
 }

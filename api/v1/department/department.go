@@ -1,8 +1,9 @@
-package v1
+package department
 
 import (
 	"context"
 
+	v1 "github.com/supuwoerc/weaver/api/v1"
 	"github.com/supuwoerc/weaver/pkg/request"
 	"github.com/supuwoerc/weaver/pkg/response"
 	"github.com/supuwoerc/weaver/pkg/utils"
@@ -10,25 +11,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type DepartmentService interface {
+type Service interface {
 	CreateDepartment(ctx context.Context, operator uint, params *request.CreateDepartmentRequest) error
 	GetDepartmentTree(ctx context.Context, withCrew bool) ([]*response.DepartmentTreeResponse, error)
 }
 
-type DepartmentApi struct {
-	*BasicApi
-	service DepartmentService
+type Api struct {
+	*v1.BasicApi
+	service Service
 }
 
-func NewDepartmentApi(basic *BasicApi, service DepartmentService) *DepartmentApi {
-	departmentApi := &DepartmentApi{
+func NewDepartmentApi(basic *v1.BasicApi, service Service) *Api {
+	departmentApi := &Api{
 		BasicApi: basic,
 		service:  service,
 	}
 	// 挂载路由
-	departmentAccessGroup := basic.route.Group("department").Use(basic.auth.LoginRequired())
+	departmentAccessGroup := basic.Route.Group("department").Use(basic.Auth.LoginRequired())
 	{
-		departmentAccessGroup.POST("create", basic.auth.PermissionRequired(), departmentApi.CreateDepartment)
+		departmentAccessGroup.POST("create", basic.Auth.PermissionRequired(), departmentApi.CreateDepartment)
 		departmentAccessGroup.GET("tree", departmentApi.GetDepartmentTree)
 	}
 	return departmentApi
@@ -48,7 +49,7 @@ func NewDepartmentApi(basic *BasicApi, service DepartmentService) *DepartmentApi
 //	@Failure		10008	{object}	response.BasicResponse[any]		"认证失败，code=10008"
 //	@Failure		10001	{object}	response.BasicResponse[any]		"业务逻辑失败，code=10001"
 //	@Router			/department/create [post]
-func (r *DepartmentApi) CreateDepartment(ctx *gin.Context) {
+func (r *Api) CreateDepartment(ctx *gin.Context) {
 	var params request.CreateDepartmentRequest
 	if err := ctx.ShouldBindJSON(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
@@ -81,7 +82,7 @@ func (r *DepartmentApi) CreateDepartment(ctx *gin.Context) {
 //	@Failure		10002		{object}	response.BasicResponse[any]									"参数验证失败，code=10002"
 //	@Failure		10001		{object}	response.BasicResponse[any]									"服务器内部错误，code=10001"
 //	@Router			/department/tree [get]
-func (r *DepartmentApi) GetDepartmentTree(ctx *gin.Context) {
+func (r *Api) GetDepartmentTree(ctx *gin.Context) {
 	var params request.GetDepartmentTreeRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		response.ParamsValidateFail(ctx, err)
