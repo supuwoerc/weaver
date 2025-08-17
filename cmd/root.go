@@ -7,15 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Println("cli is called!")
-	},
-}
+var rootCmd = &cobra.Command{}
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing your CLI '%s'", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing cli '%s'", err)
 		os.Exit(1)
 	}
 }

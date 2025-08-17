@@ -1,7 +1,6 @@
 //go:build wireinject
 // +build wireinject
 
-//
 //go:generate wire
 package bootstrap
 
@@ -66,6 +65,19 @@ func WireApp() *App {
 		providers.ApiProvider,
 
 		wire.Struct(new(App), "*"),
+	)
+	return nil
+}
+
+func WireCli() *Cli {
+	wire.Build(
+		initialize.NewViper,
+		initialize.NewWriterSyncer,
+
+		initialize.NewZapLogger,
+		logger.NewLogger,
+
+		wire.Struct(new(Cli), "*"),
 	)
 	return nil
 }

@@ -105,3 +105,15 @@ func WireApp() *App {
 	}
 	return app
 }
+
+func WireCli() *Cli {
+	config := initialize.NewViper()
+	writeSyncer := initialize.NewWriterSyncer(config)
+	sugaredLogger := initialize.NewZapLogger(config, writeSyncer)
+	loggerLogger := logger.NewLogger(sugaredLogger)
+	cli := &Cli{
+		Logger: loggerLogger,
+		Conf:   config,
+	}
+	return cli
+}

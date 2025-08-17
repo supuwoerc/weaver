@@ -9,12 +9,15 @@ import (
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
+	"github.com/supuwoerc/weaver/bootstrap"
 )
 
 var welcomeCmd = &cobra.Command{
 	Use:   "welcome",
 	Short: "print welcome",
 	Run: func(cmd *cobra.Command, args []string) {
+		cli := bootstrap.WireCli()
+		cli.Logger.Infow("welcome cli is running...", "config.env", cli.Conf.Env)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		signalCh := make(chan os.Signal, 1)

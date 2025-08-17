@@ -3,7 +3,7 @@ package bootstrap
 import (
 	"context"
 
-	v1 "github.com/supuwoerc/weaver/api/v1/attachment"
+	"github.com/supuwoerc/weaver/api/v1/attachment"
 	"github.com/supuwoerc/weaver/api/v1/captcha"
 	"github.com/supuwoerc/weaver/api/v1/department"
 	"github.com/supuwoerc/weaver/api/v1/permission"
@@ -24,7 +24,7 @@ type App struct {
 	jobManager    *job.SystemJobManager
 	cacheManager  *cache.SystemCacheManager
 	httpServer    *initialize.HttpServer
-	attachmentApi *v1.Api
+	attachmentApi *attachment.Api
 	captchaApi    *captcha.Api
 	departmentApi *department.Api
 	permissionApi *permission.Api
@@ -71,4 +71,9 @@ func (a *App) Close() {
 			}
 		}
 	}
+}
+
+type Cli struct {
+	Logger *logger.Logger
+	Conf   *conf.Config
 }
