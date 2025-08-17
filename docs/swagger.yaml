@@ -545,6 +545,8 @@ definitions:
     type: object
   response.FrontEndPermission:
     properties:
+      id:
+        type: integer
       name:
         type: string
       resource:

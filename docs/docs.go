@@ -1912,6 +1912,9 @@ const docTemplate = `{
         "response.FrontEndPermission": {
             "type": "object",
             "properties": {
+                "id": {
+                    "type": "integer"
+                },
                 "name": {
                     "type": "string"
                 },

@@ -59,6 +59,7 @@ type FrontEndPermissions []*FrontEndPermission
 
 // FrontEndPermission 前端权限列表
 type FrontEndPermission struct {
+	ID       uint                    `json:"id"`
 	Name     string                  `json:"name"`
 	Resource string                  `json:"resource"`
 	Type     constant.PermissionType `json:"type"`
@@ -67,6 +68,7 @@ type FrontEndPermission struct {
 // ToFrontEndPermissionResponse 将permission转为响应
 func ToFrontEndPermissionResponse(permission *models.Permission) *FrontEndPermission {
 	return &FrontEndPermission{
+		ID:       permission.ID,
 		Name:     permission.Name,
 		Resource: permission.Resource,
 		Type:     permission.Type,
