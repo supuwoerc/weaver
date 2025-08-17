@@ -412,6 +412,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/permission/user-permissions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取账户可访问的前端权限(菜单权限 \u0026 路由权限)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "权限管理"
+                ],
+                "summary": "获取账户可访问的前端权限(菜单权限 \u0026 路由权限)",
+                "responses": {
+                    "10000": {
+                        "description": "获取成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_FrontEndPermissions"
+                        }
+                    },
+                    "10001": {
+                        "description": "服务器内部错误，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/ping": {
             "get": {
                 "description": "简单的健康检查接口，返回pong",
@@ -1073,26 +1113,30 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "constant.ResourceType": {
+        "constant.PermissionType": {
             "type": "integer",
             "format": "int32",
             "enum": [
                 1,
                 2,
-                3
+                3,
+                4
             ],
             "x-enum-comments": {
                 "ApiRoute": "apiRoute",
+                "ViewMenu": "viewMenu",
                 "ViewResource": "viewResource",
                 "ViewRoute": "viewRoute"
             },
             "x-enum-descriptions": [
                 "viewRoute",
+                "viewMenu",
                 "viewResource",
                 "apiRoute"
             ],
             "x-enum-varnames": [
                 "ViewRoute",
+                "ViewMenu",
                 "ViewResource",
                 "ApiRoute"
             ]
@@ -1217,7 +1261,7 @@ const docTemplate = `{
                     }
                 },
                 "type": {
-                    "$ref": "#/definitions/constant.ResourceType"
+                    "$ref": "#/definitions/constant.PermissionType"
                 },
                 "updated_at": {
                     "type": "string"
@@ -1370,7 +1414,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/constant.ResourceType"
+                            "$ref": "#/definitions/constant.PermissionType"
                         }
                     ]
                 }
@@ -1508,7 +1552,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/constant.ResourceType"
+                            "$ref": "#/definitions/constant.PermissionType"
                         }
                     ]
                 }
@@ -1623,6 +1667,23 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/response.DataList-response_UserListRowResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BasicResponse-response_FrontEndPermissions": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.FrontEndPermission"
+                    }
                 },
                 "message": {
                     "type": "string"
@@ -1848,6 +1909,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.FrontEndPermission": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/constant.PermissionType"
+                }
+            }
+        },
         "response.GetCaptchaResponse": {
             "type": "object",
             "properties": {
@@ -1910,7 +1985,7 @@ const docTemplate = `{
                     }
                 },
                 "type": {
-                    "$ref": "#/definitions/constant.ResourceType"
+                    "$ref": "#/definitions/constant.PermissionType"
                 },
                 "updated_at": {
                     "type": "string"
@@ -1959,7 +2034,7 @@ const docTemplate = `{
                 },
                 "roles": {},
                 "type": {
-                    "$ref": "#/definitions/constant.ResourceType"
+                    "$ref": "#/definitions/constant.PermissionType"
                 },
                 "updated_at": {
                     "type": "string"
@@ -2056,7 +2131,7 @@ const docTemplate = `{
                 },
                 "roles": {},
                 "type": {
-                    "$ref": "#/definitions/constant.ResourceType"
+                    "$ref": "#/definitions/constant.PermissionType"
                 },
                 "updated_at": {
                     "type": "string"

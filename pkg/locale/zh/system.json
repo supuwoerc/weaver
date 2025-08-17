@@ -33,11 +33,7 @@
   },
   {
     "id": "authErr",
-    "other": "权限校验出错"
-  },
-  {
-    "id": "noAuthority",
-    "other": "权限不足"
+    "other": "权限校验失败"
   },
   {
     "id": "timeoutErr",

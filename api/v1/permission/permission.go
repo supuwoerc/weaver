@@ -17,6 +17,7 @@ type Service interface {
 	GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error)
 	UpdatePermission(ctx context.Context, operator uint, params *request.UpdatePermissionRequest) error
 	DeletePermission(ctx context.Context, id, operator uint) error
+	GetUserViewPermissions(ctx context.Context, uid uint) (response.FrontEndPermissions, error)
 }
 
 type Api struct {
@@ -30,10 +31,11 @@ func NewPermissionApi(basic *v1.BasicApi, service Service) *Api {
 		service:  service,
 	}
 	// 挂载路由
-	permissionAccessGroup := basic.Route.Group("permission").Use(
-		basic.Auth.LoginRequired(),
-		basic.Auth.PermissionRequired(),
-	)
+	permissionGroup := basic.Route.Group("permission").Use(basic.Auth.LoginRequired())
+	{
+		permissionGroup.GET("user-permissions", permissionApi.GetUserViewPermissions)
+	}
+	permissionAccessGroup := permissionGroup.Use(basic.Auth.PermissionRequired())
 	{
 		permissionAccessGroup.POST("create", permissionApi.CreatePermission)
 		permissionAccessGroup.GET("list", permissionApi.GetPermissionList)
@@ -200,4 +202,30 @@ func (r *Api) DeletePermission(ctx *gin.Context) {
 		return
 	}
 	response.Success(ctx)
+}
+
+// GetUserViewPermissions
+//
+//	@Summary		获取账户可访问的前端权限(菜单权限 & 路由权限)
+//	@Description	获取账户可访问的前端权限(菜单权限 & 路由权限)
+//	@Tags			权限管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		10000	{object}	response.BasicResponse[response.FrontEndPermissions]	"获取成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]								"参数验证失败，code=10002"
+//	@Failure		10001	{object}	response.BasicResponse[any]								"服务器内部错误，code=10001"
+//	@Router			/permission/user-permissions [get]
+func (r *Api) GetUserViewPermissions(ctx *gin.Context) {
+	claims, err := utils.GetContextClaims(ctx)
+	if err != nil || claims == nil {
+		response.FailWithCode(ctx, response.AuthErr)
+		return
+	}
+	list, err := r.service.GetUserViewPermissions(ctx, claims.User.ID)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.SuccessWithData(ctx, list)
 }

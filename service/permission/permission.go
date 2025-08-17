@@ -211,3 +211,13 @@ func (s *Service) DeletePermission(ctx context.Context, id, operator uint) error
 	}
 	return s.permissionDAO.DeleteById(ctx, id, operator)
 }
+
+func (s *Service) GetUserViewPermissions(ctx context.Context, uid uint) (response.FrontEndPermissions, error) {
+	list, err := s.permissionDAO.GetUserPermissionsByType(ctx, uid, constant.ViewMenu, constant.ViewResource)
+	if err != nil {
+		return nil, err
+	}
+	return lo.Map(list, func(item *models.Permission, _ int) *response.FrontEndPermission {
+		return response.ToFrontEndPermissionResponse(item)
+	}), nil
+}

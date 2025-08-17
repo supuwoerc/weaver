@@ -3,6 +3,7 @@ package response
 import (
 	"github.com/samber/lo"
 	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/constant"
 )
 
 // PermissionListRowResponse 权限列表的行
@@ -51,5 +52,23 @@ func ToPermissionDetailResponse(permission *models.Permission) *PermissionDetail
 				Role: item,
 			}
 		}),
+	}
+}
+
+type FrontEndPermissions []*FrontEndPermission
+
+// FrontEndPermission 前端权限列表
+type FrontEndPermission struct {
+	Name     string                  `json:"name"`
+	Resource string                  `json:"resource"`
+	Type     constant.PermissionType `json:"type"`
+}
+
+// ToFrontEndPermissionResponse 将permission转为响应
+func ToFrontEndPermissionResponse(permission *models.Permission) *FrontEndPermission {
+	return &FrontEndPermission{
+		Name:     permission.Name,
+		Resource: permission.Resource,
+		Type:     permission.Type,
 	}
 }

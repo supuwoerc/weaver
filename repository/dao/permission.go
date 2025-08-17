@@ -144,7 +144,7 @@ func (r *PermissionDAO) GetUserPermissions(ctx context.Context, userId uint) ([]
 	var permissions []*models.Permission
 	err := r.Datasource(ctx).Model(&models.Permission{}).
 		Table("sys_permission as permission").
-		Joins("inner join sys_role_permission role_permission on permissions.id = role_permission.permission_id").
+		Joins("inner join sys_role_permission role_permission on permission.id = role_permission.permission_id").
 		Joins("inner join sys_user_role user_role on role_permission.role_id = user_role.role_id").
 		Where("user_role.user_id = ?", userId).
 		Group("permission.id").
@@ -160,10 +160,10 @@ func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uin
 	var permissions []*models.Permission
 	err := r.Datasource(ctx).Model(&models.Permission{}).
 		Table("sys_permission as permission").
-		Joins("inner join sys_role_permission role_permission on permissions.id = role_permission.permission_id").
+		Joins("inner join sys_role_permission role_permission on permission.id = role_permission.permission_id").
 		Joins("inner join sys_user_role user_role on role_permission.role_id = user_role.role_id").
 		Where("user_role.user_id = ?", userId).
-		Where("permissions.type in (?)", permissionType).
+		Where("permission.type in (?)", permissionType).
 		Group("permission.id").
 		Find(&permissions).Error
 	if err != nil {

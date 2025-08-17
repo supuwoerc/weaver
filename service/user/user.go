@@ -182,7 +182,7 @@ func (u *Service) Login(ctx context.Context, email string, password string) (*re
 }
 
 func (u *Service) Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error) {
-	user, err := u.userDAO.GetById(ctx, uid, "Roles", "Roles.Permissions", "Departments")
+	user, err := u.userDAO.GetById(ctx, uid, "Roles", "Departments")
 	if err != nil {
 		return nil, err
 	}

@@ -36,10 +36,6 @@
     "other": "Failed to check permissions"
   },
   {
-    "id": "noAuthority",
-    "other": "Lack of permissions"
-  },
-  {
     "id": "timeoutErr",
     "other": "Processing time too long, operation canceled"
   },
