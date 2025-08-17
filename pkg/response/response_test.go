@@ -571,7 +571,7 @@ func (m *mockFieldError) Value() interface{}      { return nil }
 func (m *mockFieldError) Param() string           { return "" }
 func (m *mockFieldError) Kind() reflect.Kind      { return reflect.String }
 func (m *mockFieldError) Type() reflect.Type      { return reflect.TypeOf("") }
-func (m *mockFieldError) Translate(ut ut.Translator) string {
+func (m *mockFieldError) Translate(_ ut.Translator) string {
 	return m.translation
 }
 func (m *mockFieldError) Error() string { return m.translation }
