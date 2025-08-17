@@ -71,13 +71,13 @@ func WireApp() *App {
 	routerGroup := router.NewRouter(engine, config)
 	userCache := cache.NewUserCache(commonRedisClient)
 	tokenBuilder := jwt.NewJwtBuilder(db, commonRedisClient, config, userCache)
-	authMiddleware := middleware.NewAuthMiddleware(config, userCache, tokenBuilder)
+	authMiddleware := middleware.NewAuthMiddleware(config, userCache, tokenBuilder, permissionDAO)
 	basicApi := v1.NewBasicApi(routerGroup, loggerLogger, config, authMiddleware)
 	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
 	client := initialize.NewS3Client(config)
 	s3CompatibleStorage := initialize.NewS3CompatibleStorage(config, client)
 	attachmentService := attachment.NewAttachmentService(basicService, attachmentDAO, s3CompatibleStorage)
-	attachmentApi := attachment2.NewAttachmentApi(basicApi, attachmentService)
+	api := attachment2.NewAttachmentApi(basicApi, attachmentService)
 	redisStore := captcha.NewRedisStore(commonRedisClient, config)
 	captchaService := captcha2.NewCaptchaService(redisStore)
 	captchaApi := captcha3.NewCaptchaApi(basicApi, captchaService)
@@ -95,7 +95,7 @@ func WireApp() *App {
 		jobManager:    systemJobManager,
 		cacheManager:  systemCacheManager,
 		httpServer:    httpServer,
-		attachmentApi: attachmentApi,
+		attachmentApi: api,
 		captchaApi:    captchaApi,
 		departmentApi: departmentApi,
 		permissionApi: permissionApi,

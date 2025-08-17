@@ -2,10 +2,8 @@ package department
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/constant"
@@ -30,7 +28,7 @@ type DAO interface {
 	GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error)
 }
 
-type DepartmentCache interface {
+type Cache interface {
 	CacheDepartment(ctx context.Context, key constant.CacheKey, depts models.Departments) error
 	GetDepartmentCache(ctx context.Context, key constant.CacheKey) (models.Departments, error)
 	RemoveDepartmentCache(ctx context.Context, keys ...constant.CacheKey) error
@@ -39,7 +37,7 @@ type DepartmentCache interface {
 type Service struct {
 	*service.BasicService
 	departmentDAO   DAO
-	departmentCache DepartmentCache
+	departmentCache Cache
 	userDAO         user.DAO
 	deptTreeSfg     singleflight.Group
 }
@@ -47,7 +45,7 @@ type Service struct {
 func NewDepartmentService(
 	basic *service.BasicService,
 	deptDAO DAO,
-	deptCache DepartmentCache,
+	deptCache Cache,
 	userDAO user.DAO,
 ) *Service {
 	return &Service{
@@ -284,51 +282,4 @@ func (p *Service) processTree(departments []*models.Department) ([]*response.Dep
 		}
 	}
 	return res, nil
-}
-
-func (p *Service) Key() string {
-	return constant.AutoManageDeptCache
-}
-
-func (p *Service) Refresh(ctx context.Context) error {
-	start := time.Now()
-	p.Logger.WithContext(ctx).Infow("refresh department", "begin", start.Format(time.DateTime))
-	defer func() {
-		p.Logger.WithContext(ctx).Infow("refresh department",
-			"end", time.Now().Format(time.DateTime), "cost",
-			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
-		)
-	}()
-	_, err, _ := p.deptTreeSfg.Do(string(constant.DepartmentTreeRefreshSfgKey), func() (interface{}, error) {
-		departments, err := p.departmentDAO.GetAll(ctx)
-		if err != nil {
-			return nil, err
-		}
-		sfgKey := constant.DepartmentTreeSfgKey
-		crewSfgKey := constant.DepartmentTreeWithCrewSfgKey
-		if err = p.departmentCache.CacheDepartment(ctx, sfgKey, departments); err != nil {
-			return nil, err
-		}
-		if err = p.processDepartmentWithCrew(ctx, departments); err != nil {
-			return nil, err
-		}
-		return nil, p.departmentCache.CacheDepartment(ctx, crewSfgKey, departments)
-	})
-	return err
-}
-
-func (p *Service) Clean(ctx context.Context) error {
-	start := time.Now()
-	p.Logger.WithContext(ctx).Infow("clean department", "begin", start.Format(time.DateTime))
-	defer func() {
-		p.Logger.WithContext(ctx).Infow("clean department",
-			"end", time.Now().Format(time.DateTime), "cost",
-			fmt.Sprintf("%dms", time.Since(start).Milliseconds()),
-		)
-	}()
-	_, err, _ := p.deptTreeSfg.Do(string(constant.DepartmentTreeCleanSfgKey), func() (interface{}, error) {
-		keys := []constant.CacheKey{constant.DepartmentTreeSfgKey, constant.DepartmentTreeWithCrewSfgKey}
-		return nil, p.departmentCache.RemoveDepartmentCache(ctx, keys...)
-	})
-	return err
 }

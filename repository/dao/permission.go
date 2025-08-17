@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/database"
 	"github.com/supuwoerc/weaver/pkg/response"
 
@@ -116,6 +117,55 @@ func (r *PermissionDAO) AssociateRoles(ctx context.Context, id uint, roles []*mo
 func (r *PermissionDAO) GetByNameOrResource(ctx context.Context, name, resource string) ([]*models.Permission, error) {
 	var permissions []*models.Permission
 	err := r.Datasource(ctx).Model(&models.Permission{}).Where("name = ? or resource = ?", name, resource).Find(&permissions).Error
+	if err != nil {
+		return nil, err
+	}
+	return permissions, nil
+}
+
+func (r *PermissionDAO) CheckUserPermission(ctx context.Context, uid uint, resource string, permissionType constant.PermissionType) (bool, error) {
+	var count int64
+	err := r.Datasource(ctx).Model(&models.Permission{}).
+		Table("sys_permission as permission").
+		Joins("inner join sys_role_permission as role_permission on role_permission.permission_id = permission.id").
+		Joins("inner join sys_user_role as user_role on user_role.role_id = role_permission.role_id").
+		Where("user_role.user_id = ?", uid).
+		Where("permission.resource = ?", resource).
+		Where("permission.type = ?", permissionType).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// GetUserPermissions 获取用户所有权限
+func (r *PermissionDAO) GetUserPermissions(ctx context.Context, userId uint) ([]*models.Permission, error) {
+	var permissions []*models.Permission
+	err := r.Datasource(ctx).Model(&models.Permission{}).
+		Table("sys_permission as permission").
+		Joins("inner join sys_role_permission role_permission on permissions.id = role_permission.permission_id").
+		Joins("inner join sys_user_role user_role on role_permission.role_id = user_role.role_id").
+		Where("user_role.user_id = ?", userId).
+		Group("permission.id").
+		Find(&permissions).Error
+	if err != nil {
+		return nil, err
+	}
+	return permissions, nil
+}
+
+// GetUserPermissionsByType 根据类型获取用户权限
+func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uint, permissionType ...constant.PermissionType) ([]*models.Permission, error) {
+	var permissions []*models.Permission
+	err := r.Datasource(ctx).Model(&models.Permission{}).
+		Table("sys_permission as permission").
+		Joins("inner join sys_role_permission role_permission on permissions.id = role_permission.permission_id").
+		Joins("inner join sys_user_role user_role on role_permission.role_id = user_role.role_id").
+		Where("user_role.user_id = ?", userId).
+		Where("permissions.type in (?)", permissionType).
+		Group("permission.id").
+		Find(&permissions).Error
 	if err != nil {
 		return nil, err
 	}

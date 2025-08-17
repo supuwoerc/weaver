@@ -35,17 +35,28 @@ type AuthMiddlewareTokenRepo interface {
 	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
 }
 
-type AuthMiddleware struct {
-	conf       *conf.Config
-	tokenRepo  AuthMiddlewareTokenRepo
-	jwtBuilder *jwt.TokenBuilder
+type AuthMiddlewarePermissionRepo interface {
+	CheckUserPermission(ctx context.Context, uid uint, resource string, permissionType constant.PermissionType) (bool, error)
 }
 
-func NewAuthMiddleware(conf *conf.Config, tokenRepo AuthMiddlewareTokenRepo, jwtBuilder *jwt.TokenBuilder) *AuthMiddleware {
+type AuthMiddleware struct {
+	conf              *conf.Config
+	tokenRepo         AuthMiddlewareTokenRepo
+	jwtBuilder        *jwt.TokenBuilder
+	permissionChecker AuthMiddlewarePermissionRepo
+}
+
+func NewAuthMiddleware(
+	conf *conf.Config,
+	tokenRepo AuthMiddlewareTokenRepo,
+	jwtBuilder *jwt.TokenBuilder,
+	permissionCheck AuthMiddlewarePermissionRepo,
+) *AuthMiddleware {
 	return &AuthMiddleware{
-		conf:       conf,
-		tokenRepo:  tokenRepo,
-		jwtBuilder: jwtBuilder,
+		conf:              conf,
+		tokenRepo:         tokenRepo,
+		jwtBuilder:        jwtBuilder,
+		permissionChecker: permissionCheck,
 	}
 }
 
@@ -116,23 +127,31 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 	}
 }
 
+func permissionInvalidResponse(ctx *gin.Context) {
+	response.FailWithError(ctx, response.AuthErr)
+}
+
 func (l *AuthMiddleware) PermissionRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 请求资源路径
-		//obj := c.Request.URL.Path
-		// 请求方法
-		//act := c.Request.Method
-		// TODO:根据用户确认请求主体
-		//sub := "admin"
-		//ok, err := true, nil
-		//if err != nil {
-		//	response.FailWithError(c, constant.GetError(c, response.CasbinErr))
-		//	return
-		//}
-		//if ok {
-		//	c.Next()
-		//} else {
-		//	response.FailWithError(c, constant.GetError(c, response.CasbinInvalid))
-		//}
+		// 获取用户信息
+		claims, exists := c.Get(constant.ClaimsContextKey)
+		if !exists {
+			permissionInvalidResponse(c)
+			return
+		}
+		tokenClaims, ok := claims.(*jwt.TokenClaims)
+		if !ok {
+			permissionInvalidResponse(c)
+			return
+		}
+		// 检查API权限
+		hasPermission, err := l.permissionChecker.CheckUserPermission(c, tokenClaims.User.ID, c.Request.URL.Path, constant.ApiRoute)
+		if err != nil {
+			response.FailWithError(c, err)
+			return
+		}
+		if !hasPermission {
+			permissionInvalidResponse(c)
+		}
 	}
 }

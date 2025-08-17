@@ -4,10 +4,10 @@ import "github.com/supuwoerc/weaver/pkg/constant"
 
 // CreatePermissionRequest 创建新权限的请求参数
 type CreatePermissionRequest struct {
-	Name     string                `json:"name" binding:"required,min=1,max=20"`
-	Resource string                `json:"resource" binding:"required,min=1,max=255"`
-	Type     constant.ResourceType `json:"type" binding:"required,oneof=1 2 3"`
-	Roles    []uint                `json:"roles" binding:"omitempty,dive,min=1"`
+	Name     string                  `json:"name" binding:"required,min=1,max=20"`
+	Resource string                  `json:"resource" binding:"required,min=1,max=255"`
+	Type     constant.PermissionType `json:"type" binding:"required,oneof=1 2 3"`
+	Roles    []uint                  `json:"roles" binding:"omitempty,dive,min=1"`
 }
 
 // GetPermissionListRequest 查询权限列表的参数

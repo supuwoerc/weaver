@@ -20,9 +20,8 @@ const (
 	InvalidRefreshToken     StatusCode = 10006 // invalidRefreshToken
 	UnnecessaryRefreshToken StatusCode = 10007 // unnecessaryRefreshToken
 	AuthErr                 StatusCode = 10008 // authErr
-	NoAuthority             StatusCode = 10009 // noAuthority
-	TimeoutErr              StatusCode = 10010 // timeoutErr
-	Busy                    StatusCode = 10011 // busy
+	TimeoutErr              StatusCode = 10009 // timeoutErr
+	Busy                    StatusCode = 10010 // busy
 )
 
 const (

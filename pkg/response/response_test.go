@@ -461,7 +461,7 @@ func TestFailWithCode(t *testing.T) {
 		{
 			name:         "timeout error",
 			code:         TimeoutErr,
-			expectedCode: 10010,
+			expectedCode: 10009,
 		},
 	}
 
@@ -507,7 +507,7 @@ func TestFailWithError(t *testing.T) {
 		{
 			name:         "context deadline exceeded",
 			err:          context.DeadlineExceeded,
-			expectedCode: 10010,
+			expectedCode: 10009,
 			expectedMsg:  "",
 		},
 		{
@@ -531,7 +531,7 @@ func TestFailWithError(t *testing.T) {
 		{
 			name:         "wrapped context deadline exceeded",
 			err:          fmt.Errorf("timeout: %w", context.DeadlineExceeded),
-			expectedCode: 10010,
+			expectedCode: 10009,
 			expectedMsg:  "",
 		},
 	}
