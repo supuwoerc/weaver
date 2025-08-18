@@ -128,6 +128,10 @@ func (l *AuthMiddleware) PermissionRequired() gin.HandlerFunc {
 			response.FailWithError(c, response.AuthErr)
 			return
 		}
+		if tokenClaims.User.Email == l.conf.System.Admin.Email {
+			c.Next()
+			return
+		}
 		// 检查API权限
 		hasPermission, err := l.permissionChecker.CheckUserPermission(c, tokenClaims.User.ID, c.Request.URL.Path, constant.ApiRoute)
 		if err != nil {
