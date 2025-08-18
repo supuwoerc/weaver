@@ -14,6 +14,7 @@ type SystemConfig struct {
 	Admin              Admin      `mapstructure:"admin"`                // 管理员信息
 	Email              Email      `mapstructure:"email"`                // 邮件配置
 	Hooks              Hooks      `mapstructure:"hooks"`                // hooks
+	RateLimit          RateLimit  `mapstructure:"rate_limit"`           // 请求限速
 }
 
 type Admin struct {
@@ -29,6 +30,11 @@ type Email struct {
 type Hooks struct {
 	Launch []string `mapstructure:"launch"`
 	Close  []string `mapstructure:"close"`
+}
+
+type RateLimit struct {
+	Pattern string `mapstructure:"pattern"`
+	Prefix  string `mapstructure:"prefix"`
 }
 
 type LocalePath struct {

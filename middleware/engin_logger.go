@@ -49,7 +49,7 @@ func (e *EnginLoggerMiddleware) Logger() gin.HandlerFunc {
 			"path", param.Path,
 			"latency", fmt.Sprintf("%v", param.Latency),
 			"method", param.Method,
-			"code", param.StatusCode,
+			"statusCode", param.StatusCode,
 			"size", param.BodySize,
 			"client", param.ClientIP,
 		}

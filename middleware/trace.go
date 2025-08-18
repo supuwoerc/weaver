@@ -27,6 +27,7 @@ func (c *TraceMiddleware) Trace() gin.HandlerFunc {
 		if strings.TrimSpace(requestTraceID) == "" {
 			requestTraceID = c.generateTraceID()
 		}
+		ctx.Header(c.conf.System.TraceKey, requestTraceID)
 		ctx.Set(string(logger.TraceIDContextKey), requestTraceID)
 	}
 }

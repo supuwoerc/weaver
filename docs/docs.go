@@ -1115,7 +1115,6 @@ const docTemplate = `{
     "definitions": {
         "constant.PermissionType": {
             "type": "integer",
-            "format": "int32",
             "enum": [
                 1,
                 2,
@@ -1128,12 +1127,6 @@ const docTemplate = `{
                 "ViewResource": "viewResource",
                 "ViewRoute": "viewRoute"
             },
-            "x-enum-descriptions": [
-                "viewRoute",
-                "viewMenu",
-                "viewResource",
-                "apiRoute"
-            ],
             "x-enum-varnames": [
                 "ViewRoute",
                 "ViewMenu",
@@ -1151,10 +1144,6 @@ const docTemplate = `{
                 "Females": "females",
                 "Male": "male"
             },
-            "x-enum-descriptions": [
-                "male",
-                "females"
-            ],
             "x-enum-varnames": [
                 "Male",
                 "Females"
@@ -1172,11 +1161,6 @@ const docTemplate = `{
                 "Inactive": "inactive",
                 "Normal": "normal"
             },
-            "x-enum-descriptions": [
-                "inactive",
-                "normal",
-                "disabled"
-            ],
             "x-enum-varnames": [
                 "Inactive",
                 "Normal",

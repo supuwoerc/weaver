@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/supuwoerc/weaver/conf"
-	"github.com/supuwoerc/weaver/middleware"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -14,12 +13,8 @@ const (
 	swagRoutePattern = "swagger/*any"
 )
 
-func NewRouter(r *gin.Engine, conf *conf.Config) *gin.RouterGroup {
-	group := r.Group("api/v1")
-	// 国际化中间件
-	i18n := middleware.NewI18NMiddleware(conf)
-	group.Use(i18n.I18N(), i18n.InjectTranslator())
-	return group
+func NewRouter(r *gin.Engine) *gin.RouterGroup {
+	return r.Group("api/v1")
 }
 
 func NotFoundHandler(context *gin.Context) {

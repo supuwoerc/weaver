@@ -42,7 +42,7 @@ func TestNewSystemJobManager(t *testing.T) {
 	emailClient := &initialize.EmailClient{}
 	cronLogger := initialize.NewCronLogger(zapLogger, emailClient)
 	cronClient := initialize.NewCronClient(cronLogger)
-
+	t.Parallel()
 	t.Run("empty jobs SystemJobManager", func(t *testing.T) {
 		manager := NewSystemJobManager(cronLogger, cronClient, zapLogger)
 		require.NotNil(t, manager)

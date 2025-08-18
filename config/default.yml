@@ -11,6 +11,10 @@ system:
   template_dir: "templates/**/*"
   admin:
     email: "zhangzhouou@gmail.com"
+  rate_limit:
+    pattern: '30-S'
+    prefix: 'weaver-limiter'
+
 jwt:
   expires: 1440              # token过期时长(分钟)
   refresh_token_expires: 10080 # refresh_token的过期时长(分钟)

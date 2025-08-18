@@ -19,18 +19,6 @@ const (
 	refreshUrl = "/api/v1/user/refresh-token"
 )
 
-func tokenInvalidResponse(ctx *gin.Context) {
-	response.FailWithError(ctx, response.InvalidToken)
-}
-
-func refreshTokenInvalidResponse(ctx *gin.Context) {
-	response.FailWithError(ctx, response.InvalidRefreshToken)
-}
-
-func unnecessaryRefreshResponse(ctx *gin.Context) {
-	response.FailWithError(ctx, response.UnnecessaryRefreshToken)
-}
-
 type AuthMiddlewareTokenRepo interface {
 	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
 }
@@ -68,7 +56,7 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader(tokenKey)
 		if token == "" || !strings.HasPrefix(token, prefix) {
-			tokenInvalidResponse(ctx)
+			response.FailWithError(ctx, response.InvalidToken)
 			return
 		}
 		token = strings.TrimPrefix(token, prefix)
@@ -77,11 +65,11 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 			// token解析正常,判断是不是在不redis中
 			pair, tempErr := l.jwtBuilder.GetCacheToken(ctx, claims.User.Email)
 			if pair == nil || tempErr != nil || pair.AccessToken != token {
-				tokenInvalidResponse(ctx)
+				response.FailWithError(ctx, response.InvalidToken)
 				return
 			}
 			if ctx.Request.URL.Path == refreshUrl && pair != nil && pair.AccessToken == token {
-				unnecessaryRefreshResponse(ctx)
+				response.FailWithError(ctx, response.UnnecessaryRefreshToken)
 				return
 			}
 			ctx.Set(constant.ClaimsContextKey, claims)
@@ -89,12 +77,12 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
 			if strings.TrimSpace(refreshToken) == "" {
-				refreshTokenInvalidResponse(ctx)
+				response.FailWithError(ctx, response.InvalidRefreshToken)
 				return
 			}
 			pair, tempErr := l.jwtBuilder.GetCacheToken(ctx, claims.User.Email)
 			if pair == nil || tempErr != nil || pair.RefreshToken != refreshToken {
-				refreshTokenInvalidResponse(ctx)
+				response.FailWithError(ctx, response.InvalidRefreshToken)
 				return
 			}
 			newToken, newRefreshToken, refreshErr := l.jwtBuilder.ReGenerateTokenPairs(token, refreshToken, func(claims *jwt.TokenClaims, newToken, newRefreshToken string) error {
@@ -104,11 +92,11 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 				})
 			})
 			if errors.Is(refreshErr, response.InvalidToken) {
-				tokenInvalidResponse(ctx)
+				response.FailWithError(ctx, response.InvalidToken)
 				return
 			}
 			if errors.Is(refreshErr, response.InvalidRefreshToken) {
-				refreshTokenInvalidResponse(ctx)
+				response.FailWithError(ctx, response.InvalidRefreshToken)
 				return
 			}
 			if refreshErr != nil {
@@ -122,13 +110,9 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 			ctx.Abort()
 		} else {
 			// 其他情况直接返回错误信息
-			tokenInvalidResponse(ctx)
+			response.FailWithError(ctx, response.InvalidToken)
 		}
 	}
-}
-
-func permissionInvalidResponse(ctx *gin.Context) {
-	response.FailWithError(ctx, response.AuthErr)
 }
 
 func (l *AuthMiddleware) PermissionRequired() gin.HandlerFunc {
@@ -136,12 +120,12 @@ func (l *AuthMiddleware) PermissionRequired() gin.HandlerFunc {
 		// 获取用户信息
 		claims, exists := c.Get(constant.ClaimsContextKey)
 		if !exists {
-			permissionInvalidResponse(c)
+			response.FailWithError(c, response.AuthErr)
 			return
 		}
 		tokenClaims, ok := claims.(*jwt.TokenClaims)
 		if !ok {
-			permissionInvalidResponse(c)
+			response.FailWithError(c, response.AuthErr)
 			return
 		}
 		// 检查API权限
@@ -151,7 +135,7 @@ func (l *AuthMiddleware) PermissionRequired() gin.HandlerFunc {
 			return
 		}
 		if !hasPermission {
-			permissionInvalidResponse(c)
+			response.FailWithError(c, response.AuthErr)
 		}
 	}
 }

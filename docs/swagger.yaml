@@ -6,18 +6,12 @@ definitions:
     - 2
     - 3
     - 4
-    format: int32
     type: integer
     x-enum-comments:
       ApiRoute: apiRoute
       ViewMenu: viewMenu
       ViewResource: viewResource
       ViewRoute: viewRoute
-    x-enum-descriptions:
-    - viewRoute
-    - viewMenu
-    - viewResource
-    - apiRoute
     x-enum-varnames:
     - ViewRoute
     - ViewMenu
@@ -31,9 +25,6 @@ definitions:
     x-enum-comments:
       Females: females
       Male: male
-    x-enum-descriptions:
-    - male
-    - females
     x-enum-varnames:
     - Male
     - Females
@@ -47,10 +38,6 @@ definitions:
       Disabled: disabled
       Inactive: inactive
       Normal: normal
-    x-enum-descriptions:
-    - inactive
-    - normal
-    - disabled
     x-enum-varnames:
     - Inactive
     - Normal

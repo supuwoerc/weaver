@@ -41,6 +41,6 @@
   },
   {
     "id": "busy",
-    "other": "System is busy, please try again later"
+    "other": "The request is too frequent, please try again later"
   }
 ]

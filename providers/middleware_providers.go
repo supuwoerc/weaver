@@ -10,7 +10,11 @@ var authMiddlewareProvider = wire.NewSet(
 	jwt.NewJwtBuilder,
 	middleware.NewAuthMiddleware,
 )
+var limiterMiddlewareProvider = wire.NewSet(
+	middleware.NewLimiterMiddleware,
+)
 
 var MiddlewareProvider = wire.NewSet(
 	authMiddlewareProvider,
+	limiterMiddlewareProvider,
 )
