@@ -1,5 +1,7 @@
 # Weaver
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/supuwoerc/weaver)
+
 简单的管理系统，麻雀虽小，五脏俱全。
 
 <br />
