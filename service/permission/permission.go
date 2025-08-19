@@ -212,8 +212,8 @@ func (s *Service) DeletePermission(ctx context.Context, id, operator uint) error
 	return s.permissionDAO.DeleteById(ctx, id, operator)
 }
 
-func (s *Service) GetUserViewPermissions(ctx context.Context, uid uint) (response.FrontEndPermissions, error) {
-	list, err := s.permissionDAO.GetUserPermissionsByType(ctx, uid, constant.ViewMenu, constant.ViewResource)
+func (s *Service) GetUserViewRouteAndMenuPermissions(ctx context.Context, uid uint) (response.FrontEndPermissions, error) {
+	list, err := s.permissionDAO.GetUserPermissionsByType(ctx, uid, constant.ViewRoute, constant.ViewMenu)
 	if err != nil {
 		return nil, err
 	}
