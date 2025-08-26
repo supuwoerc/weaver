@@ -147,7 +147,8 @@ func (p *Service) CreateDepartment(ctx context.Context, operator uint, params *r
 		if temp = p.departmentDAO.Create(ctx, dept); temp != nil {
 			return temp
 		}
-		return p.Refresh(ctx)
+		// 删除代替更新,减少缓存不一致间隙
+		return p.Clean(ctx)
 	})
 }
 
