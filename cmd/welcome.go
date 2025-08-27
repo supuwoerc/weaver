@@ -22,6 +22,7 @@ var welcomeCmd = &cobra.Command{
 		defer cancel()
 		signalCh := make(chan os.Signal, 1)
 		signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+		defer signal.Stop(signalCh)
 		go func() {
 			<-signalCh
 			cmd.Printf("\n监听到取消信号,取消执行")
