@@ -24,9 +24,14 @@ var welcomeCmd = &cobra.Command{
 		signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
 		defer signal.Stop(signalCh)
 		go func() {
-			<-signalCh
-			cmd.Printf("\n监听到取消信号,取消执行")
-			cancel()
+			select {
+			case <-signalCh:
+				cmd.Printf("\n监听到取消信号,取消执行")
+				cancel()
+				return
+			case <-ctx.Done():
+				return
+			}
 		}()
 		count := 10
 		bar := progressbar.NewOptions(count,
