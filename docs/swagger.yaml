@@ -209,6 +209,7 @@ definitions:
         - 1
         - 2
         - 3
+        - 4
     required:
     - name
     - resource
@@ -305,6 +306,7 @@ definitions:
         - 1
         - 2
         - 3
+        - 4
     required:
     - id
     - name
@@ -1494,6 +1496,25 @@ paths:
       security:
       - BearerAuth: []
       summary: 获取用户列表
+      tags:
+      - 用户管理
+  /user/logout:
+    post:
+      consumes:
+      - application/json
+      description: 用户登出(退出登录)
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 登出成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_LoginResponse'
+        "20001":
+          description: 登出失败，code=20001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      summary: 退出登录
       tags:
       - 用户管理
   /user/profile:

@@ -32,6 +32,7 @@ type DAO interface {
 type Cache interface {
 	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
 	GetTokenPairIsExist(ctx context.Context, email string) (bool, error)
+	HDelTokenPair(ctx context.Context, email string) error
 	GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error)
 	CacheActiveAccountCode(ctx context.Context, id uint, code string, duration time.Duration) error
 	GetActiveAccountCode(ctx context.Context, id uint) (string, error)
@@ -179,6 +180,17 @@ func (u *Service) Login(ctx context.Context, email string, password string) (*re
 		Token:        accessToken,
 		RefreshToken: refreshToken,
 	}, nil
+}
+
+func (u *Service) Logout(ctx context.Context, email string) error {
+	exist, err := u.userCache.GetTokenPairIsExist(ctx, email)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return response.UserLogoutFail
+	}
+	return u.userCache.HDelTokenPair(ctx, email)
 }
 
 func (u *Service) Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error) {

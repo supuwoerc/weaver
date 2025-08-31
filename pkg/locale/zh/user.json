@@ -30,5 +30,9 @@
   {
     "id": "userDisabled",
     "other": "用户已禁用"
+  },
+  {
+    "id": "userLogoutFail",
+    "other": "账户当前已处于登出状态，无法重复登出"
   }
 ]

@@ -30,5 +30,9 @@
   {
     "id": "userDisabled",
     "other": "User is disabled"
+  },
+  {
+    "id": "userLogoutFail",
+    "other": "The account is currently logged out and cannot be logged out again"
   }
 ]

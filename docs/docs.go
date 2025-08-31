@@ -1071,6 +1071,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/logout": {
+            "post": {
+                "description": "用户登出(退出登录)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "退出登录",
+                "responses": {
+                    "10000": {
+                        "description": "登出成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_LoginResponse"
+                        }
+                    },
+                    "20001": {
+                        "description": "登出失败，code=20001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/user/profile": {
             "get": {
                 "security": [
@@ -1410,7 +1439,8 @@ const docTemplate = `{
                     "enum": [
                         1,
                         2,
-                        3
+                        3,
+                        4
                     ],
                     "allOf": [
                         {
@@ -1548,7 +1578,8 @@ const docTemplate = `{
                     "enum": [
                         1,
                         2,
-                        3
+                        3,
+                        4
                     ],
                     "allOf": [
                         {

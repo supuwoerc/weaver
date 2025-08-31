@@ -18,6 +18,7 @@ import (
 type Service interface {
 	SignUp(ctx context.Context, id string, code string, user *models.User) error
 	Login(ctx context.Context, email string, password string) (*response.LoginResponse, error)
+	Logout(ctx context.Context, email string) error
 	Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error)
 	GetUserList(ctx context.Context, keyword string, limit, offset int) ([]*response.UserListRowResponse, int64, error)
 	ActiveAccount(ctx context.Context, uid uint, activeCode string) error
@@ -52,7 +53,8 @@ func NewUserApi(basic *v1.BasicApi, service Service) *Api {
 	{
 		userAccessGroup.GET("refresh-token")
 		userAccessGroup.GET("profile", userApi.Profile)
-		userAccessGroup.GET("list", userApi.GetUserList)
+		userAccessGroup.POST("logout", userApi.Logout)
+		userAccessGroup.GET("list", basic.Auth.PermissionRequired(), userApi.GetUserList)
 	}
 	return userApi
 }
@@ -122,6 +124,30 @@ func (r *Api) Login(ctx *gin.Context) {
 		return
 	}
 	response.SuccessWithData(ctx, res)
+}
+
+// Logout
+//
+//	@Summary		退出登录
+//	@Description	用户登出(退出登录)
+//	@Tags			用户管理
+//	@Accept			json
+//	@Produce		json
+//	@Success		10000	{object}	response.BasicResponse[response.LoginResponse]	"登出成功，code=10000"
+//	@Failure		20001	{object}	response.BasicResponse[any]						"登出失败，code=20001"
+//	@Router			/user/logout [post]
+func (r *Api) Logout(ctx *gin.Context) {
+	claims, err := utils.GetContextClaims(ctx)
+	if err != nil || claims == nil {
+		response.FailWithCode(ctx, response.UserNotExist)
+		return
+	}
+	err = r.service.Logout(ctx, claims.User.Email)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.Success(ctx)
 }
 
 // Profile

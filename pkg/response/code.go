@@ -35,6 +35,7 @@ const (
 	UserDisabled               StatusCode = 20007 // userDisabled
 	InvalidActiveCode          StatusCode = 20008 // invalidActiveCode
 	ReActiveErr                StatusCode = 20009 // reActiveErr
+	UserLogoutFail             StatusCode = 20010 // userLogoutFail
 )
 
 const (

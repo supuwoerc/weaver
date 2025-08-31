@@ -28,7 +28,7 @@ func NewAttachmentApi(basic *v1.BasicApi, service Service) *Api {
 		service:  service,
 	}
 	// 挂载路由
-	attachmentAccessGroup := basic.Route.Group("attachment").Use(basic.Auth.LoginRequired(), basic.Auth.PermissionRequired())
+	attachmentAccessGroup := basic.Route.Group("attachment").Use(basic.Auth.LoginRequired())
 	{
 		attachmentAccessGroup.POST("multiple-upload", attachmentApi.MultipleUpload)
 		attachmentAccessGroup.POST("upload", attachmentApi.Upload)
