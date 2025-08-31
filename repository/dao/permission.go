@@ -159,21 +159,22 @@ func (r *PermissionDAO) GetUserPermissions(ctx context.Context, userId uint) ([]
 func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uint, limit int, offset int,
 	permissionType ...constant.PermissionType) ([]*models.Permission, error) {
 	var permissions []*models.Permission
-	err := r.Datasource(ctx).
+
+	query := r.Datasource(ctx).
 		Model(&models.Permission{}).
-		Where(`id IN (
-			SELECT DISTINCT role_permission.permission_id FROM 
-			sys_role_permission role_permission INNER JOIN sys_user_role user_role ON
-			role_permission.role_id = user_role.role_id 
-			WHERE user_role.user_id = ?)
-		`, userId).
-		Where("type IN (?)", permissionType).
-		Order("id DESC").
+		Distinct("sys_permission.*").
+		Joins("INNER JOIN sys_role_permission ON sys_permission.id = sys_role_permission.permission_id").
+		Joins("INNER JOIN sys_user_role ON sys_role_permission.role_id = sys_user_role.role_id").
+		Where("sys_user_role.user_id = ?", userId).
+		Where("sys_permission.type IN (?)", permissionType).
+		Order("sys_permission.id DESC").
 		Limit(limit).
-		Offset(offset).
-		Find(&permissions).Error
+		Offset(offset)
+
+	err := query.Find(&permissions).Error
 	if err != nil {
 		return nil, err
 	}
-	return permissions, err
+
+	return permissions, nil
 }
