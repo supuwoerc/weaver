@@ -10,9 +10,9 @@ import (
 )
 
 type SystemCache interface {
-	Key() string
-	Refresh(ctx context.Context) error
-	Clean(ctx context.Context) error
+	CacheKey() string
+	RefreshCache(ctx context.Context) error
+	CleanCache(ctx context.Context) error
 }
 
 //go:generate stringer -type=cacheOperate -linecomment -output cache_operate_string.go
@@ -49,7 +49,7 @@ func operateCache(ctx context.Context, op cacheOperate, s *SystemCacheManager, k
 	}
 	for _, key := range keys {
 		cache, exists := lo.Find(s.caches, func(c SystemCache) bool {
-			return c.Key() == key
+			return c.CacheKey() == key
 		})
 		if !exists {
 			return fmt.Errorf("%s cache fail: cache %s not found", op, key)
@@ -57,9 +57,9 @@ func operateCache(ctx context.Context, op cacheOperate, s *SystemCacheManager, k
 		var err error
 		switch op {
 		case refresh:
-			err = cache.Refresh(ctx)
+			err = cache.RefreshCache(ctx)
 		case clean:
-			err = cache.Clean(ctx)
+			err = cache.CleanCache(ctx)
 		default:
 			return fmt.Errorf("%s is invalid operate", op)
 		}

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/cache"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/request"
 	"github.com/supuwoerc/weaver/pkg/response"
@@ -41,6 +42,10 @@ type Service struct {
 	userDAO         user.DAO
 	deptTreeSfg     singleflight.Group
 }
+
+var (
+	_ cache.SystemCache = &Service{}
+)
 
 func NewDepartmentService(
 	basic *service.BasicService,
@@ -148,7 +153,7 @@ func (p *Service) CreateDepartment(ctx context.Context, operator uint, params *r
 			return temp
 		}
 		// 删除代替更新,减少缓存不一致间隙
-		return p.Clean(ctx)
+		return p.CleanCache(ctx)
 	})
 }
 

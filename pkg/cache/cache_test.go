@@ -14,17 +14,21 @@ type testCache struct {
 	mock.Mock
 }
 
-func (t *testCache) Key() string {
+var (
+	_ SystemCache = &testCache{}
+)
+
+func (t *testCache) CacheKey() string {
 	called := t.Called()
 	return called.String(0)
 }
 
-func (t *testCache) Refresh(ctx context.Context) error {
+func (t *testCache) RefreshCache(ctx context.Context) error {
 	called := t.Called(ctx)
 	return called.Error(0)
 }
 
-func (t *testCache) Clean(ctx context.Context) error {
+func (t *testCache) CleanCache(ctx context.Context) error {
 	called := t.Called(ctx)
 	return called.Error(0)
 }
@@ -62,15 +66,15 @@ func TestSystemCacheManager_Refresh(t *testing.T) {
 	cache3 := &testCache{} // mock缓存3
 	ctx := context.Background()
 
-	cache1.On("Key").Return("cache1")
-	cache2.On("Key").Return("cache2")
-	cache3.On("Key").Return("cache3")
+	cache1.On("CacheKey").Return("cache1")
+	cache2.On("CacheKey").Return("cache2")
+	cache3.On("CacheKey").Return("cache3")
 
-	cache1.On("Refresh", ctx).Return(nil)
+	cache1.On("RefreshCache", ctx).Return(nil)
 	refreshErr := fmt.Errorf("cache2:refresh err")
-	cache2.On("Refresh", ctx).Return(refreshErr)
+	cache2.On("RefreshCache", ctx).Return(refreshErr)
 	panicMessage := "cache3:refresh panic"
-	cache3.On("Refresh", ctx).Panic(panicMessage)
+	cache3.On("RefreshCache", ctx).Panic(panicMessage)
 
 	defer func() {
 		cache1.AssertExpectations(t)
@@ -122,15 +126,15 @@ func TestSystemCacheManager_Clean(t *testing.T) {
 	cache3 := &testCache{} // mock缓存3
 	ctx := context.Background()
 
-	cache1.On("Key").Return("cache1")
-	cache2.On("Key").Return("cache2")
-	cache3.On("Key").Return("cache3")
+	cache1.On("CacheKey").Return("cache1")
+	cache2.On("CacheKey").Return("cache2")
+	cache3.On("CacheKey").Return("cache3")
 
-	cache1.On("Clean", ctx).Return(nil)
+	cache1.On("CleanCache", ctx).Return(nil)
 	cleanErr := fmt.Errorf("cache2:clean err")
-	cache2.On("Clean", ctx).Return(cleanErr)
+	cache2.On("CleanCache", ctx).Return(cleanErr)
 	panicMessage := "cache3:clean panic"
-	cache3.On("Clean", ctx).Panic(panicMessage)
+	cache3.On("CleanCache", ctx).Panic(panicMessage)
 
 	defer func() {
 		cache1.AssertExpectations(t)
@@ -179,14 +183,14 @@ func TestSystemCacheManager_Clean(t *testing.T) {
 func Test_operateCache(t *testing.T) {
 	ctx := context.Background()
 	cache1 := &testCache{}
-	cache1.On("Key").Return("cache1")
-	cache1.On("Clean", ctx).Return(nil)
+	cache1.On("CacheKey").Return("cache1")
+	cache1.On("CleanCache", ctx).Return(nil)
 	cache2 := &testCache{}
-	cache2.On("Key").Return("cache2")
-	cache2.On("Clean", ctx).Return(fmt.Errorf("cache2:test clean err"))
+	cache2.On("CacheKey").Return("cache2")
+	cache2.On("CleanCache", ctx).Return(fmt.Errorf("cache2:test clean err"))
 	cache3 := &testCache{}
-	cache3.On("Key").Return("cache3")
-	cache3.On("Clean", ctx).Panic("cache3:test clean panic")
+	cache3.On("CacheKey").Return("cache3")
+	cache3.On("CleanCache", ctx).Panic("cache3:test clean panic")
 	caches := []SystemCache{cache1, cache2, cache3}
 	manager := NewSystemCacheManager(caches...)
 
@@ -197,20 +201,20 @@ func Test_operateCache(t *testing.T) {
 	}()
 
 	t.Run("operateCache with invalid op", func(t *testing.T) {
-		err := operateCache(ctx, cacheOperate(100), manager, cache1.Key())
+		err := operateCache(ctx, cacheOperate(100), manager, cache1.CacheKey())
 		assert.ErrorContains(t, err, "is invalid operate")
 	})
 	t.Run("operateCache with clean success op", func(t *testing.T) {
-		err := operateCache(ctx, clean, manager, cache1.Key())
+		err := operateCache(ctx, clean, manager, cache1.CacheKey())
 		assert.NoError(t, err)
 	})
 	t.Run("operateCache with clean fail op", func(t *testing.T) {
-		err := operateCache(ctx, clean, manager, cache2.Key())
+		err := operateCache(ctx, clean, manager, cache2.CacheKey())
 		assert.ErrorContains(t, err, "cache2:test clean err")
 	})
 	t.Run("operateCache with clean panic op", func(t *testing.T) {
 		assert.PanicsWithValue(t, "cache3:test clean panic", func() {
-			_ = operateCache(ctx, clean, manager, cache3.Key())
+			_ = operateCache(ctx, clean, manager, cache3.CacheKey())
 		})
 	})
 }

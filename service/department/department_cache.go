@@ -8,11 +8,11 @@ import (
 	"github.com/supuwoerc/weaver/pkg/constant"
 )
 
-func (p *Service) Key() string {
+func (p *Service) CacheKey() string {
 	return constant.AutoManageDeptCache
 }
 
-func (p *Service) Refresh(ctx context.Context) error {
+func (p *Service) RefreshCache(ctx context.Context) error {
 	start := time.Now()
 	p.Logger.WithContext(ctx).Infow("refresh department", "begin", start.Format(time.DateTime))
 	defer func() {
@@ -39,7 +39,7 @@ func (p *Service) Refresh(ctx context.Context) error {
 	return err
 }
 
-func (p *Service) Clean(ctx context.Context) error {
+func (p *Service) CleanCache(ctx context.Context) error {
 	start := time.Now()
 	p.Logger.WithContext(ctx).Infow("clean department", "begin", start.Format(time.DateTime))
 	defer func() {

@@ -55,7 +55,6 @@ func (r *Api) CreateDepartment(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)

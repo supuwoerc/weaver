@@ -63,7 +63,6 @@ func (r *Api) CreateRole(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)
@@ -153,7 +152,6 @@ func (r *Api) UpdateRole(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	// TODO:集中到鉴权中间件中
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)
@@ -187,7 +185,6 @@ func (r *Api) DeleteRole(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)

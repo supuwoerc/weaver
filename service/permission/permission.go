@@ -6,6 +6,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/cache"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/database"
 	"github.com/supuwoerc/weaver/pkg/request"
@@ -38,6 +39,10 @@ type Service struct {
 	permissionDAO DAO
 	roleDAO       RoleDAO
 }
+
+var (
+	_ cache.SystemCache = &Service{}
+)
 
 func NewPermissionService(basic *service.BasicService, permissionDAO DAO, roleDAO RoleDAO) *Service {
 	return &Service{
@@ -217,6 +222,7 @@ func (s *Service) GetUserViewRouteAndMenuPermissions(ctx context.Context, uid ui
 	if err != nil {
 		return nil, err
 	}
+	// TODO:分页
 	return lo.Map(list, func(item *models.Permission, _ int) *response.FrontEndPermission {
 		return response.ToFrontEndPermissionResponse(item)
 	}), nil

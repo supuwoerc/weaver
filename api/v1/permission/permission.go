@@ -66,7 +66,6 @@ func (r *Api) CreatePermission(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)
@@ -156,7 +155,6 @@ func (r *Api) UpdatePermission(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)
@@ -190,7 +188,6 @@ func (r *Api) DeletePermission(ctx *gin.Context) {
 		response.ParamsValidateFail(ctx, err)
 		return
 	}
-	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)

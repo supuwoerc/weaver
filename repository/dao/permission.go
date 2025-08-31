@@ -166,6 +166,7 @@ func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uin
 		Where("permission.type in (?)", permissionType).
 		Group("permission.id").
 		Find(&permissions).Error
+	// TODO:分页 & 排序
 	if err != nil {
 		return nil, err
 	}
