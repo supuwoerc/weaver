@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/supuwoerc/weaver/conf"
@@ -87,26 +89,41 @@ func (g *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 		}
 		logEntry := g.WithContext(ctx).WithOptions(zap.AddStacktrace(stackLevel))
 		if affected == -1 {
-			logEntry.Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, sql, sqlRaw)
+			logEntry.Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, sql, g.cleanSQL(sqlRaw))
 		} else {
-			logEntry.Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, rows, affected, sql, sqlRaw)
+			logEntry.Errorw(traceMessage, position, lineNum, mistaken, err, execution, cost, rows, affected, sql, g.cleanSQL(sqlRaw))
 		}
 	case elapsed > g.SlowThreshold && g.SlowThreshold != 0 && g.Level >= logger.Warn:
 		sqlRaw, affected := fc()
 		slowLog := fmt.Sprintf("SLOW SQL >= %v", g.SlowThreshold)
 		if affected == -1 {
-			g.WithContext(ctx).Warnw(traceMessage, position, lineNum, slow, slowLog, execution, cost, sql, sqlRaw)
+			g.WithContext(ctx).Warnw(traceMessage, position, lineNum, slow, slowLog, execution, cost, sql, g.cleanSQL(sqlRaw))
 		} else {
-			g.WithContext(ctx).Warnw(traceMessage, position, lineNum, slow, slowLog, execution, cost, rows, affected, sql, sqlRaw)
+			g.WithContext(ctx).Warnw(traceMessage, position, lineNum, slow, slowLog, execution, cost, rows, affected, sql, g.cleanSQL(sqlRaw))
 		}
 	case g.Level == logger.Info:
 		sqlRaw, affected := fc()
 		if affected == -1 {
-			g.WithContext(ctx).Infow(traceMessage, position, lineNum, execution, cost, sql, sqlRaw)
+			g.WithContext(ctx).Infow(traceMessage, position, lineNum, execution, cost, sql, g.cleanSQL(sqlRaw))
 		} else {
-			g.WithContext(ctx).Infow(traceMessage, position, lineNum, execution, cost, rows, affected, sql, sqlRaw)
+			g.WithContext(ctx).Infow(traceMessage, position, lineNum, execution, cost, rows, affected, sql, g.cleanSQL(sqlRaw))
 		}
 	}
+}
+
+func (g *GormLogger) cleanSQL(sql string) string {
+	if sql == "" {
+		return sql
+	}
+	// 替换换行符和多余空格
+	sql = strings.ReplaceAll(sql, "\n", " ")
+	sql = strings.ReplaceAll(sql, "\t", " ")
+	// 清理多余的空格
+	re := regexp.MustCompile(`\s+`)
+	sql = re.ReplaceAllString(sql, " ")
+	// 清理首尾空格
+	sql = strings.TrimSpace(sql)
+	return sql
 }
 
 func NewGORM(conf *conf.Config, l logger.Interface) *gorm.DB {

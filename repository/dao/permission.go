@@ -156,20 +156,24 @@ func (r *PermissionDAO) GetUserPermissions(ctx context.Context, userId uint) ([]
 }
 
 // GetUserPermissionsByType 根据类型获取用户权限
-func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uint, limit int, offset int, permissionType ...constant.PermissionType) ([]*models.Permission, error) {
+func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uint, limit int, offset int,
+	permissionType ...constant.PermissionType) ([]*models.Permission, error) {
 	var permissions []*models.Permission
-	err := r.Datasource(ctx).Model(&models.Permission{}).
-		Table("sys_permission as permission").
-		Joins("inner join sys_role_permission role_permission on permission.id = role_permission.permission_id").
-		Joins("inner join sys_user_role user_role on role_permission.role_id = user_role.role_id").
-		Where("user_role.user_id = ?", userId).
-		Where("permission.type in (?)", permissionType).
-		Group("permission.id").
+	err := r.Datasource(ctx).
+		Model(&models.Permission{}).
+		Where(`id IN (
+			SELECT DISTINCT role_permission.permission_id FROM 
+			sys_role_permission role_permission INNER JOIN sys_user_role user_role ON
+			role_permission.role_id = user_role.role_id 
+			WHERE user_role.user_id = ?)
+		`, userId).
+		Where("type IN (?)", permissionType).
+		Order("id DESC").
 		Limit(limit).
 		Offset(offset).
 		Find(&permissions).Error
 	if err != nil {
 		return nil, err
 	}
-	return permissions, nil
+	return permissions, err
 }
