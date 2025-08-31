@@ -6,7 +6,7 @@ import "github.com/supuwoerc/weaver/pkg/constant"
 type CreatePermissionRequest struct {
 	Name     string                  `json:"name" binding:"required,min=1,max=20"`
 	Resource string                  `json:"resource" binding:"required,min=1,max=255"`
-	Type     constant.PermissionType `json:"type" binding:"required,oneof=1 2 3"`
+	Type     constant.PermissionType `json:"type" binding:"required,oneof=1 2 3 4"`
 	Roles    []uint                  `json:"roles" binding:"omitempty,dive,min=1"`
 }
 
