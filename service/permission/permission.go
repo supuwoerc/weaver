@@ -27,7 +27,7 @@ type DAO interface {
 	GetByNameOrResource(ctx context.Context, name, resource string) ([]*models.Permission, error)
 	CheckUserPermission(ctx context.Context, uid uint, resource string, permissionType constant.PermissionType) (bool, error)
 	GetUserPermissions(ctx context.Context, userId uint) ([]*models.Permission, error)
-	GetUserPermissionsByType(ctx context.Context, userId uint, permissionType ...constant.PermissionType) ([]*models.Permission, error)
+	GetUserPermissionsByType(ctx context.Context, userId uint, limit int, offset int, permissionType ...constant.PermissionType) ([]*models.Permission, error)
 }
 
 type RoleDAO interface {
@@ -218,11 +218,21 @@ func (s *Service) DeletePermission(ctx context.Context, id, operator uint) error
 }
 
 func (s *Service) GetUserViewRouteAndMenuPermissions(ctx context.Context, uid uint) (response.FrontEndPermissions, error) {
-	list, err := s.permissionDAO.GetUserPermissionsByType(ctx, uid, constant.ViewRoute, constant.ViewMenu)
-	if err != nil {
-		return nil, err
+	limit, offset := 200, 0
+	var list []*models.Permission
+	for {
+		page, err := s.permissionDAO.GetUserPermissionsByType(ctx, uid, limit, offset, constant.ViewRoute, constant.ViewMenu)
+		if err != nil {
+			return nil, err
+		}
+		if len(page) > 0 {
+			list = append(list, page...)
+		}
+		if len(page) < limit {
+			break
+		}
+		offset += limit
 	}
-	// TODO:分页
 	return lo.Map(list, func(item *models.Permission, _ int) *response.FrontEndPermission {
 		return response.ToFrontEndPermissionResponse(item)
 	}), nil

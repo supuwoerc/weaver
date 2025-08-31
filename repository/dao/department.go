@@ -54,30 +54,27 @@ func (r *DepartmentDAO) GetById(ctx context.Context, id uint) (*models.Departmen
 	return &dept, nil
 }
 
-// GetAll 查询全部部门数据 TODO:优化查询
+// GetAll 查询全部部门数据
 func (r *DepartmentDAO) GetAll(ctx context.Context) ([]*models.Department, error) {
-	var depts []*models.Department
-	err := r.Datasource(ctx).Model(&models.Department{}).Find(&depts).Error
+	depts, err := queryAll[*models.Department](r.Datasource(ctx).Model(&models.Department{}), r.QueryLimit)
 	if err != nil {
 		return nil, err
 	}
 	return depts, nil
 }
 
-// GetAllUserDepartment 查询全部部门-人员关联数据 TODO:优化查询
+// GetAllUserDepartment 查询全部部门-人员关联数据
 func (r *DepartmentDAO) GetAllUserDepartment(ctx context.Context) ([]*models.UserDepartment, error) {
-	var res []*models.UserDepartment
-	err := r.Datasource(ctx).Model(&models.UserDepartment{}).Find(&res).Error
+	res, err := queryAll[*models.UserDepartment](r.Datasource(ctx).Model(&models.UserDepartment{}), r.QueryLimit)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-// GetAllDepartmentLeader 查询全部部门-Leader关联数据 TODO:优化查询
+// GetAllDepartmentLeader 查询全部部门-Leader关联数据
 func (r *DepartmentDAO) GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error) {
-	var res []*models.DepartmentLeader
-	err := r.Datasource(ctx).Model(&models.DepartmentLeader{}).Find(&res).Error
+	res, err := queryAll[*models.DepartmentLeader](r.Datasource(ctx).Model(&models.DepartmentLeader{}), r.QueryLimit)
 	if err != nil {
 		return nil, err
 	}

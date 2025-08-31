@@ -156,7 +156,7 @@ func (r *PermissionDAO) GetUserPermissions(ctx context.Context, userId uint) ([]
 }
 
 // GetUserPermissionsByType 根据类型获取用户权限
-func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uint, permissionType ...constant.PermissionType) ([]*models.Permission, error) {
+func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uint, limit int, offset int, permissionType ...constant.PermissionType) ([]*models.Permission, error) {
 	var permissions []*models.Permission
 	err := r.Datasource(ctx).Model(&models.Permission{}).
 		Table("sys_permission as permission").
@@ -165,8 +165,9 @@ func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uin
 		Where("user_role.user_id = ?", userId).
 		Where("permission.type in (?)", permissionType).
 		Group("permission.id").
+		Limit(limit).
+		Offset(offset).
 		Find(&permissions).Error
-	// TODO:分页 & 排序
 	if err != nil {
 		return nil, err
 	}

@@ -28,7 +28,7 @@ func NewAttachmentApi(basic *v1.BasicApi, service Service) *Api {
 		service:  service,
 	}
 	// 挂载路由
-	attachmentAccessGroup := basic.Route.Group("attachment").Use(basic.Auth.LoginRequired())
+	attachmentAccessGroup := basic.Route.Group("attachment").Use(basic.Auth.LoginRequired(), basic.Auth.PermissionRequired())
 	{
 		attachmentAccessGroup.POST("multiple-upload", attachmentApi.MultipleUpload)
 		attachmentAccessGroup.POST("upload", attachmentApi.Upload)
@@ -52,7 +52,6 @@ func (a *Api) MultipleUpload(ctx *gin.Context) {
 		response.FailWithCode(ctx, response.InvalidAttachmentLength)
 		return
 	}
-	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)
@@ -76,7 +75,6 @@ func (a *Api) Upload(ctx *gin.Context) {
 		response.FailWithError(ctx, err)
 		return
 	}
-	// TODO:集中到鉴权中间件
 	claims, err := utils.GetContextClaims(ctx)
 	if err != nil || claims == nil {
 		response.FailWithCode(ctx, response.AuthErr)
