@@ -16,7 +16,7 @@ system:
     prefix: 'weaver-limiter'
 
 jwt:
-  expires: 1440              # token过期时长(分钟)
+  expires: 15              # token过期时长(分钟)
   refresh_token_expires: 10080 # refresh_token的过期时长(分钟)
   secret: gin_web_secret     # 密钥
   issuer: gin_web            # issuer
