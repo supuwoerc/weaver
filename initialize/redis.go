@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -65,7 +66,11 @@ func (r *RedisLogger) ProcessHook(next goredislib.ProcessHook) goredislib.Proces
 		}
 		err := next(ctx, cmd)
 		if err != nil && r.Level >= Error {
-			r.Logger.WithContext(ctx).Errorw("error executing command", "error", err.Error())
+			if errors.Is(err, goredislib.Nil) {
+				r.Logger.WithContext(ctx).Infow("error executing command", "error", err.Error())
+			} else {
+				r.Logger.WithContext(ctx).Errorw("error executing command", "error", err.Error())
+			}
 		} else if r.Level >= Info {
 			r.Logger.WithContext(ctx).Infow("successfully executed command")
 		}
@@ -89,7 +94,11 @@ func (r *RedisLogger) ProcessPipelineHook(next goredislib.ProcessPipelineHook) g
 		}
 		err := next(ctx, cmds)
 		if err != nil && r.Level >= Error {
-			r.Logger.WithContext(ctx).Errorw("error executing commands in pipeline", "error", err.Error())
+			if errors.Is(err, goredislib.Nil) {
+				r.Logger.WithContext(ctx).Infow("error executing commands in pipeline", "error", err.Error())
+			} else {
+				r.Logger.WithContext(ctx).Errorw("error executing commands in pipeline", "error", err.Error())
+			}
 		} else if r.Level >= Info {
 			r.Logger.WithContext(ctx).Infow("successfully executed commands in pipelined")
 		}
