@@ -51,7 +51,7 @@ func NewUserApi(basic *v1.BasicApi, service Service) *Api {
 	}
 	userAccessGroup := basic.Route.Group("user").Use(basic.Auth.LoginRequired())
 	{
-		userAccessGroup.GET("refresh-token")
+		userAccessGroup.POST("refresh-token")
 		userAccessGroup.GET("profile", userApi.Profile)
 		userAccessGroup.POST("logout", userApi.Logout)
 		userAccessGroup.GET("list", basic.Auth.PermissionRequired(), userApi.GetUserList)

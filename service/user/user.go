@@ -30,10 +30,9 @@ type DAO interface {
 	UpdateAccountStatus(ctx context.Context, id uint, status constant.UserStatus) error
 }
 type Cache interface {
-	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
-	GetTokenPairIsExist(ctx context.Context, email string) (bool, error)
-	HDelTokenPair(ctx context.Context, email string) error
-	GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error)
+	CacheRefreshToken(ctx context.Context, email, refreshToken string, expiration time.Duration) error
+	DeleteRefreshToken(ctx context.Context, email string) error
+	GetRefreshToken(ctx context.Context, email string) (string, error)
 	CacheActiveAccountCode(ctx context.Context, id uint, code string, duration time.Duration) error
 	GetActiveAccountCode(ctx context.Context, id uint) (string, error)
 	RemoveActiveAccountCode(ctx context.Context, id uint) error
@@ -140,22 +139,6 @@ func (u *Service) Login(ctx context.Context, email string, password string) (*re
 	if err != nil {
 		return nil, response.UserLoginFail
 	}
-	pair, err := u.userCache.GetTokenPair(ctx, email)
-	if err == nil && pair != nil {
-		claims, parseErr := u.tokenBuilder.ParseToken(pair.AccessToken)
-		if parseErr == nil && claims != nil {
-			// 如果缓存的token还未过期,直接返回缓存中的记录
-			return &response.LoginResponse{
-				User: response.LoginUser{
-					ID:       user.ID,
-					Email:    user.Email,
-					Nickname: user.Nickname,
-				},
-				Token:        pair.AccessToken,
-				RefreshToken: pair.RefreshToken,
-			}, nil
-		}
-	}
 	accessToken, refreshToken, err := u.tokenBuilder.GenerateAccessAndRefreshToken(&jwt.TokenClaimsBasic{
 		ID:       user.ID,
 		Email:    user.Email,
@@ -164,10 +147,7 @@ func (u *Service) Login(ctx context.Context, email string, password string) (*re
 	if err != nil {
 		return nil, err
 	}
-	err = u.userCache.CacheTokenPair(ctx, user.Email, &models.TokenPair{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	})
+	err = u.userCache.CacheRefreshToken(ctx, user.Email, refreshToken, u.tokenBuilder.GetRefreshTokenExpiration())
 	if err != nil {
 		return nil, err
 	}
@@ -183,14 +163,7 @@ func (u *Service) Login(ctx context.Context, email string, password string) (*re
 }
 
 func (u *Service) Logout(ctx context.Context, email string) error {
-	exist, err := u.userCache.GetTokenPairIsExist(ctx, email)
-	if err != nil {
-		return err
-	}
-	if !exist {
-		return response.UserLogoutFail
-	}
-	return u.userCache.HDelTokenPair(ctx, email)
+	return u.userCache.DeleteRefreshToken(ctx, email)
 }
 
 func (u *Service) Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error) {

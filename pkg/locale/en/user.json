@@ -8,10 +8,6 @@
     "other": "Incorrect user name or password"
   },
   {
-    "id": "userLoginTokenPairCacheErr",
-    "other": "TokenPair record failure"
-  },
-  {
     "id": "passwordValidErr",
     "other": "Illegal password format"
   },

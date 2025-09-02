@@ -20,8 +20,7 @@ type LoginUser struct {
 
 // RefreshTokenResponse 刷新 token 的响应
 type RefreshTokenResponse struct {
-	Token        string `json:"token"`
-	RefreshToken string `json:"refresh_token"`
+	Token string `json:"token"`
 }
 
 // ProfileResponse 个人信息响应

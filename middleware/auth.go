@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/supuwoerc/weaver/conf"
-	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/jwt"
 	"github.com/supuwoerc/weaver/pkg/response"
@@ -20,7 +20,7 @@ const (
 )
 
 type AuthMiddlewareTokenRepo interface {
-	CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error
+	CacheRefreshToken(ctx context.Context, email, refreshToken string, expiration time.Duration) error
 }
 
 type AuthMiddlewarePermissionRepo interface {
@@ -61,51 +61,37 @@ func (l *AuthMiddleware) LoginRequired() gin.HandlerFunc {
 		}
 		token = strings.TrimPrefix(token, prefix)
 		claims, err := l.jwtBuilder.ParseToken(token)
+		isRefresh := errors.Is(err, response.InvalidToken) &&
+			ctx.Request.URL.Path == refreshUrl &&
+			ctx.Request.Method == http.MethodPost &&
+			claims != nil &&
+			claims.User != nil &&
+			claims.User.Email != ""
 		if err == nil {
-			// token解析正常,判断是不是在不redis中
-			pair, tempErr := l.jwtBuilder.GetCacheToken(ctx, claims.User.Email)
-			if pair == nil || tempErr != nil || pair.AccessToken != token {
-				response.FailWithError(ctx, response.InvalidToken)
-				return
-			}
-			if ctx.Request.URL.Path == refreshUrl && pair != nil && pair.AccessToken == token {
+			if ctx.Request.URL.Path == refreshUrl {
 				response.FailWithError(ctx, response.UnnecessaryRefreshToken)
 				return
 			}
 			ctx.Set(constant.ClaimsContextKey, claims)
-		} else if ctx.Request.URL.Path == refreshUrl && ctx.Request.Method == http.MethodGet {
+		} else if isRefresh {
 			// 短token错误,检查是否满足刷新token的情况
 			refreshToken := ctx.GetHeader(refreshTokenKey)
 			if strings.TrimSpace(refreshToken) == "" {
 				response.FailWithError(ctx, response.InvalidRefreshToken)
 				return
 			}
-			pair, tempErr := l.jwtBuilder.GetCacheToken(ctx, claims.User.Email)
-			if pair == nil || tempErr != nil || pair.RefreshToken != refreshToken {
+			cachedRefreshToken, tempErr := l.jwtBuilder.GetRefreshToken(ctx, claims.User.Email)
+			if cachedRefreshToken == "" || tempErr != nil || cachedRefreshToken != refreshToken {
 				response.FailWithError(ctx, response.InvalidRefreshToken)
 				return
 			}
-			newToken, newRefreshToken, refreshErr := l.jwtBuilder.ReGenerateTokenPairs(token, refreshToken, func(claims *jwt.TokenClaims, newToken, newRefreshToken string) error {
-				return l.tokenRepo.CacheTokenPair(ctx, claims.User.Email, &models.TokenPair{
-					AccessToken:  newToken,
-					RefreshToken: newRefreshToken,
-				})
-			})
-			if errors.Is(refreshErr, response.InvalidToken) {
-				response.FailWithError(ctx, response.InvalidToken)
-				return
-			}
-			if errors.Is(refreshErr, response.InvalidRefreshToken) {
-				response.FailWithError(ctx, response.InvalidRefreshToken)
-				return
-			}
+			newToken, refreshErr := l.jwtBuilder.GenerateAccessToken(claims.User, time.Now())
 			if refreshErr != nil {
 				response.FailWithError(ctx, err)
 				return
 			}
 			response.SuccessWithData[response.RefreshTokenResponse](ctx, response.RefreshTokenResponse{
-				Token:        newToken,
-				RefreshToken: newRefreshToken,
+				Token: newToken,
 			})
 			ctx.Abort()
 		} else {

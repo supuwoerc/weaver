@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/redis"
-	"github.com/supuwoerc/weaver/pkg/response"
 )
 
 type UserCache struct {
@@ -19,28 +17,27 @@ func NewUserCache(r *redis.CommonRedisClient) *UserCache {
 	return &UserCache{redis: r}
 }
 
-func (u *UserCache) CacheTokenPair(ctx context.Context, email string, pair *models.TokenPair) error {
-	if pair == nil {
-		return response.UserLoginTokenPairCacheErr
-	}
-	return u.redis.Client.HSet(ctx, constant.UserTokenPairKey, email, pair).Err()
+func (u *UserCache) refreshTokenCacheKey(email string) string {
+	return fmt.Sprintf("%s:%s", constant.UserRefreshTokenKey, email)
 }
 
-func (u *UserCache) GetTokenPairIsExist(ctx context.Context, email string) (bool, error) {
-	return u.redis.Client.HExists(ctx, constant.UserTokenPairKey, email).Result()
+// CacheRefreshToken 存储用户的refreshToken
+func (u *UserCache) CacheRefreshToken(ctx context.Context, email, refreshToken string, expiration time.Duration) error {
+	return u.redis.Client.Set(ctx, u.refreshTokenCacheKey(email), refreshToken, expiration).Err()
 }
 
-func (u *UserCache) HDelTokenPair(ctx context.Context, email string) error {
-	return u.redis.Client.HDel(ctx, constant.UserTokenPairKey, email).Err()
+// DeleteRefreshToken 删除用户的refreshToken
+func (u *UserCache) DeleteRefreshToken(ctx context.Context, email string) error {
+	return u.redis.Client.Del(ctx, u.refreshTokenCacheKey(email)).Err()
 }
 
-func (u *UserCache) GetTokenPair(ctx context.Context, email string) (*models.TokenPair, error) {
-	var ret models.TokenPair
-	err := u.redis.Client.HGet(ctx, constant.UserTokenPairKey, email).Scan(&ret)
+// GetRefreshToken 获取用户的refreshToken
+func (u *UserCache) GetRefreshToken(ctx context.Context, email string) (string, error) {
+	refreshToken, err := u.redis.Client.Get(ctx, u.refreshTokenCacheKey(email)).Result()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &ret, nil
+	return refreshToken, nil
 }
 
 func (u *UserCache) activeAccountKey(id uint) string {

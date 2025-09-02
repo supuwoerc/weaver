@@ -8,10 +8,6 @@
     "other": "用户名或密码错误"
   },
   {
-    "id": "userLoginTokenPairCacheErr",
-    "other": "TokenPair记录失败"
-  },
-  {
     "id": "passwordValidErr",
     "other": "密码格式错误"
   },

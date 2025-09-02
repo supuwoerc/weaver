@@ -451,7 +451,7 @@ func TestFailWithCode(t *testing.T) {
 		{
 			name:         "user not exist",
 			code:         UserNotExist,
-			expectedCode: 20005,
+			expectedCode: 20004,
 		},
 		{
 			name:         "permission not exist",
@@ -495,7 +495,7 @@ func TestFailWithError(t *testing.T) {
 		{
 			name:         "status code error",
 			err:          UserNotExist,
-			expectedCode: 20005,
+			expectedCode: 20004,
 			expectedMsg:  "",
 		},
 		{

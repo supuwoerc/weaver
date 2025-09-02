@@ -25,17 +25,16 @@ const (
 )
 
 const (
-	UserCreateDuplicateEmail   StatusCode = 20000 // userCreateDuplicateEmail
-	UserLoginFail              StatusCode = 20001 // userLoginFail
-	UserLoginTokenPairCacheErr StatusCode = 20002 // userLoginTokenPairCacheErr
-	PasswordValidErr           StatusCode = 20003 // passwordValidErr
-	EmailValidErr              StatusCode = 20004 // emailValidErr
-	UserNotExist               StatusCode = 20005 // userNotExist
-	UserInactive               StatusCode = 20006 // userInactive
-	UserDisabled               StatusCode = 20007 // userDisabled
-	InvalidActiveCode          StatusCode = 20008 // invalidActiveCode
-	ReActiveErr                StatusCode = 20009 // reActiveErr
-	UserLogoutFail             StatusCode = 20010 // userLogoutFail
+	UserCreateDuplicateEmail StatusCode = 20000 // userCreateDuplicateEmail
+	UserLoginFail            StatusCode = 20001 // userLoginFail
+	PasswordValidErr         StatusCode = 20002 // passwordValidErr
+	EmailValidErr            StatusCode = 20003 // emailValidErr
+	UserNotExist             StatusCode = 20004 // userNotExist
+	UserInactive             StatusCode = 20005 // userInactive
+	UserDisabled             StatusCode = 20006 // userDisabled
+	InvalidActiveCode        StatusCode = 20007 // invalidActiveCode
+	ReActiveErr              StatusCode = 20008 // reActiveErr
+	UserLogoutFail           StatusCode = 20009 // userLogoutFail
 )
 
 const (

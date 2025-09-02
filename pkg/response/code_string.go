@@ -21,15 +21,14 @@ func _() {
 	_ = x[Busy-10010]
 	_ = x[UserCreateDuplicateEmail-20000]
 	_ = x[UserLoginFail-20001]
-	_ = x[UserLoginTokenPairCacheErr-20002]
-	_ = x[PasswordValidErr-20003]
-	_ = x[EmailValidErr-20004]
-	_ = x[UserNotExist-20005]
-	_ = x[UserInactive-20006]
-	_ = x[UserDisabled-20007]
-	_ = x[InvalidActiveCode-20008]
-	_ = x[ReActiveErr-20009]
-	_ = x[UserLogoutFail-20010]
+	_ = x[PasswordValidErr-20002]
+	_ = x[EmailValidErr-20003]
+	_ = x[UserNotExist-20004]
+	_ = x[UserInactive-20005]
+	_ = x[UserDisabled-20006]
+	_ = x[InvalidActiveCode-20007]
+	_ = x[ReActiveErr-20008]
+	_ = x[UserLogoutFail-20009]
 	_ = x[CaptchaVerifyFail-30000]
 	_ = x[RoleCreateDuplicateName-40000]
 	_ = x[NoValidRoles-40001]
@@ -47,7 +46,7 @@ func _() {
 
 const (
 	_StatusCode_name_0 = "okerrorinvalidParamsinvalidTokencancelRequestrecoveryErrorinvalidRefreshTokenunnecessaryRefreshTokenauthErrtimeoutErrbusy"
-	_StatusCode_name_1 = "userCreateDuplicateEmailuserLoginFailuserLoginTokenPairCacheErrpasswordValidErremailValidErruserNotExistuserInactiveuserDisabledinvalidActiveCodereActiveErruserLogoutFail"
+	_StatusCode_name_1 = "userCreateDuplicateEmailuserLoginFailpasswordValidErremailValidErruserNotExistuserInactiveuserDisabledinvalidActiveCodereActiveErruserLogoutFail"
 	_StatusCode_name_2 = "captchaVerifyFail"
 	_StatusCode_name_3 = "roleCreateDuplicateNamenoValidRolesroleNotExistroleExistPermissionRefroleExistUserRef"
 	_StatusCode_name_4 = "permissionCreateDuplicatepermissionNotExistpermissionExistRoleRef"
@@ -56,7 +55,7 @@ const (
 
 var (
 	_StatusCode_index_0 = [...]uint8{0, 2, 7, 20, 32, 45, 58, 77, 100, 107, 117, 121}
-	_StatusCode_index_1 = [...]uint8{0, 24, 37, 63, 79, 92, 104, 116, 128, 145, 156, 170}
+	_StatusCode_index_1 = [...]uint8{0, 24, 37, 53, 66, 78, 90, 102, 119, 130, 144}
 	_StatusCode_index_3 = [...]uint8{0, 23, 35, 47, 69, 85}
 	_StatusCode_index_4 = [...]uint8{0, 25, 43, 65}
 	_StatusCode_index_5 = [...]uint8{0, 19, 31, 47}
@@ -67,7 +66,7 @@ func (i StatusCode) String() string {
 	case 10000 <= i && i <= 10010:
 		i -= 10000
 		return _StatusCode_name_0[_StatusCode_index_0[i]:_StatusCode_index_0[i+1]]
-	case 20000 <= i && i <= 20010:
+	case 20000 <= i && i <= 20009:
 		i -= 20000
 		return _StatusCode_name_1[_StatusCode_index_1[i]:_StatusCode_index_1[i+1]]
 	case i == 30000:
