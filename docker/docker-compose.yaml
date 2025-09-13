@@ -1,8 +1,11 @@
+---
 version: "3.0"
+
 services:
+  # MySQL 数据库服务
   database:
     container_name: "gin-web-database"
-    image: mysql:latest
+    image: mysql:8.0.32
     environment:
       MYSQL_DATABASE: "gin_web"
       MYSQL_USER: "gin_web"
@@ -12,34 +15,140 @@ services:
       - ./data:/var/lib/mysql
     ports:
       - "3306:3306"
-    expose:
-      - "3306"
+    networks:
+      - elastic_net
+
+  # Redis 缓存服务
   redis:
     container_name: "gin-web-redis"
     restart: always
-    image: redis:latest
+    image: redis:8.2.1
     ports:
       - "6379:6379"
-    expose:
-      - "6379"
     volumes:
       - ./redis:/data
+    networks:
+      - elastic_net
+
+  # MinIO 对象存储服务
   minio:
     container_name: "gin-web-minio"
     restart: always
     image: minio/minio:RELEASE.2025-04-22T22-12-26Z
     environment:
-      MINIO_ROOT_USER: "minio_admin"
-      MINIO_ROOT_PASSWORD: "minio_password"
-      MINIO_REGION: "local"
-    command: server /data --console-address ":9001"
+      - "TZ=Asia/Shanghai"
+      - "MINIO_ROOT_USER=minioadmin"
+      - "MINIO_ROOT_PASSWORD=minioadmin123"
     ports:
-      - "9000:9000"  # API端口
-      - "9001:9001"  # Web控制台端口
-    expose:
-      - "9000"
-      - "9001"
+      - "9000:9000"
+      - "9001:9001"
     volumes:
-      - ./minio/data:/data
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
+      - ./minio:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - elastic_net
+
+  # Consul 服务发现
+  consul:
+    container_name: "gin-web-consul"
+    image: consul:1.15.4
+    restart: unless-stopped
+    environment:
+      - "TZ=Asia/Shanghai"
+    ports:
+      - "8500:8500"
+    volumes:
+      - ./consul/data:/consul/data
+      - ./consul/config:/consul/config
+    command: >
+      agent -server -ui -node=server-1 -bootstrap-expect=1
+      -client=0.0.0.0 -bind=0.0.0.0
+      -data-dir=/consul/data -config-dir=/consul/config
+    networks:
+      - elastic_net
+
+  # Kafka 消息队列
+  kafka:
+    container_name: "gin-web-kafka"
+    image: apache/kafka:3.9.0
+    hostname: kafka
+    restart: unless-stopped
+    environment:
+      - "TZ=Asia/Shanghai"
+      - "KAFKA_BROKER_ID=1"
+      - "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+      - "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:19092,PLAINTEXT_HOST://localhost:9092"
+      - "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1"
+      - "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0"
+      - "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1"
+      - "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1"
+      - "KAFKA_PROCESS_ROLES=broker,controller"
+      - "KAFKA_NODE_ID=1"
+      - "KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093"
+      - "KAFKA_LISTENERS=PLAINTEXT://:19092,PLAINTEXT_HOST://:9092,CONTROLLER://:9093"
+      - "KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT"
+      - "KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER"
+      - "KAFKA_LOG_DIRS=/tmp/kraft-combined-logs"
+    ports:
+      - "9092:9092"
+    volumes:
+      - ./kafka:/tmp/kraft-combined-logs
+    networks:
+      - elastic_net
+
+  # Kafka UI 管理界面
+  kafka-ui:
+    container_name: "gin-web-kafka-ui"
+    image: provectuslabs/kafka-ui:latest
+    restart: unless-stopped
+    environment:
+      - "TZ=Asia/Shanghai"
+      - "KAFKA_CLUSTERS_0_NAME=local"
+      - "KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:19092"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+    networks:
+      - elastic_net
+
+  # Elasticsearch 搜索引擎
+  elasticsearch:
+    container_name: "gin-web-es"
+    image: elasticsearch:8.12.2
+    restart: unless-stopped
+    environment:
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      - "TZ=Asia/Shanghai"
+      - "discovery.type=single-node"
+      - "xpack.security.enabled=true"
+      - "xpack.security.transport.ssl.enabled=false"
+      - "xpack.security.http.ssl.enabled=false"
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./es/data:/usr/share/elasticsearch/data
+    networks:
+      - elastic_net
+
+  # Kibana 数据可视化平台
+  kibana:
+    container_name: "gin-web-kibana"
+    image: kibana:8.12.2
+    restart: unless-stopped
+    environment:
+      - "TZ=Asia/Shanghai"
+      - "I18N_LOCALE=zh-CN"
+      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200"
+      - "ELASTICSEARCH_SERVICEACCOUNTTOKEN=AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjpfUnBQQXpsS1FDQzZCanJQUnZ3c2l3"
+    ports:
+      - "5601:5601"
+    networks:
+      - elastic_net
+    depends_on:
+      - elasticsearch
+
+# 网络定义
+networks:
+  elastic_net:
+    driver: bridge

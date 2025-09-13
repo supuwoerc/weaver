@@ -28,3 +28,7 @@ INSERT INTO gin_web.sys_role_permission (role_id, permission_id) VALUES (1, 13);
 INSERT INTO gin_web.sys_role_permission (role_id, permission_id) VALUES (1, 14);
 INSERT INTO gin_web.sys_role_permission (role_id, permission_id) VALUES (1, 15);
 INSERT INTO gin_web.sys_role_permission (role_id, permission_id) VALUES (1, 16);
+INSERT INTO gin_web.sys_role_permission (role_id, permission_id) VALUES (1, 17);
+INSERT INTO gin_web.sys_role_permission (role_id, permission_id) VALUES (1, 18);
+INSERT INTO gin_web.sys_role_permission (role_id, permission_id) VALUES (1, 19);
+INSERT INTO gin_web.sys_role_permission (role_id, permission_id) VALUES (1, 20);
