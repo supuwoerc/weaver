@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/supuwoerc/weaver/conf"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -31,4 +32,8 @@ func InitSwagWebRouter(r *gin.Engine, conf *conf.Config) {
 	} else {
 		r.GET(swagRoutePattern, NotFoundHandler)
 	}
+}
+
+func InitPrometheusRouter(r *gin.Engine) {
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }

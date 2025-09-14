@@ -34,6 +34,8 @@ func NewEngine(emailClient *EmailClient, rc *local.CommonRedisClient, logger *lo
 	r.Use(middleware.NewRecoveryMiddleware(emailClient, logger, conf).Recovery())
 	// 跨域中间件
 	r.Use(middleware.NewCorsMiddleware(conf).Cors())
+	// prometheus监控
+	r.Use(middleware.NewPrometheusMiddleware().Prometheus())
 	// 开启ForwardedByClientIP(配合限流)
 	r.ForwardedByClientIP = true
 	// 系统限流中间件
@@ -42,6 +44,8 @@ func NewEngine(emailClient *EmailClient, rc *local.CommonRedisClient, logger *lo
 	router.InitSystemWebRouter(r)
 	// swag相关路由
 	router.InitSwagWebRouter(r, conf)
+	// prometheus相关路由
+	router.InitPrometheusRouter(r)
 	return r
 }
 
