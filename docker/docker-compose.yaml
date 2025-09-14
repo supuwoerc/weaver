@@ -15,7 +15,7 @@ services:
     ports:
       - "3306:3306"
     networks:
-      - elastic_net
+      - business_net
 
   # Redis 缓存服务
   redis:
@@ -27,7 +27,7 @@ services:
     volumes:
       - ./redis:/data
     networks:
-      - elastic_net
+      - business_net
 
   # MinIO 对象存储服务
   minio:
@@ -45,7 +45,7 @@ services:
       - ./minio:/data
     command: server /data --console-address ":9001"
     networks:
-      - elastic_net
+      - business_net
 
   # Consul 服务发现
   consul:
@@ -64,7 +64,7 @@ services:
       -client=0.0.0.0 -bind=0.0.0.0
       -data-dir=/consul/data -config-dir=/consul/config
     networks:
-      - elastic_net
+      - business_net
 
   # Kafka 消息队列
   kafka:
@@ -93,7 +93,7 @@ services:
     volumes:
       - ./kafka:/tmp/kraft-combined-logs
     networks:
-      - elastic_net
+      - business_net
 
   # Kafka UI 管理界面
   kafka-ui:
@@ -109,7 +109,7 @@ services:
     depends_on:
       - kafka
     networks:
-      - elastic_net
+      - business_net
 
   # Elasticsearch 搜索引擎
   elasticsearch:
@@ -128,7 +128,7 @@ services:
     volumes:
       - ./es/data:/usr/share/elasticsearch/data
     networks:
-      - elastic_net
+      - business_net
 
   # Kibana 数据可视化平台
   kibana:
@@ -143,11 +143,56 @@ services:
     ports:
       - "5601:5601"
     networks:
-      - elastic_net
+      - business_net
     depends_on:
       - elasticsearch
 
+  # Prometheus 监控服务
+  prometheus:
+    container_name: "gin-web-prometheus"
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    environment:
+      - "TZ=Asia/Shanghai"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - monitoring_net
+      - business_net
+
+  # Grafana 可视化面板
+  grafana:
+    container_name: "gin-web-grafana"
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      - "TZ=Asia/Shanghai"
+      - "GF_SECURITY_ADMIN_USER=admin"
+      - "GF_SECURITY_ADMIN_PASSWORD=admin123"
+      - "GF_USERS_ALLOW_SIGN_UP=false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - monitoring_net
+    depends_on:
+      - prometheus
+
 # 网络定义
 networks:
-  elastic_net:
+  business_net:                    # 业务网络
+    driver: bridge
+  monitoring_net:                  # 监控网络
     driver: bridge

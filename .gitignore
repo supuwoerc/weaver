@@ -34,3 +34,5 @@ upload/
 /docker/minio/
 /docker/mysql/
 /docker/redis/
+/docker/grafana/
+/docker/prometheus/
