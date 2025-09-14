@@ -1,11 +1,10 @@
 ---
-version: "3.0"
-
 services:
   # MySQL 数据库服务
   database:
     container_name: "gin-web-database"
     image: mysql:8.0.32
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: "gin_web"
       MYSQL_USER: "gin_web"
