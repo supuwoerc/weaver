@@ -1,0 +1,24 @@
+---
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+
+scrape_configs:
+  # Prometheus 自身监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Web 服务监控
+  - job_name: 'weaver-service'
+    static_configs:
+      - targets: ['192.168.9.3:8804']
+    scrape_interval: 15s
+    metrics_path: '/metrics'  # 默认指标路径
+    scheme: 'http'            # 使用 HTTP 协议
+    # 如果需要认证，可以添加以下配置
+    # basic_auth:
+    #   username: 'your_username'
+    #   password: 'your_password'

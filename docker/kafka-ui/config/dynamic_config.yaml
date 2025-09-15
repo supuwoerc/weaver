@@ -1,0 +1,26 @@
+---
+# 集群配置
+clusters:
+  - name: local
+    bootstrapServers: kafka:19092
+    zookeeper: kafka:9093
+
+# UI 配置
+ui:
+  # 主题配置
+  topics:
+    # 默认分区数
+    defaultPartitions: 3
+    # 默认副本数
+    defaultReplicationFactor: 1
+
+  # 消费者组配置
+  consumerGroups:
+    # 刷新间隔（秒）
+    refreshIntervalMs: 5000
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.provectus: DEBUG
