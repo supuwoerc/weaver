@@ -18,11 +18,16 @@ func NewRolePermissionDAO(basicDAO *BasicDAO) *RolePermissionDAO {
 
 func (r *RolePermissionDAO) GetRolesByPermissionID(ctx context.Context, permissionID uint, limit int, offset int) ([]*models.Role, error) {
 	var result []*models.Role
-	query := r.Datasource(ctx).Model(&models.RolePermission{}).
-		Table("sys_role_permission as rp")
-	err := query.Where("permission_id = ?", permissionID).
+	err := r.Datasource(ctx).Model(&models.RolePermission{}).
+		Select("r.*").
+		Table("sys_role_permission as rp").
+		Where("permission_id = ?", permissionID).
 		Joins("inner join sys_role r on rp.role_id = r.id").
-		Find(&result).Limit(limit).Offset(offset).Error
+		Order("r.updated_at desc").
+		Limit(limit).
+		Offset(offset).
+		Find(&result).
+		Error
 	if err != nil {
 		return nil, err
 	}
