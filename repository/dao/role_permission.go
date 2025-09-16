@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/supuwoerc/weaver/models"
+	"github.com/supuwoerc/weaver/pkg/database"
 )
 
 type RolePermissionDAO struct {
@@ -16,13 +17,17 @@ func NewRolePermissionDAO(basicDAO *BasicDAO) *RolePermissionDAO {
 	}
 }
 
-func (r *RolePermissionDAO) GetRolesByPermissionID(ctx context.Context, permissionID uint, limit int, offset int) ([]*models.Role, error) {
+func (r *RolePermissionDAO) GetRolesByPermissionID(ctx context.Context, permissionID uint, keyword string, limit int, offset int) ([]*models.Role, error) {
 	var result []*models.Role
-	err := r.Datasource(ctx).Model(&models.RolePermission{}).
+	query := r.Datasource(ctx).Model(&models.RolePermission{}).
 		Select("r.*").
 		Table("sys_role_permission as rp").
-		Where("permission_id = ?", permissionID).
-		Joins("inner join sys_role r on rp.role_id = r.id").
+		Joins("inner join sys_role r on rp.role_id = r.id")
+	if keyword != "" {
+		query = query.Where("r.name like ?", database.FuzzKeyword(keyword))
+	}
+	err := query.
+		Where("rp.permission_id = ?", permissionID).
 		Order("r.updated_at desc").
 		Limit(limit).
 		Offset(offset).

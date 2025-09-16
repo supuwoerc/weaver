@@ -35,7 +35,7 @@ type RoleDAO interface {
 }
 
 type RolePermissionDAO interface {
-	GetRolesByPermissionID(ctx context.Context, permissionID uint, limit int, offset int) ([]*models.Role, error)
+	GetRolesByPermissionID(ctx context.Context, permissionID uint, keyword string, limit int, offset int) ([]*models.Role, error)
 }
 
 type Service struct {
@@ -135,7 +135,7 @@ func (s *Service) GetPermissionList(ctx context.Context, keyword string, limit, 
 }
 
 func (s *Service) GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error) {
-	permission, err := s.permissionDAO.GetByID(ctx, id)
+	permission, err := s.permissionDAO.GetByID(ctx, id, "Roles")
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (s *Service) GetPermissionDetail(ctx context.Context, id uint) (*response.P
 }
 
 func (s *Service) GetRolesByPermissionID(ctx context.Context, params *request.GetPermissionAssociateRolesRequest) ([]*response.PermissionDetailRole, error) {
-	roles, err := s.rolePermissionDAO.GetRolesByPermissionID(ctx, params.ID, params.Limit, params.Offset)
+	roles, err := s.rolePermissionDAO.GetRolesByPermissionID(ctx, params.ID, params.Keyword, params.Limit, params.Offset)
 	if err != nil {
 		return nil, err
 	}
