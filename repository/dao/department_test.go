@@ -113,8 +113,8 @@ func (s *DepartmentDAOSuite) TestDepartmentDAO_Create() {
 	s.Run("successful create department", func() {
 		dept := &models.Department{
 			Name:      "IT部门",
-			CreatorId: 1,
-			UpdaterId: 1,
+			CreatorID: 1,
+			UpdaterID: 1,
 			BasicModel: database.BasicModel{
 				CreatedAt: database.UpsertTime(time.Now()),
 				UpdatedAt: database.UpsertTime(time.Now()),
@@ -135,8 +135,8 @@ func (s *DepartmentDAOSuite) TestDepartmentDAO_Create() {
 	s.Run("duplicate name error", func() {
 		dept := &models.Department{
 			Name:      "IT部门",
-			CreatorId: 1,
-			UpdaterId: 1,
+			CreatorID: 1,
+			UpdaterID: 1,
 		}
 		defer func() {
 			assert.NoError(t, s.mock.ExpectationsWereMet())
@@ -157,8 +157,8 @@ func (s *DepartmentDAOSuite) TestDepartmentDAO_Create() {
 	s.Run("other db error", func() {
 		dept := &models.Department{
 			Name:      "IT部门",
-			CreatorId: 1,
-			UpdaterId: 1,
+			CreatorID: 1,
+			UpdaterID: 1,
 		}
 		defer func() {
 			assert.NoError(t, s.mock.ExpectationsWereMet())
@@ -185,8 +185,8 @@ func (s *DepartmentDAOSuite) TestDepartmentDAO_GetByName() {
 				ID: 1998,
 			},
 			Name:      "IT部门",
-			CreatorId: 1,
-			UpdaterId: 1,
+			CreatorID: 1,
+			UpdaterID: 1,
 		}
 		defer func() {
 			assert.NoError(t, s.mock.ExpectationsWereMet())

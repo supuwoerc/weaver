@@ -83,7 +83,10 @@ var permissionDAOProvider = wire.NewSet(
 	wire.Bind(new(middleware.AuthMiddlewarePermissionRepo), new(*dao.PermissionDAO)),
 	dao.NewPermissionDAO,
 )
-
+var rolePermissionDAOProvider = wire.NewSet(
+	wire.Bind(new(permission.RolePermissionDAO), new(*dao.RolePermissionDAO)),
+	dao.NewRolePermissionDAO,
+)
 var permissionServiceProvider = wire.NewSet(
 	wire.Bind(new(PermissionCache), new(*permission.Service)),
 	wire.Bind(new(permissionApi.Service), new(*permission.Service)),
@@ -105,6 +108,7 @@ var pingApiProvider = wire.NewSet(
 var roleApiProvider = wire.NewSet(
 	wire.Bind(new(roleApi.Service), new(*role.Service)),
 	roleDAOProvider,
+	rolePermissionDAOProvider,
 	role.NewRoleService,
 	roleApi.NewRoleApi,
 )

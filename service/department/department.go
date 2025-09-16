@@ -23,7 +23,7 @@ import (
 type DAO interface {
 	Create(ctx context.Context, dept *models.Department) error
 	GetByName(ctx context.Context, name string) (*models.Department, error)
-	GetById(ctx context.Context, id uint) (*models.Department, error)
+	GetByID(ctx context.Context, id uint) (*models.Department, error)
 	GetAll(ctx context.Context) ([]*models.Department, error)
 	GetAllUserDepartment(ctx context.Context) ([]*models.UserDepartment, error)
 	GetAllDepartmentLeader(ctx context.Context) ([]*models.DepartmentLeader, error)
@@ -81,7 +81,7 @@ func (p *Service) lockDepartmentField(ctx context.Context, name string, parentId
 }
 
 func (p *Service) CreateDepartment(ctx context.Context, operator uint, params *request.CreateDepartmentRequest) error {
-	locks, err := p.lockDepartmentField(ctx, params.Name, params.ParentId)
+	locks, err := p.lockDepartmentField(ctx, params.Name, params.ParentID)
 	defer func() {
 		for _, l := range locks {
 			if e := l.Unlock(); e != nil {
@@ -103,16 +103,16 @@ func (p *Service) CreateDepartment(ctx context.Context, operator uint, params *r
 		}
 		// 查询父部门
 		var parentDept *models.Department
-		if params.ParentId != nil {
-			parentDept, temp = p.departmentDAO.GetById(ctx, *params.ParentId)
+		if params.ParentID != nil {
+			parentDept, temp = p.departmentDAO.GetByID(ctx, *params.ParentID)
 			if temp != nil {
 				return temp
 			}
 		}
 		dept := &models.Department{
 			Name:      params.Name,
-			CreatorId: operator,
-			UpdaterId: operator,
+			CreatorID: operator,
+			UpdaterID: operator,
 		}
 		// 完善 Parent & Ancestors
 		if parentDept != nil {
@@ -125,7 +125,7 @@ func (p *Service) CreateDepartment(ctx context.Context, operator uint, params *r
 			})
 			ancestors := strings.Join(t, ",")
 			dept.Ancestors = &ancestors
-			dept.ParentId = params.ParentId
+			dept.ParentID = params.ParentID
 		}
 		// 查询有效的用户
 		var users []*models.User
@@ -191,14 +191,14 @@ func (p *Service) GetDepartmentTree(ctx context.Context, withCrew bool) ([]*resp
 }
 
 func (p *Service) processDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
-	cache, err := p.departmentCache.GetDepartmentCache(ctx, key)
+	departmentCache, err := p.departmentCache.GetDepartmentCache(ctx, key)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	return cache, nil
+	return departmentCache, nil
 }
 
 func (p *Service) processDepartmentWithCrew(ctx context.Context, departments []*models.Department) error {
@@ -220,23 +220,23 @@ func (p *Service) processDepartmentWithCrew(ctx context.Context, departments []*
 	}
 	for _, dept := range departments {
 		ud := lo.Filter(userDept, func(item *models.UserDepartment, _ int) bool {
-			return item.DepartmentId == dept.ID
+			return item.DepartmentID == dept.ID
 		})
 		dl := lo.Filter(deptLeader, func(item *models.DepartmentLeader, _ int) bool {
-			return item.DepartmentId == dept.ID
+			return item.DepartmentID == dept.ID
 		})
 		dept.Users = lo.Filter(users, func(item *models.User, _ int) bool {
 			return lo.Contains(lo.Map(ud, func(item *models.UserDepartment, _ int) uint {
-				return item.UserId
+				return item.UserID
 			}), item.ID)
 		})
 		dept.Leaders = lo.Filter(users, func(item *models.User, _ int) bool {
 			return lo.Contains(lo.Map(dl, func(item *models.DepartmentLeader, _ int) uint {
-				return item.UserId
+				return item.UserID
 			}), item.ID)
 		})
 		creator, ok := lo.Find(users, func(item *models.User) bool {
-			return item.ID == dept.CreatorId
+			return item.ID == dept.CreatorID
 		})
 		if ok {
 			dept.Creator = *creator
@@ -244,7 +244,7 @@ func (p *Service) processDepartmentWithCrew(ctx context.Context, departments []*
 			return response.Error
 		}
 		updater, ok := lo.Find(users, func(item *models.User) bool {
-			return item.ID == dept.UpdaterId
+			return item.ID == dept.UpdaterID
 		})
 		if ok {
 			dept.Updater = *updater
@@ -274,17 +274,17 @@ func (p *Service) processTree(departments []*models.Department) ([]*response.Dep
 		}
 		node.Children = children
 		nodeMap[node.ID] = node
-		if dept.ParentId == nil {
+		if dept.ParentID == nil {
 			res = append(res, node)
 		} else {
-			_, exist = nodeMap[*dept.ParentId]
+			_, exist = nodeMap[*dept.ParentID]
 			if !exist {
-				nodeMap[*dept.ParentId], parseErr = response.ToDepartmentTreeResponse(&models.Department{}, deptMap)
+				nodeMap[*dept.ParentID], parseErr = response.ToDepartmentTreeResponse(&models.Department{}, deptMap)
 				if parseErr != nil {
 					return nil, parseErr
 				}
 			}
-			nodeMap[*dept.ParentId].Children = append(nodeMap[*dept.ParentId].Children, node)
+			nodeMap[*dept.ParentID].Children = append(nodeMap[*dept.ParentID].Children, node)
 		}
 	}
 	return res, nil

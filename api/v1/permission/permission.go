@@ -15,6 +15,7 @@ type Service interface {
 	CreatePermission(ctx context.Context, operator uint, params *request.CreatePermissionRequest) error
 	GetPermissionList(ctx context.Context, keyword string, limit, offset int) ([]*response.PermissionListRowResponse, int64, error)
 	GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error)
+	GetRolesByPermissionID(ctx context.Context, params *request.GetPermissionAssociateRolesRequest) ([]*response.PermissionDetailRole, error)
 	UpdatePermission(ctx context.Context, operator uint, params *request.UpdatePermissionRequest) error
 	DeletePermission(ctx context.Context, id, operator uint) error
 	GetUserViewRouteAndMenuPermissions(ctx context.Context, uid uint) (response.FrontEndPermissions, error)
@@ -40,6 +41,7 @@ func NewPermissionApi(basic *v1.BasicApi, service Service) *Api {
 		permissionAccessGroup.POST("create", permissionApi.CreatePermission)
 		permissionAccessGroup.GET("list", permissionApi.GetPermissionList)
 		permissionAccessGroup.GET("detail", permissionApi.GetPermissionDetail)
+		permissionAccessGroup.GET("associate-roles", permissionApi.GetPermissionAssociateRoles)
 		permissionAccessGroup.POST("update", permissionApi.UpdatePermission)
 		permissionAccessGroup.POST("delete", permissionApi.DeletePermission)
 	}
@@ -128,6 +130,36 @@ func (r *Api) GetPermissionDetail(ctx *gin.Context) {
 		return
 	}
 	detail, err := r.service.GetPermissionDetail(ctx, params.ID)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.SuccessWithData(ctx, detail)
+}
+
+// GetPermissionAssociateRoles
+//
+//	@Summary		根据权限ID查询权限关联的角色
+//	@Description	根据权限ID查询权限关联的角色
+//	@Tags			权限管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	query		request.GetPermissionAssociateRolesRequest									true	"请求参数"	true	"权限ID"
+//	@Param			keyword	query		request.GetPermissionAssociateRolesRequest									false	"搜索关键词"
+//	@Param			limit	query		int																			false	"每页数量"	default(10)
+//	@Param			offset	query		int																			false	"偏移量"	default(0)
+//	@Success		10000	{object}	response.BasicResponse[response.DataList[response.PermissionDetailRole]]	"获取成功，code=10000"
+//	@Failure		10002	{object}	response.BasicResponse[any]													"参数验证失败，code=10002"
+//	@Failure		10001	{object}	response.BasicResponse[any]													"服务器内部错误，code=10001"
+//	@Router			/permission/associate-roles [get]
+func (r *Api) GetPermissionAssociateRoles(ctx *gin.Context) {
+	var params request.GetPermissionAssociateRolesRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	detail, err := r.service.GetRolesByPermissionID(ctx, &params)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

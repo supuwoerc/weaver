@@ -1,7 +1,6 @@
 package response
 
 import (
-	"github.com/samber/lo"
 	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/constant"
 )
@@ -30,9 +29,8 @@ func ToPermissionListRowResponse(permission *models.Permission) *PermissionListR
 // PermissionDetailResponse 权限详情
 type PermissionDetailResponse struct {
 	*models.Permission
-	Roles   []*PermissionDetailRole `json:"roles"`
-	Creator any                     `json:"creator,omitempty"`
-	Updater any                     `json:"updater,omitempty"`
+	Creator any `json:"creator,omitempty"`
+	Updater any `json:"updater,omitempty"`
 }
 
 type PermissionDetailRole struct {
@@ -47,11 +45,6 @@ type PermissionDetailRole struct {
 func ToPermissionDetailResponse(permission *models.Permission) *PermissionDetailResponse {
 	return &PermissionDetailResponse{
 		Permission: permission,
-		Roles: lo.Map(permission.Roles, func(item *models.Role, _ int) *PermissionDetailRole {
-			return &PermissionDetailRole{
-				Role: item,
-			}
-		}),
 	}
 }
 

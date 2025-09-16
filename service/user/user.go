@@ -23,7 +23,7 @@ import (
 type DAO interface {
 	Create(ctx context.Context, user *models.User) error
 	GetByEmail(ctx context.Context, email string, preload ...string) (*models.User, error)
-	GetById(ctx context.Context, uid uint, preload ...string) (*models.User, error)
+	GetByID(ctx context.Context, uid uint, preload ...string) (*models.User, error)
 	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.User, error)
 	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.User, int64, error)
 	GetAll(ctx context.Context) ([]*models.User, error)
@@ -167,7 +167,7 @@ func (u *Service) Logout(ctx context.Context, email string) error {
 }
 
 func (u *Service) Profile(ctx context.Context, uid uint) (*response.ProfileResponse, error) {
-	user, err := u.userDAO.GetById(ctx, uid, "Roles", "Departments")
+	user, err := u.userDAO.GetByID(ctx, uid, "Roles", "Departments")
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (u *Service) ActiveAccount(ctx context.Context, uid uint, activeCode string
 		// key 过期的情况需要重新发送邮件
 		if errors.Is(err, redis.Nil) {
 			var user *models.User
-			user, err = u.userDAO.GetById(ctx, uid)
+			user, err = u.userDAO.GetByID(ctx, uid)
 			if err == nil && user.Status == constant.Inactive {
 				go func() {
 					if temp := u.sendActiveEmail(context.Background(), user.ID, user.Email); temp != nil {
@@ -231,7 +231,7 @@ func (u *Service) ActiveAccount(ctx context.Context, uid uint, activeCode string
 	} else {
 		return u.Transaction(ctx, false, func(ctx context.Context) error {
 			var user *models.User
-			user, err = u.userDAO.GetById(ctx, uid)
+			user, err = u.userDAO.GetByID(ctx, uid)
 			if err != nil {
 				return err
 			}

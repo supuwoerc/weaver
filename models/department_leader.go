@@ -1,6 +1,6 @@
 package models
 
 type DepartmentLeader struct {
-	DepartmentId uint
-	UserId       uint
+	DepartmentID uint
+	UserID       uint
 }

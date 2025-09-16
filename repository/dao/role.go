@@ -77,7 +77,7 @@ func (r *RoleDAO) GetByName(ctx context.Context, name string) (*models.Role, err
 	return role, nil
 }
 
-func (r *RoleDAO) GetById(ctx context.Context, id uint, preload ...string) (*models.Role, error) {
+func (r *RoleDAO) GetByID(ctx context.Context, id uint, preload ...string) (*models.Role, error) {
 	var result models.Role
 	query := r.Datasource(ctx).Model(&models.Role{})
 	if len(preload) > 0 {
@@ -113,7 +113,7 @@ func (r *RoleDAO) AssociatePermissions(ctx context.Context, id uint, permissions
 	return r.Datasource(ctx).Model(&models.Role{BasicModel: database.BasicModel{ID: id}}).Association("Permissions").Replace(permissions)
 }
 
-func (r *RoleDAO) DeleteById(ctx context.Context, id, updater uint) error {
+func (r *RoleDAO) DeleteByID(ctx context.Context, id, updater uint) error {
 	return r.Datasource(ctx).Model(&models.Role{}).Where("id = ?", id).
 		Select("updater_id", "deleted_at").
 		Updates(map[string]any{

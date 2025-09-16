@@ -49,7 +49,7 @@ func (r *PermissionDAO) GetByIds(ctx context.Context, ids []uint, preload ...str
 	return result, nil
 }
 
-func (r *PermissionDAO) GetById(ctx context.Context, id uint, preload ...string) (*models.Permission, error) {
+func (r *PermissionDAO) GetByID(ctx context.Context, id uint, preload ...string) (*models.Permission, error) {
 	var result models.Permission
 	query := r.Datasource(ctx).Model(&models.Permission{})
 	if len(preload) > 0 {
@@ -85,7 +85,7 @@ func (r *PermissionDAO) GetList(ctx context.Context, keyword string, limit, offs
 	return permissions, total, nil
 }
 
-func (r *PermissionDAO) DeleteById(ctx context.Context, id, updater uint) error {
+func (r *PermissionDAO) DeleteByID(ctx context.Context, id, updater uint) error {
 	return r.Datasource(ctx).Model(&models.Permission{}).Where("id = ?", id).
 		Select("updater_id", "deleted_at").
 		Updates(map[string]any{
@@ -140,13 +140,13 @@ func (r *PermissionDAO) CheckUserPermission(ctx context.Context, uid uint, resou
 }
 
 // GetUserPermissions 获取用户所有权限
-func (r *PermissionDAO) GetUserPermissions(ctx context.Context, userId uint) ([]*models.Permission, error) {
+func (r *PermissionDAO) GetUserPermissions(ctx context.Context, uid uint) ([]*models.Permission, error) {
 	var permissions []*models.Permission
 	err := r.Datasource(ctx).Model(&models.Permission{}).
 		Table("sys_permission as permission").
 		Joins("inner join sys_role_permission role_permission on permission.id = role_permission.permission_id").
 		Joins("inner join sys_user_role user_role on role_permission.role_id = user_role.role_id").
-		Where("user_role.user_id = ?", userId).
+		Where("user_role.user_id = ?", uid).
 		Group("permission.id").
 		Find(&permissions).Error
 	if err != nil {
@@ -156,7 +156,7 @@ func (r *PermissionDAO) GetUserPermissions(ctx context.Context, userId uint) ([]
 }
 
 // GetUserPermissionsByType 根据类型获取用户权限
-func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uint, limit int, offset int,
+func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, uid uint, limit int, offset int,
 	permissionType ...constant.PermissionType) ([]*models.Permission, error) {
 	var permissions []*models.Permission
 
@@ -165,7 +165,7 @@ func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, userId uin
 		Distinct("sys_permission.*").
 		Joins("INNER JOIN sys_role_permission ON sys_permission.id = sys_role_permission.permission_id").
 		Joins("INNER JOIN sys_user_role ON sys_role_permission.role_id = sys_user_role.role_id").
-		Where("sys_user_role.user_id = ?", userId).
+		Where("sys_user_role.user_id = ?", uid).
 		Where("sys_permission.type IN (?)", permissionType).
 		Order("sys_permission.id DESC").
 		Limit(limit).

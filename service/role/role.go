@@ -22,11 +22,11 @@ type DAO interface {
 	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Role, error)
 	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error)
 	GetByName(ctx context.Context, name string) (*models.Role, error)
-	GetById(ctx context.Context, id uint, preload ...string) (*models.Role, error)
+	GetByID(ctx context.Context, id uint, preload ...string) (*models.Role, error)
 	Update(ctx context.Context, role *models.Role) error
 	AssociateUsers(ctx context.Context, id uint, users []*models.User) error
 	AssociatePermissions(ctx context.Context, id uint, permissions []*models.Permission) error
-	DeleteById(ctx context.Context, id, updater uint) error
+	DeleteByID(ctx context.Context, id, updater uint) error
 	GetUsersCount(ctx context.Context, id uint) int64
 	GetPermissionsCount(ctx context.Context, id uint) int64
 }
@@ -113,8 +113,8 @@ func (r *Service) CreateRole(ctx context.Context, operator uint, params *request
 			Name:        params.Name,
 			Users:       users,
 			Permissions: permissions,
-			CreatorId:   operator,
-			UpdaterId:   operator,
+			CreatorID:   operator,
+			UpdaterID:   operator,
 		})
 	})
 }
@@ -130,7 +130,7 @@ func (r *Service) GetRoleList(ctx context.Context, keyword string, limit, offset
 }
 
 func (r *Service) GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error) {
-	role, err := r.roleDAO.GetById(ctx, id, "Users", "Permissions")
+	role, err := r.roleDAO.GetByID(ctx, id, "Users", "Permissions")
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (r *Service) UpdateRole(ctx context.Context, operator uint, params *request
 			r.Logger.WithContext(ctx).Errorf("unlock fail %s", e.Error())
 		}
 	}(roleLock)
-	_, err := r.roleDAO.GetById(ctx, params.ID)
+	_, err := r.roleDAO.GetByID(ctx, params.ID)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func (r *Service) UpdateRole(ctx context.Context, operator uint, params *request
 		// 更新角色
 		err = r.roleDAO.Update(ctx, &models.Role{
 			Name:      params.Name,
-			UpdaterId: operator,
+			UpdaterID: operator,
 			BasicModel: database.BasicModel{
 				ID: params.ID,
 			},
@@ -228,5 +228,5 @@ func (r *Service) DeleteRole(ctx context.Context, id, operator uint) error {
 	if usersCount > 0 {
 		return response.RoleExistUserRef
 	}
-	return r.roleDAO.DeleteById(ctx, id, operator)
+	return r.roleDAO.DeleteByID(ctx, id, operator)
 }

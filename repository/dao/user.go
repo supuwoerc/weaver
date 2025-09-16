@@ -51,7 +51,7 @@ func (u *UserDAO) GetByEmail(ctx context.Context, email string, preload ...strin
 	return &user, nil
 }
 
-func (u *UserDAO) GetById(ctx context.Context, uid uint, preload ...string) (*models.User, error) {
+func (u *UserDAO) GetByID(ctx context.Context, uid uint, preload ...string) (*models.User, error) {
 	var user models.User
 	query := u.Datasource(ctx).Model(&models.User{})
 	if len(preload) > 0 {

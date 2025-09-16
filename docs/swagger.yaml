@@ -362,6 +362,15 @@ definitions:
       message:
         type: string
     type: object
+  response.BasicResponse-response_DataList-response_PermissionDetailRole:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.DataList-response_PermissionDetailRole'
+      message:
+        type: string
+    type: object
   response.BasicResponse-response_DataList-response_PermissionListRowResponse:
     properties:
       code:
@@ -476,6 +485,15 @@ definitions:
       roles: {}
       status: {}
       updated_at: {}
+    type: object
+  response.DataList-response_PermissionDetailRole:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.PermissionDetailRole'
+        type: array
+      total:
+        type: integer
     type: object
   response.DataList-response_PermissionListRowResponse:
     properties:
@@ -594,7 +612,7 @@ definitions:
         type: string
       roles:
         items:
-          $ref: '#/definitions/response.PermissionDetailRole'
+          $ref: '#/definitions/models.Role'
         type: array
       type:
         $ref: '#/definitions/constant.PermissionType'
@@ -896,6 +914,82 @@ paths:
       summary: 获取部门树
       tags:
       - 部门管理
+  /permission/associate-roles:
+    get:
+      consumes:
+      - application/json
+      description: 根据权限ID查询权限关联的角色
+      parameters:
+      - in: query
+        minimum: 1
+        name: id
+        required: true
+        type: integer
+      - in: query
+        maxLength: 20
+        minLength: 1
+        name: keyword
+        type: string
+      - in: query
+        maximum: 200
+        minimum: 1
+        name: limit
+        required: true
+        type: integer
+      - in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - in: query
+        minimum: 1
+        name: id
+        required: true
+        type: integer
+      - in: query
+        maxLength: 20
+        minLength: 1
+        name: keyword
+        type: string
+      - in: query
+        maximum: 200
+        minimum: 1
+        name: limit
+        required: true
+        type: integer
+      - in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: 偏移量
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 获取成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-response_DataList-response_PermissionDetailRole'
+        "10001":
+          description: 服务器内部错误，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10002":
+          description: 参数验证失败，code=10002
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 根据权限ID查询权限关联的角色
+      tags:
+      - 权限管理
   /permission/create:
     post:
       consumes:

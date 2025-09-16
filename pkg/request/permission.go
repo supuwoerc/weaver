@@ -22,6 +22,14 @@ type GetPermissionDetailRequest struct {
 	ID uint `json:"id" form:"id" binding:"required,min=1"`
 }
 
+// GetPermissionAssociateRolesRequest 查询权限详情的参数
+type GetPermissionAssociateRolesRequest struct {
+	ID      uint   `json:"id" form:"id" binding:"required,min=1"`
+	Keyword string `json:"keyword" form:"keyword" binding:"omitempty,min=1,max=20"`
+	Limit   int    `json:"limit" form:"limit" binding:"required,min=1,max=200"`
+	Offset  int    `json:"offset"  form:"offset" binding:"min=0"`
+}
+
 // DeletePermissionRequest 删除权限的参数
 type DeletePermissionRequest = GetPermissionDetailRequest
 

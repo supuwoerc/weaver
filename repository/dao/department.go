@@ -42,7 +42,7 @@ func (r *DepartmentDAO) GetByName(ctx context.Context, name string) (*models.Dep
 	return &dept, nil
 }
 
-func (r *DepartmentDAO) GetById(ctx context.Context, id uint) (*models.Department, error) {
+func (r *DepartmentDAO) GetByID(ctx context.Context, id uint) (*models.Department, error) {
 	var dept models.Department
 	err := r.Datasource(ctx).Model(&models.Department{}).Where("id = ?", id).First(&dept).Error
 	if err != nil {

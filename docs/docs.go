@@ -130,6 +130,118 @@ const docTemplate = `{
                 }
             }
         },
+        "/permission/associate-roles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "根据权限ID查询权限关联的角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "权限管理"
+                ],
+                "summary": "根据权限ID查询权限关联的角色",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 20,
+                        "minLength": 1,
+                        "type": "string",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 200,
+                        "minimum": 1,
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 20,
+                        "minLength": 1,
+                        "type": "string",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 200,
+                        "minimum": 1,
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每页数量",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "偏移量",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "10000": {
+                        "description": "获取成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-response_DataList-response_PermissionDetailRole"
+                        }
+                    },
+                    "10001": {
+                        "description": "服务器内部错误，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10002": {
+                        "description": "参数验证失败，code=10002",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/permission/create": {
             "post": {
                 "security": [
@@ -1662,6 +1774,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.BasicResponse-response_DataList-response_PermissionDetailRole": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.DataList-response_PermissionDetailRole"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "response.BasicResponse-response_DataList-response_PermissionListRowResponse": {
             "type": "object",
             "properties": {
@@ -1835,6 +1961,20 @@ const docTemplate = `{
                 "roles": {},
                 "status": {},
                 "updated_at": {}
+            }
+        },
+        "response.DataList-response_PermissionDetailRole": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.PermissionDetailRole"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
             }
         },
         "response.DataList-response_PermissionListRowResponse": {
@@ -2015,7 +2155,7 @@ const docTemplate = `{
                 "roles": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.PermissionDetailRole"
+                        "$ref": "#/definitions/models.Role"
                     }
                 },
                 "type": {

@@ -18,9 +18,9 @@ import (
 type DAO interface {
 	Create(ctx context.Context, permission *models.Permission) error
 	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Permission, error)
-	GetById(ctx context.Context, id uint, preload ...string) (*models.Permission, error)
+	GetByID(ctx context.Context, id uint, preload ...string) (*models.Permission, error)
 	GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Permission, int64, error)
-	DeleteById(ctx context.Context, id, updater uint) error
+	DeleteByID(ctx context.Context, id, updater uint) error
 	GetRolesCount(ctx context.Context, id uint) int64
 	Update(ctx context.Context, permission *models.Permission) error
 	AssociateRoles(ctx context.Context, id uint, roles []*models.Role) error
@@ -34,21 +34,27 @@ type RoleDAO interface {
 	GetByIds(ctx context.Context, ids []uint, preload ...string) ([]*models.Role, error)
 }
 
+type RolePermissionDAO interface {
+	GetRolesByPermissionID(ctx context.Context, permissionID uint, limit int, offset int) ([]*models.Role, error)
+}
+
 type Service struct {
 	*service.BasicService
-	permissionDAO DAO
-	roleDAO       RoleDAO
+	permissionDAO     DAO
+	rolePermissionDAO RolePermissionDAO
+	roleDAO           RoleDAO
 }
 
 var (
 	_ cache.SystemCache = &Service{}
 )
 
-func NewPermissionService(basic *service.BasicService, permissionDAO DAO, roleDAO RoleDAO) *Service {
+func NewPermissionService(basic *service.BasicService, permissionDAO DAO, rolePermissionDAO RolePermissionDAO, roleDAO RoleDAO) *Service {
 	return &Service{
-		BasicService:  basic,
-		permissionDAO: permissionDAO,
-		roleDAO:       roleDAO,
+		BasicService:      basic,
+		permissionDAO:     permissionDAO,
+		rolePermissionDAO: rolePermissionDAO,
+		roleDAO:           roleDAO,
 	}
 }
 
@@ -112,8 +118,8 @@ func (s *Service) CreatePermission(ctx context.Context, operator uint, params *r
 			Resource:  params.Resource,
 			Type:      params.Type,
 			Roles:     roles,
-			CreatorId: operator,
-			UpdaterId: operator,
+			CreatorID: operator,
+			UpdaterID: operator,
 		})
 	})
 }
@@ -129,11 +135,23 @@ func (s *Service) GetPermissionList(ctx context.Context, keyword string, limit, 
 }
 
 func (s *Service) GetPermissionDetail(ctx context.Context, id uint) (*response.PermissionDetailResponse, error) {
-	permission, err := s.permissionDAO.GetById(ctx, id, "Roles")
+	permission, err := s.permissionDAO.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	return response.ToPermissionDetailResponse(permission), nil
+}
+
+func (s *Service) GetRolesByPermissionID(ctx context.Context, params *request.GetPermissionAssociateRolesRequest) ([]*response.PermissionDetailRole, error) {
+	roles, err := s.rolePermissionDAO.GetRolesByPermissionID(ctx, params.ID, params.Limit, params.Offset)
+	if err != nil {
+		return nil, err
+	}
+	return lo.Map(roles, func(item *models.Role, _ int) *response.PermissionDetailRole {
+		return &response.PermissionDetailRole{
+			Role: item,
+		}
+	}), nil
 }
 
 func (s *Service) UpdatePermission(ctx context.Context, operator uint, params *request.UpdatePermissionRequest) error {
@@ -142,7 +160,7 @@ func (s *Service) UpdatePermission(ctx context.Context, operator uint, params *r
 	if err := permissionLock.Lock(ctx, true); err != nil {
 		return err
 	}
-	_, err := s.permissionDAO.GetById(ctx, params.ID)
+	_, err := s.permissionDAO.GetByID(ctx, params.ID)
 	if err != nil {
 		return err
 	}
@@ -178,7 +196,7 @@ func (s *Service) UpdatePermission(ctx context.Context, operator uint, params *r
 			Name:      params.Name,
 			Resource:  params.Resource,
 			Type:      params.Type,
-			UpdaterId: operator,
+			UpdaterID: operator,
 			BasicModel: database.BasicModel{
 				ID: params.ID,
 			},
@@ -214,7 +232,7 @@ func (s *Service) DeletePermission(ctx context.Context, id, operator uint) error
 	if count > 0 {
 		return response.PermissionExistRoleRef
 	}
-	return s.permissionDAO.DeleteById(ctx, id, operator)
+	return s.permissionDAO.DeleteByID(ctx, id, operator)
 }
 
 func (s *Service) GetUserViewRouteAndMenuPermissions(ctx context.Context, uid uint) (response.FrontEndPermissions, error) {

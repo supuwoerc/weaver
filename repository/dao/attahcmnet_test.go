@@ -120,7 +120,7 @@ func (s *AttachmentDAOSuite) TestAttachmentDAO_Create() {
 				Size:      1024,
 				Hash:      "abc123",
 				Path:      "/uploads/test.txt",
-				CreatorId: lo.ToPtr[uint](1),
+				CreatorID: lo.ToPtr[uint](1),
 				BasicModel: database.BasicModel{
 					CreatedAt: database.UpsertTime(time.Now()),
 					UpdatedAt: database.UpsertTime(time.Now()),
