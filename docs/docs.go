@@ -571,7 +571,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "application/json"
+                    "text/plain"
                 ],
                 "tags": [
                     "系统监控"
@@ -704,6 +704,29 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        },
+        "/ping/span-trace": {
+            "get": {
+                "description": "简单的链路追踪接口，返回trace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "链路追踪",
+                "responses": {
+                    "10000": {
+                        "description": "链路追踪，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-string"
+                        }
+                    }
+                }
             }
         },
         "/public/captcha/signup": {

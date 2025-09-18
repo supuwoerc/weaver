@@ -69,6 +69,8 @@ func WireApp() *App {
 	systemCacheManager := cache2.NewSystemCacheManager(v2...)
 	engine := initialize.NewEngine(emailClient, commonRedisClient, loggerLogger, config)
 	httpServer := initialize.NewServer(config, engine, loggerLogger)
+	exporter := initialize.NewOLTPExporter(config)
+	tracerProvider := initialize.NewTracerProvider(config, exporter)
 	routerGroup := router.NewRouter(engine)
 	userCache := cache.NewUserCache(commonRedisClient)
 	tokenBuilder := jwt.NewJwtBuilder(db, commonRedisClient, config, userCache)
@@ -91,18 +93,20 @@ func WireApp() *App {
 	userService := user.NewUserService(basicService, captchaService, userDAO, userCache, tokenBuilder)
 	userApi := user2.NewUserApi(basicApi, userService)
 	app := &App{
-		logger:        loggerLogger,
-		conf:          config,
-		jobManager:    systemJobManager,
-		cacheManager:  systemCacheManager,
-		httpServer:    httpServer,
-		attachmentApi: api,
-		captchaApi:    captchaApi,
-		departmentApi: departmentApi,
-		permissionApi: permissionApi,
-		pingApi:       pingApi,
-		roleApi:       roleApi,
-		userApi:       userApi,
+		logger:            loggerLogger,
+		conf:              config,
+		jobManager:        systemJobManager,
+		cacheManager:      systemCacheManager,
+		httpServer:        httpServer,
+		traceSpanExporter: exporter,
+		tracerProvider:    tracerProvider,
+		attachmentApi:     api,
+		captchaApi:        captchaApi,
+		departmentApi:     departmentApi,
+		permissionApi:     permissionApi,
+		pingApi:           pingApi,
+		roleApi:           roleApi,
+		userApi:           userApi,
 	}
 	return app
 }

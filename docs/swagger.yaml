@@ -1200,7 +1200,7 @@ paths:
       - application/json
       description: 简单的健康检查接口，返回pong
       produces:
-      - application/json
+      - text/plain
       responses:
         "10000":
           description: 健康检查成功，code=10000
@@ -1284,6 +1284,21 @@ paths:
       - text/plain
       responses: {}
       summary: 慢响应测试
+      tags:
+      - 系统监控
+  /ping/span-trace:
+    get:
+      consumes:
+      - application/json
+      description: 简单的链路追踪接口，返回trace
+      produces:
+      - text/plain
+      responses:
+        "10000":
+          description: 链路追踪，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-string'
+      summary: 链路追踪
       tags:
       - 系统监控
   /public/captcha/signup:

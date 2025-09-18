@@ -1,3 +1,5 @@
+app_name: weaver
+app_version: 0.1.0
 system:
   port: 8804
   base_url: https://zhangqimeng.fun

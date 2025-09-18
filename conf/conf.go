@@ -1,16 +1,22 @@
 package conf
 
+import "fmt"
+
 type Config struct {
-	Env     string        `mapstructure:"env"`     // 环境
-	System  SystemConfig  `mapstructure:"system"`  // 系统相关配置
-	JWT     JWTConfig     `mapstructure:"jwt"`     // jwt相关配置
-	Logger  LoggerConfig  `mapstructure:"logger"`  // logger相关配置
-	Cors    CorsConfig    `mapstructure:"cors"`    // cors相关配置
-	Captcha CaptchaConfig `mapstructure:"captcha"` // 验证码相关配置
-	Account AccountConfig `mapstructure:"account"` // 账户相关配置
-	Redis   RedisConfig   `mapstructure:"redis"`   // redis配置
-	Mysql   MysqlConfig   `mapstructure:"mysql"`   // mysql配置
-	OSS     OSSConfig     `mapstructure:"oss"`     // oss配置
+	AppName       string              `mapstructure:"app_name"`       // 应用名称
+	AppVersion    string              `mapstructure:"app_version"`    // 应用版本
+	Env           string              `mapstructure:"env"`            // 环境
+	System        SystemConfig        `mapstructure:"system"`         // 系统相关配置
+	JWT           JWTConfig           `mapstructure:"jwt"`            // jwt相关配置
+	Logger        LoggerConfig        `mapstructure:"logger"`         // logger相关配置
+	Cors          CorsConfig          `mapstructure:"cors"`           // cors相关配置
+	Captcha       CaptchaConfig       `mapstructure:"captcha"`        // 验证码相关配置
+	Account       AccountConfig       `mapstructure:"account"`        // 账户相关配置
+	Redis         RedisConfig         `mapstructure:"redis"`          // redis配置
+	Mysql         MysqlConfig         `mapstructure:"mysql"`          // mysql配置
+	OSS           OSSConfig           `mapstructure:"oss"`            // oss配置
+	OpenTelemetry OpenTelemetryConfig `mapstructure:"open_telemetry"` // open telemetry配置
+	OLTP          OTLPConfig          `mapstructure:"oltp"`           // oltp配置
 }
 
 func (c *Config) IsProd() bool {
@@ -22,4 +28,7 @@ func (c *Config) IsDev() bool {
 
 func (c *Config) IsTest() bool {
 	return c.Env == "test"
+}
+func (c *Config) AppInfo() string {
+	return fmt.Sprintf("%s:%s:%s", c.AppName, c.AppVersion, c.Env)
 }

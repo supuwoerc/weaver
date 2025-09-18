@@ -16,6 +16,8 @@ import (
 	"github.com/supuwoerc/weaver/pkg/utils"
 	"github.com/supuwoerc/weaver/providers"
 	"github.com/supuwoerc/weaver/router"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	gormLogger "gorm.io/gorm/logger"
 )
 
@@ -33,6 +35,10 @@ func WireApp() *App {
 		logger.NewLogger,
 
 		initialize.NewDialer,
+
+		initialize.NewOLTPExporter,
+		wire.Bind(new(tracesdk.SpanExporter), new(*otlptrace.Exporter)),
+		initialize.NewTracerProvider,
 
 		initialize.NewCronLogger,
 		initialize.NewCronClient,

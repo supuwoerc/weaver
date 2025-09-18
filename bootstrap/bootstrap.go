@@ -16,21 +16,24 @@ import (
 	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/job"
 	"github.com/supuwoerc/weaver/pkg/logger"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 )
 
 type App struct {
-	logger        *logger.Logger
-	conf          *conf.Config
-	jobManager    *job.SystemJobManager
-	cacheManager  *cache.SystemCacheManager
-	httpServer    *initialize.HttpServer
-	attachmentApi *attachment.Api
-	captchaApi    *captcha.Api
-	departmentApi *department.Api
-	permissionApi *permission.Api
-	pingApi       *ping.Api
-	roleApi       *role.Api
-	userApi       *user.Api
+	logger            *logger.Logger
+	conf              *conf.Config
+	jobManager        *job.SystemJobManager
+	cacheManager      *cache.SystemCacheManager
+	httpServer        *initialize.HttpServer
+	traceSpanExporter tracesdk.SpanExporter
+	tracerProvider    *tracesdk.TracerProvider
+	attachmentApi     *attachment.Api
+	captchaApi        *captcha.Api
+	departmentApi     *department.Api
+	permissionApi     *permission.Api
+	pingApi           *ping.Api
+	roleApi           *role.Api
+	userApi           *user.Api
 }
 
 func (a *App) Run() {
@@ -53,14 +56,19 @@ func (a *App) Run() {
 }
 
 func (a *App) Close() {
-	// logger sync
 	defer func() {
+		// 关闭 oltp exporter
+		err := a.traceSpanExporter.Shutdown(context.Background())
+		if err != nil {
+			a.logger.Errorw("Error shutting down tracer provider", "err", err.Error())
+		}
+		// 日志相关 sync
 		_ = a.logger.Sync()
 	}()
 	defer a.logger.Info("app clean is executed")
 	// 停止定时任务
 	a.jobManager.Stop()
-	// 执行相关hook
+	// 执行相关 hook
 	if len(a.conf.System.Hooks.Close) > 0 {
 		for _, item := range a.conf.System.Hooks.Close {
 			switch item {

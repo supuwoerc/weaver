@@ -11,6 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 	v1 "github.com/supuwoerc/weaver/api/v1"
 	"github.com/supuwoerc/weaver/pkg/response"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Service interface {
@@ -34,6 +38,7 @@ func NewPingApi(basic *v1.BasicApi, service Service) *Api {
 		group.GET("slow", pinApi.SlowResponse)
 		group.GET("check-lock", pinApi.LockResponse)
 		group.GET("logger-trace", pinApi.LoggerTrace)
+		group.GET("span-trace", pinApi.SpanTrace)
 	}
 	return pinApi
 }
@@ -44,7 +49,7 @@ func NewPingApi(basic *v1.BasicApi, service Service) *Api {
 //	@Description	简单的健康检查接口，返回pong
 //	@Tags			系统监控
 //	@Accept			json
-//	@Produce		json
+//	@Produce		text/plain
 //	@Success		10000	{object}	response.BasicResponse[string]	"健康检查成功，code=10000"
 //	@Router			/ping [get]
 func (p *Api) Ping(ctx *gin.Context) {
@@ -128,4 +133,59 @@ func (p *Api) LockResponse(ctx *gin.Context) {
 func (p *Api) LoggerTrace(ctx *gin.Context) {
 	p.Logger.WithContext(ctx).Infow("test message", "content", "hello trace!!!")
 	ctx.String(http.StatusOK, "ok")
+}
+
+// SpanTrace
+//
+//	@Summary		链路追踪
+//	@Description	简单的链路追踪接口，返回trace
+//	@Tags			系统监控
+//	@Accept			json
+//	@Produce		text/plain
+//	@Success		10000	{object}	response.BasicResponse[string]	"链路追踪，code=10000"
+//	@Router			/ping/span-trace [get]
+func (p *Api) SpanTrace(ctx *gin.Context) {
+	// 从上下文中获取当前span
+	span := trace.SpanFromContext(ctx.Request.Context())
+	defer span.End()
+	// 添加自定义属性到span
+	span.SetAttributes(attribute.String("http.method", ctx.Request.Method))
+	span.SetAttributes(attribute.String("handler.method", "span-trace"))
+	// 记录自定义事件
+	span.AddEvent("mock fetching user from database", trace.WithAttributes(
+		attribute.String("user.id", ctx.Query("id")),
+	))
+	// 模拟数据库查询
+	name, err := mockFetchUserNameFromDB(ctx.Request.Context(), ctx.Query("id"))
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		response.FailWithError(ctx, err)
+		return
+	}
+	// 添加更多属性
+	span.SetAttributes(attribute.String("user.name", name))
+	response.SuccessWithData[string](ctx, "trace")
+}
+
+// 模拟数据库操作函数,验证创建子span
+func mockFetchUserNameFromDB(ctx context.Context, uid string) (string, error) {
+	// 创建子span
+	tracer := otel.Tracer("database")
+	tracerCtx, span := tracer.Start(ctx, "mockFetchUserNameFromDB")
+	defer span.End()
+	if err := tracerCtx.Err(); err != nil {
+		return "", err
+	}
+	// 添加属性
+	span.SetAttributes(attribute.String("db.operation", "select"))
+	span.SetAttributes(attribute.String("db.table", "users"))
+	span.SetAttributes(attribute.String("user.id", uid))
+	// 模拟数据库查询
+	time.Sleep(10 * time.Millisecond)
+	// 这里应该是实际的数据库查询代码
+	if uid == "123" {
+		return "weaver", nil
+	}
+	return "", response.UserNotExist
 }
