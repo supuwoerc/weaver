@@ -162,9 +162,9 @@ func (p *Service) GetDepartmentTree(ctx context.Context, withCrew bool) ([]*resp
 	if withCrew {
 		key = constant.DepartmentTreeWithCrewSfgKey
 	}
-	departmentCache, cacheErr := p.processDepartmentCache(ctx, key)
-	if cacheErr != nil {
-		return nil, cacheErr
+	departmentCache, getCacheErr := p.getDepartmentCache(ctx, key)
+	if getCacheErr != nil {
+		return nil, getCacheErr
 	}
 	if departmentCache != nil {
 		return p.processTree(departmentCache)
@@ -190,7 +190,7 @@ func (p *Service) GetDepartmentTree(ctx context.Context, withCrew bool) ([]*resp
 	return result.([]*response.DepartmentTreeResponse), nil
 }
 
-func (p *Service) processDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
+func (p *Service) getDepartmentCache(ctx context.Context, key constant.CacheKey) ([]*models.Department, error) {
 	departmentCache, err := p.departmentCache.GetDepartmentCache(ctx, key)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {

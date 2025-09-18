@@ -103,12 +103,11 @@ func (u *UserDAO) GetList(ctx context.Context, keyword string, limit, offset int
 }
 
 func (u *UserDAO) GetAll(ctx context.Context) ([]*models.User, error) {
-	var users []*models.User
-	err := u.Datasource(ctx).Model(&models.User{}).Find(&users).Error
+	res, err := queryAll[*models.User](u.Datasource(ctx).Model(&models.User{}), u.QueryLimit)
 	if err != nil {
 		return nil, err
 	}
-	return users, nil
+	return res, nil
 }
 
 func (u *UserDAO) UpdateAccountStatus(ctx context.Context, id uint, status constant.UserStatus) error {

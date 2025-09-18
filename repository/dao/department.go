@@ -22,7 +22,7 @@ func NewDepartmentDAO(basicDAO *BasicDAO) *DepartmentDAO {
 }
 
 func (r *DepartmentDAO) Create(ctx context.Context, dept *models.Department) error {
-	err := r.Datasource(ctx).Create(dept).Error
+	err := r.Datasource(ctx).Omit("Leaders", "Users").Create(dept).Error
 	var mysqlErr *mysql.MySQLError
 	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 		return response.RoleCreateDuplicateName

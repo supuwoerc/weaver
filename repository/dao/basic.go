@@ -16,7 +16,7 @@ type BasicDAO struct {
 func NewBasicDao(db *gorm.DB) *BasicDAO {
 	return &BasicDAO{
 		DB:         db,
-		QueryLimit: 200,
+		QueryLimit: 500,
 	}
 }
 
