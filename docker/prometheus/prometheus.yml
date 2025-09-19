@@ -22,3 +22,31 @@ scrape_configs:
     # basic_auth:
     #   username: 'your_username'
     #   password: 'your_password'
+
+  # OpenTelemetry Collector 指标监控
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8889']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+    scheme: 'http'
+    # 收集器自身指标
+    relabel_configs:
+      - source_labels: [__name__]
+        regex: 'otelcol_.*'
+        target_label: '__name__'
+        replacement: 'otel_collector_${1}'
+
+  # OpenTelemetry Collector 导出的应用指标
+  - job_name: 'otel-app-metrics'
+    static_configs:
+      - targets: ['otel-collector:8889']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+    scheme: 'http'
+    # 应用指标（来自OTLP）
+    relabel_configs:
+      - source_labels: [__name__]
+        regex: 'otel_.*'
+        target_label: '__name__'
+        replacement: 'app_${1}'

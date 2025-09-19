@@ -190,6 +190,47 @@ services:
     depends_on:
       - prometheus
 
+  # OpenTelemetry Collector 收集器
+  otel-collector:
+    container_name: "gin-web-otel-collector"
+    image: otel/opentelemetry-collector-contrib:latest
+    restart: unless-stopped
+    environment:
+      - "TZ=Asia/Shanghai"
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics
+      - "8889:8889"   # Prometheus exporter metrics
+    volumes:
+      - ./otel-collector/otel-collector.yml:/etc/otelcol-contrib/otel-collector.yml
+    command: ["--config=/etc/otelcol-contrib/otel-collector.yml"]
+    networks:
+      - monitoring_net
+      - business_net
+    depends_on:
+      - jaeger
+
+  # Jaeger 分布式追踪系统
+  jaeger:
+    container_name: "gin-web-jaeger"
+    image: jaegertracing/all-in-one:latest
+    restart: unless-stopped
+    environment:
+      - "TZ=Asia/Shanghai"
+      - "COLLECTOR_OTLP_ENABLED=true"
+      - "COLLECTOR_ZIPKIN_HOST_PORT=:9411"
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14250:14250"  # Jaeger gRPC
+      - "14268:14268"  # Jaeger HTTP
+      - "9411:9411"    # Zipkin compatible endpoint
+    volumes:
+      - ./jaeger/data:/tmp
+    networks:
+      - monitoring_net
+      - business_net
+
 # 网络定义
 networks:
   business_net:                    # 业务网络
