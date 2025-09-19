@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 	"gorm.io/gorm/utils"
+	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 const (
@@ -136,6 +137,11 @@ func NewGORM(conf *conf.Config, l logger.Interface) *gorm.DB {
 		},
 		Logger: l.LogMode(logger.LogLevel(logLevel)),
 	})
+	if err != nil {
+		panic(err)
+	}
+	// tracing
+	err = db.Use(tracing.NewPlugin(tracing.WithoutMetrics()))
 	if err != nil {
 		panic(err)
 	}

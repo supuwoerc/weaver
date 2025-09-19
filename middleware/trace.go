@@ -1,12 +1,10 @@
 package middleware
 
 import (
-	"strings"
-
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/supuwoerc/weaver/conf"
 	"github.com/supuwoerc/weaver/pkg/logger"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type TraceMiddleware struct {
@@ -23,15 +21,9 @@ func NewTraceMiddleware(conf *conf.Config, logger *logger.Logger) *TraceMiddlewa
 
 func (c *TraceMiddleware) Trace() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestTraceID := ctx.GetHeader(c.conf.System.TraceKey)
-		if strings.TrimSpace(requestTraceID) == "" {
-			requestTraceID = c.generateTraceID()
-		}
+		// 设置 opentelemetry span context tract id 到 header
+		requestTraceID := trace.SpanFromContext(ctx.Request.Context()).SpanContext().TraceID().String()
 		ctx.Header(c.conf.System.TraceKey, requestTraceID)
 		ctx.Set(string(logger.TraceIDContextKey), requestTraceID)
 	}
-}
-
-func (c *TraceMiddleware) generateTraceID() string {
-	return uuid.New().String()
 }

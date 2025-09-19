@@ -1,14 +1,13 @@
 package initialize
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/supuwoerc/weaver/conf"
 	"github.com/supuwoerc/weaver/middleware"
 	"github.com/supuwoerc/weaver/pkg/logger"
 	local "github.com/supuwoerc/weaver/pkg/redis"
 	"github.com/supuwoerc/weaver/router"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
-
-	"github.com/gin-gonic/gin"
 )
 
 func NewEngine(emailClient *EmailClient, rc *local.CommonRedisClient, logger *logger.Logger, conf *conf.Config) *gin.Engine {
@@ -27,7 +26,9 @@ func NewEngine(emailClient *EmailClient, rc *local.CommonRedisClient, logger *lo
 	// 国际化中间件
 	i18n := middleware.NewI18NMiddleware(conf)
 	r.Use(i18n.I18N(), i18n.InjectTranslator())
-	// trace中间件,在上下文中放入trace信息
+	// opentelemetry链路追踪
+	r.Use(otelgin.Middleware(conf.AppInfo()))
+	// trace中间件,在上下文中放入 opentelemetry trace id信息
 	r.Use(middleware.NewTraceMiddleware(conf, logger).Trace())
 	// logger中间件,输出到控制台和zap的日志文件中
 	r.Use(middleware.NewEnginLoggerMiddleware(logger).Logger())
@@ -37,8 +38,6 @@ func NewEngine(emailClient *EmailClient, rc *local.CommonRedisClient, logger *lo
 	r.Use(middleware.NewCorsMiddleware(conf).Cors())
 	// prometheus监控
 	r.Use(middleware.NewPrometheusMiddleware().Prometheus())
-	// open telemetry链路追踪
-	r.Use(otelgin.Middleware(conf.AppInfo()))
 	// 开启ForwardedByClientIP(配合限流)
 	r.ForwardedByClientIP = true
 	// 系统限流中间件
