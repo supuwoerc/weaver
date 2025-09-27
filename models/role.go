@@ -6,6 +6,10 @@ type Role struct {
 	Name        string        `json:"name" gorm:"not null"`
 	Users       []*User       `json:"users" gorm:"many2many:user_role;"`
 	Permissions []*Permission `json:"permissions" gorm:"many2many:role_permission;"`
+	ParentID    *uint         `json:"parent_id"`
+	Parent      *Department   `json:"parent" gorm:"foreignKey:ParentID;references:ID"`
+	Children    []*Department `json:"children" gorm:"foreignKey:ParentID"`
+	Ancestors   *string       `json:"ancestors"`
 	CreatorID   uint          `json:"-" gorm:"not null;"`
 	Creator     User          `json:"creator" gorm:"foreignKey:CreatorID;references:ID"`
 	UpdaterID   uint          `json:"-" gorm:"not null;"`

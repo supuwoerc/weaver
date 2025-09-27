@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/constant"
@@ -82,7 +83,6 @@ func (r *Service) CreateRole(ctx context.Context, operator uint, params *request
 	if err != nil {
 		return err
 	}
-	// TODO:记录信息到用户时间线
 	return r.Transaction(ctx, false, func(ctx context.Context) error {
 		// 查询是否重复
 		existRole, temp := r.roleDAO.GetByName(ctx, params.Name)
@@ -91,6 +91,14 @@ func (r *Service) CreateRole(ctx context.Context, operator uint, params *request
 		}
 		if existRole != nil {
 			return response.RoleCreateDuplicateName
+		}
+		// 查询父角色
+		var parentRole *models.Role
+		if params.ParentID != nil {
+			parentRole, temp = r.roleDAO.GetByID(ctx, *params.ParentID)
+			if temp != nil {
+				return temp
+			}
 		}
 		// 查询有效的用户
 		var users []*models.User
@@ -108,14 +116,28 @@ func (r *Service) CreateRole(ctx context.Context, operator uint, params *request
 				return err
 			}
 		}
-		// 创建角色 & 建立关联关系
-		return r.roleDAO.Create(ctx, &models.Role{
+		role := &models.Role{
 			Name:        params.Name,
 			Users:       users,
 			Permissions: permissions,
 			CreatorID:   operator,
 			UpdaterID:   operator,
-		})
+		}
+		// 完善 Parent & Ancestors
+		if parentRole != nil {
+			parentRoleAncestors := ""
+			if parentRole.Ancestors != nil {
+				parentRoleAncestors = *parentRole.Ancestors
+			}
+			t := lo.Filter([]string{parentRoleAncestors, strconv.Itoa(int(parentRole.ID))}, func(item string, _ int) bool {
+				return item != ""
+			})
+			ancestors := strings.Join(t, ",")
+			role.Ancestors = &ancestors
+			role.ParentID = params.ParentID
+		}
+		// 创建角色 & 建立关联关系
+		return r.roleDAO.Create(ctx, role)
 	})
 }
 

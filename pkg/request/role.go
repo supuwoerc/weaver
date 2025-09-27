@@ -5,6 +5,7 @@ type CreateRoleRequest struct {
 	Name        string `json:"name" binding:"required,min=1,max=20"`
 	Users       []uint `json:"users" binding:"omitempty,dive,min=1"`
 	Permissions []uint `json:"permissions" binding:"omitempty,dive,min=1"`
+	ParentID    *uint  `json:"parent_id" binding:"omitempty,min=1"`
 }
 
 // GetRoleListRequest 查询角色列表的参数
