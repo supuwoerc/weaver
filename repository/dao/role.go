@@ -51,7 +51,9 @@ func (r *RoleDAO) GetByIds(ctx context.Context, ids []uint, preload ...string) (
 func (r *RoleDAO) GetList(ctx context.Context, keyword string, limit, offset int) ([]*models.Role, int64, error) {
 	var roles []*models.Role
 	var total int64
-	query := r.Datasource(ctx).Model(&models.Role{}).Order("updated_at desc,id desc")
+	query := r.Datasource(ctx).Model(&models.Role{}).
+		Preload("Children").
+		Order("updated_at desc,id desc")
 	if keyword != "" {
 		query = query.Where("name like ?", database.FuzzKeyword(keyword))
 	}

@@ -152,7 +152,7 @@ func (r *Service) GetRoleList(ctx context.Context, keyword string, limit, offset
 }
 
 func (r *Service) GetRoleDetail(ctx context.Context, id uint) (*response.RoleDetailResponse, error) {
-	role, err := r.roleDAO.GetByID(ctx, id, "Users", "Permissions")
+	role, err := r.roleDAO.GetByID(ctx, id, "Users", "Permissions", "Children")
 	if err != nil {
 		return nil, err
 	}
