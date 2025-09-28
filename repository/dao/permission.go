@@ -123,6 +123,7 @@ func (r *PermissionDAO) GetByNameOrResource(ctx context.Context, name, resource 
 	return permissions, nil
 }
 
+// CheckUserPermission 根据用户角色信息查询权限信息 TODO:修改为依赖角色
 func (r *PermissionDAO) CheckUserPermission(ctx context.Context, uid uint, resource string, permissionType constant.PermissionType) (bool, error) {
 	var count int64
 	err := r.Datasource(ctx).Model(&models.Permission{}).
@@ -139,7 +140,7 @@ func (r *PermissionDAO) CheckUserPermission(ctx context.Context, uid uint, resou
 	return count > 0, nil
 }
 
-// GetUserPermissions 获取用户所有权限
+// GetUserPermissions 获取用户所有权限 TODO:修改为依赖角色
 func (r *PermissionDAO) GetUserPermissions(ctx context.Context, uid uint) ([]*models.Permission, error) {
 	var permissions []*models.Permission
 	err := r.Datasource(ctx).Model(&models.Permission{}).
@@ -155,7 +156,7 @@ func (r *PermissionDAO) GetUserPermissions(ctx context.Context, uid uint) ([]*mo
 	return permissions, nil
 }
 
-// GetUserPermissionsByType 根据类型获取用户权限
+// GetUserPermissionsByType 根据类型获取用户权限 TODO:修改为依赖角色
 func (r *PermissionDAO) GetUserPermissionsByType(ctx context.Context, uid uint, limit int, offset int,
 	permissionType ...constant.PermissionType) ([]*models.Permission, error) {
 	var permissions []*models.Permission

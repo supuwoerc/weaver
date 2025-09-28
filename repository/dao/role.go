@@ -8,6 +8,7 @@ import (
 	"github.com/supuwoerc/weaver/models"
 	"github.com/supuwoerc/weaver/pkg/database"
 	"github.com/supuwoerc/weaver/pkg/response"
+	"gorm.io/gorm/clause"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/samber/lo"
@@ -134,4 +135,34 @@ func (r *RoleDAO) GetPermissionsCount(ctx context.Context, id uint) int64 {
 	return r.Datasource(ctx).Model(&models.Role{
 		BasicModel: database.BasicModel{ID: id},
 	}).Association("Permissions").Count()
+}
+
+func (r *RoleDAO) GetUserRolesWithoutPosterity(ctx context.Context, uid uint) ([]*models.Role, error) {
+	var roles []*models.Role
+	err := r.Datasource(ctx).Model(&models.Role{}).
+		Table("sys_role as role").
+		Joins("inner join sys_user_role as user_role on user_role.role_id = role_permission.role_id").
+		Where("user_role.user_id = ?", uid).
+		Find(&roles).Error
+	if err != nil {
+		return nil, err
+	}
+	return roles, nil
+}
+
+func (r *RoleDAO) GetRolesWithPosterity(ctx context.Context, roleIds ...uint) ([]*models.Role, error) {
+	if len(roleIds) == 0 {
+		return nil, nil
+	}
+	var roles []*models.Role
+	db := r.Datasource(ctx).Model(&models.Role{})
+	orConditions := make([]clause.Expression, 0, len(roleIds))
+	for _, id := range roleIds {
+		orConditions = append(orConditions, gorm.Expr("find_in_set(?,ancestors)", id))
+	}
+	err := db.Where(clause.Or(orConditions...)).Find(&roles).Error
+	if err != nil {
+		return nil, err
+	}
+	return roles, nil
 }

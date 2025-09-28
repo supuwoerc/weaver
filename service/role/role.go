@@ -252,3 +252,9 @@ func (r *Service) DeleteRole(ctx context.Context, id, operator uint) error {
 	}
 	return r.roleDAO.DeleteByID(ctx, id, operator)
 }
+
+// GetUserRolesWithPosterity 查询用户的角色,包含后代角色
+func (r *Service) GetUserRolesWithPosterity(ctx context.Context, uid uint) ([]*models.Role, error) {
+	// 查询用户全部角色
+	return nil, nil
+}
