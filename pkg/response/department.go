@@ -11,15 +11,15 @@ import (
 // DepartmentTreeResponse 全量部门树结构
 type DepartmentTreeResponse struct {
 	*models.Department
-	FullName  string                    `json:"full_name"`
-	FullIds   []uint                    `json:"full_ids"`
-	Ancestors []uint                    `json:"ancestors,omitempty"`
-	Parent    any                       `json:"parent,omitempty"`
-	Children  []*DepartmentTreeResponse `json:"children,omitempty"`
-	Leaders   []*SimpleUser             `json:"leaders,omitempty"`
-	Users     []*SimpleUser             `json:"users,omitempty"`
-	Creator   *Creator                  `json:"creator,omitempty"`
-	Updater   *Updater                  `json:"updater,omitempty"`
+	FullName  string                    `json:"full_name"`           // 部门全称
+	FullIds   []uint                    `json:"full_ids"`            // 部门ID路径
+	Ancestors []uint                    `json:"ancestors,omitempty"` // 部门ID路径,不包含自身
+	Parent    any                       `json:"parent,omitempty"`    // 父部门
+	Children  []*DepartmentTreeResponse `json:"children,omitempty"`  // 子部门
+	Leaders   []*SimpleUser             `json:"leaders,omitempty"`   // leader
+	Users     []*SimpleUser             `json:"users,omitempty"`     // 用户
+	Creator   *Creator                  `json:"creator,omitempty"`   // 创建者
+	Updater   *Updater                  `json:"updater,omitempty"`   // 更新者
 }
 
 // ToDepartmentTreeResponse 将 dept 转为响应

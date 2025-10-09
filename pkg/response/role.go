@@ -8,10 +8,10 @@ import (
 // RoleListRowResponse 角色列表的行
 type RoleListRowResponse struct {
 	*models.Role
-	Users       any     `json:"users,omitempty"`
-	Permissions any     `json:"permissions,omitempty"`
-	Creator     Creator `json:"creator"`
-	Updater     Updater `json:"updater"`
+	Users       any     `json:"users,omitempty"`       // 用户
+	Permissions any     `json:"permissions,omitempty"` // 权限
+	Creator     Creator `json:"creator"`               // 创建者
+	Updater     Updater `json:"updater"`               // 更新人
 }
 
 // ToRoleListRowResponse 将role转为响应
@@ -30,17 +30,17 @@ func ToRoleListRowResponse(role *models.Role) *RoleListRowResponse {
 // RoleDetailResponse 角色详情
 type RoleDetailResponse struct {
 	*models.Role
-	Users       []*SimpleUser           `json:"users"`
-	Permissions []*RoleDetailPermission `json:"permissions"`
-	Creator     any                     `json:"creator,omitempty"`
-	Updater     any                     `json:"updater,omitempty"`
+	Users       []*SimpleUser           `json:"users"`             // 用户
+	Permissions []*RoleDetailPermission `json:"permissions"`       // 权限
+	Creator     any                     `json:"creator,omitempty"` // 创建者
+	Updater     any                     `json:"updater,omitempty"` // 更新者
 }
 
 type RoleDetailPermission struct {
 	*models.Permission
-	Roles   any `json:"roles,omitempty"`
-	Creator any `json:"creator,omitempty"`
-	Updater any `json:"updater,omitempty"`
+	Roles   any `json:"roles,omitempty"`   // 角色
+	Creator any `json:"creator,omitempty"` // 创建者
+	Updater any `json:"updater,omitempty"` // 更新者
 }
 
 // ToRoleDetailResponse 将permission转为响应

@@ -14,6 +14,7 @@ import (
 type Service interface {
 	CreateDepartment(ctx context.Context, operator uint, params *request.CreateDepartmentRequest) error
 	GetDepartmentTree(ctx context.Context, withCrew bool) ([]*response.DepartmentTreeResponse, error)
+	GetDepartmentsByParentID(ctx context.Context, parentID *uint, withCrew bool) ([]*response.DepartmentTreeResponse, error)
 }
 
 type Api struct {
@@ -70,7 +71,7 @@ func (r *Api) CreateDepartment(ctx *gin.Context) {
 
 // GetDepartmentTree
 //
-//	@Summary		获取部门树
+//	@Summary		获取全量部门树
 //	@Description	获取部门树形结构，可选择是否包含人员信息
 //	@Tags			部门管理
 //	@Accept			json
@@ -88,6 +89,20 @@ func (r *Api) GetDepartmentTree(ctx *gin.Context) {
 		return
 	}
 	res, err := r.service.GetDepartmentTree(ctx, params.WithCrew)
+	if err != nil {
+		response.FailWithError(ctx, err)
+		return
+	}
+	response.SuccessWithData(ctx, res)
+}
+
+func (r *Api) GetDepartmentsByParentID(ctx *gin.Context) {
+	var params request.GetDepartmentsByParentIDRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		response.ParamsValidateFail(ctx, err)
+		return
+	}
+	res, err := r.service.GetDepartmentsByParentID(ctx, params.ParentID, params.WithCrew)
 	if err != nil {
 		response.FailWithError(ctx, err)
 		return

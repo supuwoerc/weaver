@@ -7,41 +7,41 @@ import (
 
 // LoginResponse 登录响应
 type LoginResponse struct {
-	User         LoginUser `json:"user"`
-	Token        string    `json:"token"`
-	RefreshToken string    `json:"refresh_token"`
+	User         LoginUser `json:"user"`          // 用户信息
+	Token        string    `json:"token"`         // token
+	RefreshToken string    `json:"refresh_token"` // refresh token
 }
 
 type LoginUser struct {
-	ID       uint    `json:"id"`
-	Email    string  `json:"email"`
-	Nickname *string `json:"nickname"`
+	ID       uint    `json:"id"`       // ID
+	Email    string  `json:"email"`    // 邮箱
+	Nickname *string `json:"nickname"` // 昵称
 }
 
 // RefreshTokenResponse 刷新 token 的响应
 type RefreshTokenResponse struct {
-	Token string `json:"token"`
+	Token string `json:"token"` // token
 }
 
 // ProfileResponse 个人信息响应
 type ProfileResponse struct {
 	*models.User
-	Roles       []*ProfileResponseRole `json:"roles"`
-	Departments []*ProfileResponseDept `json:"departments"`
+	Roles       []*ProfileResponseRole `json:"roles"`       // 角色
+	Departments []*ProfileResponseDept `json:"departments"` // 部门
 }
 type ProfileResponseRole struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	ID   uint   `json:"id"`   //  角色ID
+	Name string `json:"name"` // 角色名称
 }
 type ProfileResponseDept struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	ID   uint   `json:"id"`   // 部门ID
+	Name string `json:"name"` // 部门名称
 }
 
 type UserListRowResponse struct {
 	*models.User
-	Roles       []*ProfileResponseRole `json:"roles" gorm:"many2many:user_role;"`
-	Departments []*ProfileResponseDept `json:"departments" gorm:"many2many:user_department;"`
+	Roles       []*ProfileResponseRole `json:"roles" gorm:"many2many:user_role;"`             // 角色
+	Departments []*ProfileResponseDept `json:"departments" gorm:"many2many:user_department;"` // 部门
 }
 
 // ToUserListRowResponse 将 user 转为响应

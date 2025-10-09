@@ -171,17 +171,21 @@ definitions:
   request.CreateDepartmentRequest:
     properties:
       leaders:
+        description: 部门leader集合
         items:
           type: integer
         type: array
       name:
+        description: 部门名称
         maxLength: 20
         minLength: 1
         type: string
       parent_id:
+        description: 父部门ID
         minimum: 1
         type: integer
       users:
+        description: 部门用户ID集合
         items:
           type: integer
         type: array
@@ -191,20 +195,24 @@ definitions:
   request.CreatePermissionRequest:
     properties:
       name:
+        description: 权限名称
         maxLength: 20
         minLength: 1
         type: string
       resource:
+        description: 资源名称
         maxLength: 255
         minLength: 1
         type: string
       roles:
+        description: 资源关联的角色
         items:
           type: integer
         type: array
       type:
         allOf:
         - $ref: '#/definitions/constant.PermissionType'
+        description: 资源类型
         enum:
         - 1
         - 2
@@ -218,14 +226,17 @@ definitions:
   request.CreateRoleRequest:
     properties:
       name:
+        description: 角色名称
         maxLength: 20
         minLength: 1
         type: string
       permissions:
+        description: 角色关联权限
         items:
           type: integer
         type: array
       users:
+        description: 角色关联用户
         items:
           type: integer
         type: array
@@ -235,6 +246,7 @@ definitions:
   request.DeletePermissionRequest:
     properties:
       id:
+        description: ID
         minimum: 1
         type: integer
     required:
@@ -243,6 +255,7 @@ definitions:
   request.DeleteRoleRequest:
     properties:
       id:
+        description: ID
         minimum: 1
         type: integer
     required:
@@ -285,23 +298,28 @@ definitions:
   request.UpdatePermissionRequest:
     properties:
       id:
+        description: ID
         minimum: 1
         type: integer
       name:
+        description: 权限名称
         maxLength: 20
         minLength: 1
         type: string
       resource:
+        description: 资源名称
         maxLength: 255
         minLength: 1
         type: string
       roles:
+        description: 资源关联的角色
         items:
           type: integer
         type: array
       type:
         allOf:
         - $ref: '#/definitions/constant.PermissionType'
+        description: 资源类型
         enum:
         - 1
         - 2
@@ -316,17 +334,21 @@ definitions:
   request.UpdateRoleRequest:
     properties:
       id:
+        description: ID
         minimum: 1
         type: integer
       name:
+        description: 角色名称
         maxLength: 20
         minLength: 1
         type: string
       permissions:
+        description: 角色关联权限
         items:
           type: integer
         type: array
       users:
+        description: 角色关联用户
         items:
           type: integer
         type: array
@@ -525,40 +547,51 @@ definitions:
   response.DepartmentTreeResponse:
     properties:
       ancestors:
+        description: 部门ID路径,不包含自身
         items:
           type: integer
         type: array
       children:
+        description: 子部门
         items:
           $ref: '#/definitions/response.DepartmentTreeResponse'
         type: array
       created_at:
         type: string
       creator:
-        $ref: '#/definitions/response.Creator'
+        allOf:
+        - $ref: '#/definitions/response.Creator'
+        description: 创建者
       full_ids:
+        description: 部门ID路径
         items:
           type: integer
         type: array
       full_name:
+        description: 部门全称
         type: string
       id:
         type: integer
       leaders:
+        description: leader
         items:
           $ref: '#/definitions/response.SimpleUser'
         type: array
       name:
         type: string
-      parent: {}
+      parent:
+        description: 父部门
       parent_id:
         description: 父级部门ID,nil则为顶级部门
         type: integer
       updated_at:
         type: string
       updater:
-        $ref: '#/definitions/response.Updater'
+        allOf:
+        - $ref: '#/definitions/response.Updater'
+        description: 更新者
       users:
+        description: 用户
         items:
           $ref: '#/definitions/response.SimpleUser'
         type: array
@@ -566,44 +599,59 @@ definitions:
   response.FrontEndPermission:
     properties:
       id:
+        description: ID
         type: integer
       name:
+        description: 权限名称
         type: string
       resource:
+        description: 资源
         type: string
       type:
-        $ref: '#/definitions/constant.PermissionType'
+        allOf:
+        - $ref: '#/definitions/constant.PermissionType'
+        description: 资源类型
     type: object
   response.GetCaptchaResponse:
     properties:
       base64:
+        description: 图片base64
         type: string
       id:
+        description: ID
         type: string
     type: object
   response.LoginResponse:
     properties:
       refresh_token:
+        description: refresh token
         type: string
       token:
+        description: token
         type: string
       user:
-        $ref: '#/definitions/response.LoginUser'
+        allOf:
+        - $ref: '#/definitions/response.LoginUser'
+        description: 用户信息
     type: object
   response.LoginUser:
     properties:
       email:
+        description: 邮箱
         type: string
       id:
+        description: ID
         type: integer
       nickname:
+        description: 昵称
         type: string
     type: object
   response.PermissionDetailResponse:
     properties:
       created_at:
         type: string
-      creator: {}
+      creator:
+        description: 创建者
       id:
         type: integer
       name:
@@ -618,42 +666,52 @@ definitions:
         $ref: '#/definitions/constant.PermissionType'
       updated_at:
         type: string
-      updater: {}
+      updater:
+        description: 更新者
     type: object
   response.PermissionDetailRole:
     properties:
       created_at:
         type: string
-      creator: {}
+      creator:
+        description: 创建者
       id:
         type: integer
       name:
         type: string
-      permissions: {}
+      permissions:
+        description: 权限
       updated_at:
         type: string
-      updater: {}
-      users: {}
+      updater:
+        description: 更新者
+      users:
+        description: 用户
     type: object
   response.PermissionListRowResponse:
     properties:
       created_at:
         type: string
       creator:
-        $ref: '#/definitions/response.Creator'
+        allOf:
+        - $ref: '#/definitions/response.Creator'
+        description: 创建者
       id:
         type: integer
       name:
         type: string
       resource:
         type: string
-      roles: {}
+      roles:
+        description: 角色
       type:
         $ref: '#/definitions/constant.PermissionType'
       updated_at:
         type: string
       updater:
-        $ref: '#/definitions/response.Updater'
+        allOf:
+        - $ref: '#/definitions/response.Updater'
+        description: 更新者
     type: object
   response.ProfileResponse:
     properties:
@@ -666,6 +724,7 @@ definitions:
       created_at:
         type: string
       departments:
+        description: 部门
         items:
           $ref: '#/definitions/response.ProfileResponseDept'
         type: array
@@ -678,6 +737,7 @@ definitions:
       nickname:
         type: string
       roles:
+        description: 角色
         items:
           $ref: '#/definitions/response.ProfileResponseRole'
         type: array
@@ -689,52 +749,63 @@ definitions:
   response.ProfileResponseDept:
     properties:
       id:
+        description: 部门ID
         type: integer
       name:
+        description: 部门名称
         type: string
     type: object
   response.ProfileResponseRole:
     properties:
       id:
+        description: 角色ID
         type: integer
       name:
+        description: 角色名称
         type: string
     type: object
   response.RoleDetailPermission:
     properties:
       created_at:
         type: string
-      creator: {}
+      creator:
+        description: 创建者
       id:
         type: integer
       name:
         type: string
       resource:
         type: string
-      roles: {}
+      roles:
+        description: 角色
       type:
         $ref: '#/definitions/constant.PermissionType'
       updated_at:
         type: string
-      updater: {}
+      updater:
+        description: 更新者
     type: object
   response.RoleDetailResponse:
     properties:
       created_at:
         type: string
-      creator: {}
+      creator:
+        description: 创建者
       id:
         type: integer
       name:
         type: string
       permissions:
+        description: 权限
         items:
           $ref: '#/definitions/response.RoleDetailPermission'
         type: array
       updated_at:
         type: string
-      updater: {}
+      updater:
+        description: 更新者
       users:
+        description: 用户
         items:
           $ref: '#/definitions/response.SimpleUser'
         type: array
@@ -744,17 +815,23 @@ definitions:
       created_at:
         type: string
       creator:
-        $ref: '#/definitions/response.Creator'
+        allOf:
+        - $ref: '#/definitions/response.Creator'
+        description: 创建者
       id:
         type: integer
       name:
         type: string
-      permissions: {}
+      permissions:
+        description: 权限
       updated_at:
         type: string
       updater:
-        $ref: '#/definitions/response.Updater'
-      users: {}
+        allOf:
+        - $ref: '#/definitions/response.Updater'
+        description: 更新人
+      users:
+        description: 用户
     type: object
   response.SimpleUser:
     properties:
@@ -813,6 +890,7 @@ definitions:
       created_at:
         type: string
       departments:
+        description: 部门
         items:
           $ref: '#/definitions/response.ProfileResponseDept'
         type: array
@@ -825,6 +903,7 @@ definitions:
       nickname:
         type: string
       roles:
+        description: 角色
         items:
           $ref: '#/definitions/response.ProfileResponseRole'
         type: array
@@ -911,7 +990,7 @@ paths:
             $ref: '#/definitions/response.BasicResponse-any'
       security:
       - BearerAuth: []
-      summary: 获取部门树
+      summary: 获取全量部门树
       tags:
       - 部门管理
   /permission/associate-roles:
@@ -920,43 +999,51 @@ paths:
       - application/json
       description: 根据权限ID查询权限关联的角色
       parameters:
-      - in: query
+      - description: ID
+        in: query
         minimum: 1
         name: id
         required: true
         type: integer
-      - in: query
+      - description: 关键字
+        in: query
         maxLength: 20
         minLength: 1
         name: keyword
         type: string
-      - in: query
+      - description: 分页数量
+        in: query
         maximum: 200
         minimum: 1
         name: limit
         required: true
         type: integer
-      - in: query
+      - description: 分页偏移
+        in: query
         minimum: 0
         name: offset
         type: integer
-      - in: query
+      - description: ID
+        in: query
         minimum: 1
         name: id
         required: true
         type: integer
-      - in: query
+      - description: 关键字
+        in: query
         maxLength: 20
         minLength: 1
         name: keyword
         type: string
-      - in: query
+      - description: 分页数量
+        in: query
         maximum: 200
         minimum: 1
         name: limit
         required: true
         type: integer
-      - in: query
+      - description: 分页偏移
+        in: query
         minimum: 0
         name: offset
         type: integer

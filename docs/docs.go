@@ -98,7 +98,7 @@ const docTemplate = `{
                 "tags": [
                     "部门管理"
                 ],
-                "summary": "获取部门树",
+                "summary": "获取全量部门树",
                 "parameters": [
                     {
                         "type": "boolean",
@@ -152,6 +152,7 @@ const docTemplate = `{
                     {
                         "minimum": 1,
                         "type": "integer",
+                        "description": "ID",
                         "name": "id",
                         "in": "query",
                         "required": true
@@ -160,6 +161,7 @@ const docTemplate = `{
                         "maxLength": 20,
                         "minLength": 1,
                         "type": "string",
+                        "description": "关键字",
                         "name": "keyword",
                         "in": "query"
                     },
@@ -167,6 +169,7 @@ const docTemplate = `{
                         "maximum": 200,
                         "minimum": 1,
                         "type": "integer",
+                        "description": "分页数量",
                         "name": "limit",
                         "in": "query",
                         "required": true
@@ -174,12 +177,14 @@ const docTemplate = `{
                     {
                         "minimum": 0,
                         "type": "integer",
+                        "description": "分页偏移",
                         "name": "offset",
                         "in": "query"
                     },
                     {
                         "minimum": 1,
                         "type": "integer",
+                        "description": "ID",
                         "name": "id",
                         "in": "query",
                         "required": true
@@ -188,6 +193,7 @@ const docTemplate = `{
                         "maxLength": 20,
                         "minLength": 1,
                         "type": "string",
+                        "description": "关键字",
                         "name": "keyword",
                         "in": "query"
                     },
@@ -195,6 +201,7 @@ const docTemplate = `{
                         "maximum": 200,
                         "minimum": 1,
                         "type": "integer",
+                        "description": "分页数量",
                         "name": "limit",
                         "in": "query",
                         "required": true
@@ -202,6 +209,7 @@ const docTemplate = `{
                     {
                         "minimum": 0,
                         "type": "integer",
+                        "description": "分页偏移",
                         "name": "offset",
                         "in": "query"
                     },
@@ -1524,21 +1532,25 @@ const docTemplate = `{
             ],
             "properties": {
                 "leaders": {
+                    "description": "部门leader集合",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "name": {
+                    "description": "部门名称",
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 1
                 },
                 "parent_id": {
+                    "description": "父部门ID",
                     "type": "integer",
                     "minimum": 1
                 },
                 "users": {
+                    "description": "部门用户ID集合",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -1555,22 +1567,26 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
+                    "description": "权限名称",
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 1
                 },
                 "resource": {
+                    "description": "资源名称",
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 1
                 },
                 "roles": {
+                    "description": "资源关联的角色",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "type": {
+                    "description": "资源类型",
                     "enum": [
                         1,
                         2,
@@ -1592,17 +1608,20 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
+                    "description": "角色名称",
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 1
                 },
                 "permissions": {
+                    "description": "角色关联权限",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "users": {
+                    "description": "角色关联用户",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -1617,6 +1636,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
+                    "description": "ID",
                     "type": "integer",
                     "minimum": 1
                 }
@@ -1629,6 +1649,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
+                    "description": "ID",
                     "type": "integer",
                     "minimum": 1
                 }
@@ -1690,26 +1711,31 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
+                    "description": "ID",
                     "type": "integer",
                     "minimum": 1
                 },
                 "name": {
+                    "description": "权限名称",
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 1
                 },
                 "resource": {
+                    "description": "资源名称",
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 1
                 },
                 "roles": {
+                    "description": "资源关联的角色",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "type": {
+                    "description": "资源类型",
                     "enum": [
                         1,
                         2,
@@ -1732,21 +1758,25 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
+                    "description": "ID",
                     "type": "integer",
                     "minimum": 1
                 },
                 "name": {
+                    "description": "角色名称",
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 1
                 },
                 "permissions": {
+                    "description": "角色关联权限",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "users": {
+                    "description": "角色关联用户",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -2046,12 +2076,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "ancestors": {
+                    "description": "部门ID路径,不包含自身",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "children": {
+                    "description": "子部门",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.DepartmentTreeResponse"
@@ -2061,21 +2093,29 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
-                    "$ref": "#/definitions/response.Creator"
+                    "description": "创建者",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Creator"
+                        }
+                    ]
                 },
                 "full_ids": {
+                    "description": "部门ID路径",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "full_name": {
+                    "description": "部门全称",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "leaders": {
+                    "description": "leader",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.SimpleUser"
@@ -2084,7 +2124,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "parent": {},
+                "parent": {
+                    "description": "父部门"
+                },
                 "parent_id": {
                     "description": "父级部门ID,nil则为顶级部门",
                     "type": "integer"
@@ -2093,9 +2135,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updater": {
-                    "$ref": "#/definitions/response.Updater"
+                    "description": "更新者",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Updater"
+                        }
+                    ]
                 },
                 "users": {
+                    "description": "用户",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.SimpleUser"
@@ -2107,16 +2155,24 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
+                    "description": "ID",
                     "type": "integer"
                 },
                 "name": {
+                    "description": "权限名称",
                     "type": "string"
                 },
                 "resource": {
+                    "description": "资源",
                     "type": "string"
                 },
                 "type": {
-                    "$ref": "#/definitions/constant.PermissionType"
+                    "description": "资源类型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constant.PermissionType"
+                        }
+                    ]
                 }
             }
         },
@@ -2124,9 +2180,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "base64": {
+                    "description": "图片base64",
                     "type": "string"
                 },
                 "id": {
+                    "description": "ID",
                     "type": "string"
                 }
             }
@@ -2135,13 +2193,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "refresh_token": {
+                    "description": "refresh token",
                     "type": "string"
                 },
                 "token": {
+                    "description": "token",
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/response.LoginUser"
+                    "description": "用户信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.LoginUser"
+                        }
+                    ]
                 }
             }
         },
@@ -2149,12 +2214,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
+                    "description": "邮箱",
                     "type": "string"
                 },
                 "id": {
+                    "description": "ID",
                     "type": "integer"
                 },
                 "nickname": {
+                    "description": "昵称",
                     "type": "string"
                 }
             }
@@ -2165,7 +2233,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "creator": {},
+                "creator": {
+                    "description": "创建者"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -2187,7 +2257,9 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string"
                 },
-                "updater": {}
+                "updater": {
+                    "description": "更新者"
+                }
             }
         },
         "response.PermissionDetailRole": {
@@ -2196,19 +2268,27 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "creator": {},
+                "creator": {
+                    "description": "创建者"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
                     "type": "string"
                 },
-                "permissions": {},
+                "permissions": {
+                    "description": "权限"
+                },
                 "updated_at": {
                     "type": "string"
                 },
-                "updater": {},
-                "users": {}
+                "updater": {
+                    "description": "更新者"
+                },
+                "users": {
+                    "description": "用户"
+                }
             }
         },
         "response.PermissionListRowResponse": {
@@ -2218,7 +2298,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
-                    "$ref": "#/definitions/response.Creator"
+                    "description": "创建者",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Creator"
+                        }
+                    ]
                 },
                 "id": {
                     "type": "integer"
@@ -2229,7 +2314,9 @@ const docTemplate = `{
                 "resource": {
                     "type": "string"
                 },
-                "roles": {},
+                "roles": {
+                    "description": "角色"
+                },
                 "type": {
                     "$ref": "#/definitions/constant.PermissionType"
                 },
@@ -2237,7 +2324,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updater": {
-                    "$ref": "#/definitions/response.Updater"
+                    "description": "更新者",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Updater"
+                        }
+                    ]
                 }
             }
         },
@@ -2257,6 +2349,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "departments": {
+                    "description": "部门",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ProfileResponseDept"
@@ -2275,6 +2368,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "roles": {
+                    "description": "角色",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ProfileResponseRole"
@@ -2292,9 +2386,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
+                    "description": "部门ID",
                     "type": "integer"
                 },
                 "name": {
+                    "description": "部门名称",
                     "type": "string"
                 }
             }
@@ -2303,9 +2399,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
+                    "description": "角色ID",
                     "type": "integer"
                 },
                 "name": {
+                    "description": "角色名称",
                     "type": "string"
                 }
             }
@@ -2316,7 +2414,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "creator": {},
+                "creator": {
+                    "description": "创建者"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -2326,14 +2426,18 @@ const docTemplate = `{
                 "resource": {
                     "type": "string"
                 },
-                "roles": {},
+                "roles": {
+                    "description": "角色"
+                },
                 "type": {
                     "$ref": "#/definitions/constant.PermissionType"
                 },
                 "updated_at": {
                     "type": "string"
                 },
-                "updater": {}
+                "updater": {
+                    "description": "更新者"
+                }
             }
         },
         "response.RoleDetailResponse": {
@@ -2342,7 +2446,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "creator": {},
+                "creator": {
+                    "description": "创建者"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -2350,6 +2456,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "permissions": {
+                    "description": "权限",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.RoleDetailPermission"
@@ -2358,8 +2465,11 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string"
                 },
-                "updater": {},
+                "updater": {
+                    "description": "更新者"
+                },
                 "users": {
+                    "description": "用户",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.SimpleUser"
@@ -2374,7 +2484,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
-                    "$ref": "#/definitions/response.Creator"
+                    "description": "创建者",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Creator"
+                        }
+                    ]
                 },
                 "id": {
                     "type": "integer"
@@ -2382,14 +2497,23 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "permissions": {},
+                "permissions": {
+                    "description": "权限"
+                },
                 "updated_at": {
                     "type": "string"
                 },
                 "updater": {
-                    "$ref": "#/definitions/response.Updater"
+                    "description": "更新人",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Updater"
+                        }
+                    ]
                 },
-                "users": {}
+                "users": {
+                    "description": "用户"
+                }
             }
         },
         "response.SimpleUser": {
@@ -2472,6 +2596,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "departments": {
+                    "description": "部门",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ProfileResponseDept"
@@ -2490,6 +2615,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "roles": {
+                    "description": "角色",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ProfileResponseRole"

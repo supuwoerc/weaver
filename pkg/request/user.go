@@ -16,13 +16,13 @@ type LoginRequest struct {
 
 // GetUserListRequest 查询用户列表的参数
 type GetUserListRequest struct {
-	Keyword string `json:"keyword" form:"keyword" binding:"omitempty,min=1,max=20"`
-	Limit   int    `json:"limit" form:"limit" binding:"required,min=1,max=200"`
-	Offset  int    `json:"offset"  form:"offset" binding:"min=0"`
+	Keyword string `json:"keyword" form:"keyword" binding:"omitempty,min=1,max=20"` // 关键字
+	Limit   int    `json:"limit" form:"limit" binding:"required,min=1,max=200"`     // 分页数量
+	Offset  int    `json:"offset"  form:"offset" binding:"min=0"`                   // 分页偏移
 }
 
 // ActiveAccountRequest 激活账户的请求参数
 type ActiveAccountRequest struct {
-	ActiveCode string `json:"active_code" form:"active_code" binding:"required,len=16"`
-	ID         uint   `json:"id" form:"id" binding:"required,min=1"`
+	ActiveCode string `json:"active_code" form:"active_code" binding:"required,len=16"` // 激活码
+	ID         uint   `json:"id" form:"id" binding:"required,min=1"`                    // ID
 }

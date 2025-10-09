@@ -289,3 +289,36 @@ func (p *Service) processTree(departments []*models.Department) ([]*response.Dep
 	}
 	return res, nil
 }
+
+func (p *Service) GetDepartmentsByParentID(ctx context.Context, parentID *uint, withCrew bool) ([]*response.DepartmentTreeResponse, error) {
+	key := constant.DepartmentTreeSfgKey
+	if withCrew {
+		key = constant.DepartmentTreeWithCrewSfgKey
+	}
+	departmentCache, getCacheErr := p.getDepartmentCache(ctx, key)
+	if getCacheErr != nil {
+		return nil, getCacheErr
+	}
+	if departmentCache != nil {
+		return p.processTree(departmentCache)
+	}
+	result, err, _ := p.deptTreeSfg.Do(string(key), func() (interface{}, error) {
+		departments, err := p.departmentDAO.GetAll(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if withCrew {
+			if err = p.processDepartmentWithCrew(ctx, departments); err != nil {
+				return nil, err
+			}
+		}
+		if err = p.departmentCache.CacheDepartment(ctx, key, departments); err != nil {
+			return nil, err
+		}
+		return p.processTree(departments)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.([]*response.DepartmentTreeResponse), nil
+}
