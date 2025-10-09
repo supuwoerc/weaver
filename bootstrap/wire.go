@@ -37,7 +37,7 @@ func WireApp() *App {
 
 		initialize.NewDialer,
 
-		initialize.NewOLTPExporter,
+		initialize.NewOTLPExporter,
 		wire.Bind(new(tracesdk.SpanExporter), new(*otlptrace.Exporter)),
 		initialize.NewTracerProvider,
 

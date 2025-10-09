@@ -16,7 +16,7 @@ type Config struct {
 	GORM          GORMConfig          `mapstructure:"gorm"`           // gorm配置
 	OSS           OSSConfig           `mapstructure:"oss"`            // oss配置
 	OpenTelemetry OpenTelemetryConfig `mapstructure:"open_telemetry"` // open telemetry配置
-	OLTP          OTLPConfig          `mapstructure:"oltp"`           // oltp配置
+	OTLP          OTLPConfig          `mapstructure:"otlp"`           // otlp配置
 	Elasticsearch ElasticsearchConfig `mapstructure:"elasticsearch"`  // es配置
 }
 
