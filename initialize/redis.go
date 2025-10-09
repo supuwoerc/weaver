@@ -33,7 +33,7 @@ type RedisLogger struct {
 func NewRedisLogger(l *weaverLogger.Logger, conf *conf.Config) *RedisLogger {
 	return &RedisLogger{
 		Logger: l,
-		Level:  RedisLogLevel(conf.Logger.RedisLevel),
+		Level:  RedisLogLevel(conf.Redis.LogLevel),
 	}
 }
 

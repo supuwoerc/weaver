@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	goredislib "github.com/redis/go-redis/v9"
@@ -46,6 +47,10 @@ func WireApp() *App {
 		wire.Bind(new(gormLogger.Interface), new(*initialize.GormLogger)),
 		initialize.NewGormLogger,
 		initialize.NewGORM,
+
+		wire.Bind(new(elastictransport.Logger), new(*initialize.ElasticsearchLogger)),
+		initialize.NewElasticsearchLogger,
+		initialize.NewElasticsearchClient,
 
 		utils.NewRedisLocksmith,
 

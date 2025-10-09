@@ -41,9 +41,9 @@ type GormLogger struct {
 func NewGormLogger(l *weaverLogger.Logger, conf *conf.Config) *GormLogger {
 	return &GormLogger{
 		Logger:                    l,
-		Level:                     logger.LogLevel(conf.Logger.GormLevel),
-		SlowThreshold:             conf.Logger.GormSlowThreshold,
-		IgnoreRecordNotFoundError: conf.Logger.GormIgnoreRecordNotFoundError,
+		Level:                     logger.LogLevel(conf.GORM.LogLevel),
+		SlowThreshold:             conf.GORM.SlowThreshold,
+		IgnoreRecordNotFoundError: conf.GORM.IgnoreRecordNotFoundError,
 	}
 }
 
@@ -128,8 +128,8 @@ func (g *GormLogger) cleanSQL(sql string) string {
 }
 
 func NewGORM(conf *conf.Config, l logger.Interface) *gorm.DB {
-	dsn := conf.Mysql.DSN
-	logLevel := conf.Logger.GormLevel
+	dsn := conf.GORM.DSN
+	logLevel := conf.GORM.LogLevel
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   tablePrefix,
@@ -149,9 +149,9 @@ func NewGORM(conf *conf.Config, l logger.Interface) *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	maxIdleConn := conf.Mysql.MaxIdleConn
-	maxOpenConn := conf.Mysql.MaxOpenConn
-	maxLifetime := conf.Mysql.MaxLifetime
+	maxIdleConn := conf.GORM.MaxIdleConn
+	maxOpenConn := conf.GORM.MaxOpenConn
+	maxLifetime := conf.GORM.MaxLifetime
 	link.SetMaxIdleConns(maxIdleConn)
 	link.SetMaxOpenConns(maxOpenConn)
 	link.SetConnMaxLifetime(time.Minute * maxLifetime)

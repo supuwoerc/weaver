@@ -11,15 +11,17 @@ system:
     close:
       - autoManageDeptCache
 logger:
-  level: 0
+  level: -1
   stdout: true
-  gorm_level: 2
 redis:
   addr: 1.2.3.4:6379
   password: 123
   db: 0
-mysql:
+  log_level: 4
+gorm:
   dsn: gin_web:1@tcp(1.2.3.4:3306)/gin_web?charset=utf8mb4&parseTime=True&loc=Local
   max_idle_conn: 10
   max_open_conn: 10
   max_life_time: 60 # 分钟
+  log_level: 4
+  slow_threshold: 200000000 # 200ms

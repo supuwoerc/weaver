@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/supuwoerc/weaver/api/v1/attachment"
 	"github.com/supuwoerc/weaver/api/v1/captcha"
 	"github.com/supuwoerc/weaver/api/v1/department"
@@ -20,20 +21,21 @@ import (
 )
 
 type App struct {
-	logger            *logger.Logger
-	conf              *conf.Config
-	jobManager        *job.SystemJobManager
-	cacheManager      *cache.SystemCacheManager
-	httpServer        *initialize.HttpServer
-	traceSpanExporter tracesdk.SpanExporter
-	tracerProvider    *tracesdk.TracerProvider
-	attachmentApi     *attachment.Api
-	captchaApi        *captcha.Api
-	departmentApi     *department.Api
-	permissionApi     *permission.Api
-	pingApi           *ping.Api
-	roleApi           *role.Api
-	userApi           *user.Api
+	logger              *logger.Logger
+	conf                *conf.Config
+	jobManager          *job.SystemJobManager
+	cacheManager        *cache.SystemCacheManager
+	elasticsearchClient *elasticsearch.Client
+	httpServer          *initialize.HttpServer
+	traceSpanExporter   tracesdk.SpanExporter
+	tracerProvider      *tracesdk.TracerProvider
+	attachmentApi       *attachment.Api
+	captchaApi          *captcha.Api
+	departmentApi       *department.Api
+	permissionApi       *permission.Api
+	pingApi             *ping.Api
+	roleApi             *role.Api
+	userApi             *user.Api
 }
 
 func (a *App) Run() {

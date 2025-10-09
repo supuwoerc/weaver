@@ -13,10 +13,11 @@ type Config struct {
 	Captcha       CaptchaConfig       `mapstructure:"captcha"`        // 验证码相关配置
 	Account       AccountConfig       `mapstructure:"account"`        // 账户相关配置
 	Redis         RedisConfig         `mapstructure:"redis"`          // redis配置
-	Mysql         MysqlConfig         `mapstructure:"mysql"`          // mysql配置
+	GORM          GORMConfig          `mapstructure:"gorm"`           // gorm配置
 	OSS           OSSConfig           `mapstructure:"oss"`            // oss配置
 	OpenTelemetry OpenTelemetryConfig `mapstructure:"open_telemetry"` // open telemetry配置
 	OLTP          OTLPConfig          `mapstructure:"oltp"`           // oltp配置
+	Elasticsearch ElasticsearchConfig `mapstructure:"elasticsearch"`  // es配置
 }
 
 func (c *Config) IsProd() bool {

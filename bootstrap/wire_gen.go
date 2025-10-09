@@ -67,6 +67,8 @@ func WireApp() *App {
 	permissionService := permission.NewPermissionService(basicService, permissionDAO, rolePermissionDAO, roleDAO)
 	v2 := providers.SystemCaches(departmentService, permissionService)
 	systemCacheManager := cache2.NewSystemCacheManager(v2...)
+	elasticsearchLogger := initialize.NewElasticsearchLogger(loggerLogger, config)
+	client := initialize.NewElasticsearchClient(config, elasticsearchLogger)
 	engine := initialize.NewEngine(emailClient, commonRedisClient, loggerLogger, config)
 	httpServer := initialize.NewServer(config, engine, loggerLogger)
 	exporter := initialize.NewOLTPExporter(config)
@@ -77,8 +79,8 @@ func WireApp() *App {
 	authMiddleware := middleware.NewAuthMiddleware(config, userCache, tokenBuilder, permissionDAO)
 	basicApi := v1.NewBasicApi(routerGroup, loggerLogger, config, authMiddleware)
 	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
-	client := initialize.NewS3Client(config)
-	s3CompatibleStorage := initialize.NewS3CompatibleStorage(config, client)
+	s3Client := initialize.NewS3Client(config)
+	s3CompatibleStorage := initialize.NewS3CompatibleStorage(config, s3Client)
 	attachmentService := attachment.NewAttachmentService(basicService, attachmentDAO, s3CompatibleStorage)
 	api := attachment2.NewAttachmentApi(basicApi, attachmentService)
 	redisStore := captcha.NewRedisStore(commonRedisClient, config)
@@ -93,20 +95,21 @@ func WireApp() *App {
 	userService := user.NewUserService(basicService, captchaService, userDAO, userCache, tokenBuilder)
 	userApi := user2.NewUserApi(basicApi, userService)
 	app := &App{
-		logger:            loggerLogger,
-		conf:              config,
-		jobManager:        systemJobManager,
-		cacheManager:      systemCacheManager,
-		httpServer:        httpServer,
-		traceSpanExporter: exporter,
-		tracerProvider:    tracerProvider,
-		attachmentApi:     api,
-		captchaApi:        captchaApi,
-		departmentApi:     departmentApi,
-		permissionApi:     permissionApi,
-		pingApi:           pingApi,
-		roleApi:           roleApi,
-		userApi:           userApi,
+		logger:              loggerLogger,
+		conf:                config,
+		jobManager:          systemJobManager,
+		cacheManager:        systemCacheManager,
+		elasticsearchClient: client,
+		httpServer:          httpServer,
+		traceSpanExporter:   exporter,
+		tracerProvider:      tracerProvider,
+		attachmentApi:       api,
+		captchaApi:          captchaApi,
+		departmentApi:       departmentApi,
+		permissionApi:       permissionApi,
+		pingApi:             pingApi,
+		roleApi:             roleApi,
+		userApi:             userApi,
 	}
 	return app
 }

@@ -12,7 +12,7 @@ func NewOLTPExporter(conf *conf.Config) *otlptrace.Exporter {
 	if conf.OLTP.Endpoint == "" {
 		panic("oltp endpoint is empty")
 	}
-	// 使用 OTLP HTTP 导出器
+	// 使用 OLTP HTTP 导出器
 	options := []otlptracehttp.Option{otlptracehttp.WithEndpoint(conf.OLTP.Endpoint)}
 	if conf.OLTP.Insecure {
 		options = append(options, otlptracehttp.WithInsecure())

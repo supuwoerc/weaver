@@ -16,7 +16,6 @@ system:
   rate_limit:
     pattern: '30-S'
     prefix: 'weaver-limiter'
-
 jwt:
   expires: 15              # token过期时长(分钟)
   refresh_token_expires: 10080 # refresh_token的过期时长(分钟)

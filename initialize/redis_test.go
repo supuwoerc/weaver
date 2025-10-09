@@ -32,8 +32,8 @@ func TestNewRedisLogger(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				config := &conf.Config{
-					Logger: conf.LoggerConfig{
-						RedisLevel: int(tc.logLevel),
+					Redis: conf.RedisConfig{
+						LogLevel: int(tc.logLevel),
 					},
 				}
 				redisLogger := NewRedisLogger(logger, config)
@@ -48,8 +48,8 @@ func TestNewRedisLogger(t *testing.T) {
 func TestRedisLogger_DialHook(t *testing.T) {
 	logger := weaverLogger.NewLogger(zaptest.NewLogger(t).Sugar())
 	config := &conf.Config{
-		Logger: conf.LoggerConfig{
-			RedisLevel: int(Info),
+		Redis: conf.RedisConfig{
+			LogLevel: int(Info),
 		},
 	}
 	redisLogger := NewRedisLogger(logger, config)
@@ -78,8 +78,8 @@ func TestRedisLogger_DialHook(t *testing.T) {
 func TestRedisLogger_ProcessHook(t *testing.T) {
 	logger := weaverLogger.NewLogger(zaptest.NewLogger(t).Sugar())
 	config := &conf.Config{
-		Logger: conf.LoggerConfig{
-			RedisLevel: int(Info),
+		Redis: conf.RedisConfig{
+			LogLevel: int(Info),
 		},
 	}
 	redisLogger := NewRedisLogger(logger, config)
@@ -109,7 +109,7 @@ func TestRedisLogger_ProcessPipelineHook(t *testing.T) {
 	logger := weaverLogger.NewLogger(zaptest.NewLogger(t).Sugar())
 	config := &conf.Config{
 		Logger: conf.LoggerConfig{
-			RedisLevel: int(Info),
+			Level: int8(Info),
 		},
 	}
 	redisLogger := NewRedisLogger(logger, config)
