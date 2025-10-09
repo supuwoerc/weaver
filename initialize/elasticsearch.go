@@ -39,7 +39,7 @@ func (l *ElasticsearchLogger) ResponseBodyEnabled() bool {
 	return l.Level == Response || l.Level == All
 }
 
-func (l *ElasticsearchLogger) LogRoundTrip(req *http.Request, res *http.Response, err error, start time.Time, dur time.Duration) error {
+func (l *ElasticsearchLogger) LogRoundTrip(req *http.Request, res *http.Response, err error, _ time.Time, dur time.Duration) error {
 	if err != nil {
 		l.Errorw("elasticsearch request failed", "err", err)
 	} else {
