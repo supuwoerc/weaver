@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	"context"
 	"crypto/tls"
 	"net/http"
 	"time"
@@ -76,6 +77,13 @@ func NewElasticsearchClient(conf *conf.Config, logger elastictransport.Logger) *
 	client, err := elasticsearch.NewTypedClient(cfg)
 	if err != nil {
 		panic(err)
+	}
+	pong, err := client.Ping().Do(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	if !pong {
+		panic("elastic ping failed...")
 	}
 	return client
 }
