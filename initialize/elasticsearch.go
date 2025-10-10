@@ -53,6 +53,8 @@ func NewElasticsearchClient(conf *conf.Config, logger elastictransport.Logger) *
 		Addresses:           conf.Elasticsearch.Addresses,
 		Username:            conf.Elasticsearch.Username,
 		Password:            conf.Elasticsearch.Password,
+		APIKey:              conf.Elasticsearch.APIKey,
+		ServiceToken:        conf.Elasticsearch.ServiceToken,
 		MaxRetries:          conf.Elasticsearch.MaxRetries,
 		RetryOnStatus:       []int{502, 503, 504, 429},
 		CompressRequestBody: conf.Elasticsearch.CompressRequestBody,

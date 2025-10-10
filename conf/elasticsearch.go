@@ -6,6 +6,8 @@ type ElasticsearchConfig struct {
 	Addresses             []string      `mapstructure:"addresses"`               // addresses
 	Username              string        `mapstructure:"username"`                // 用户
 	Password              string        `mapstructure:"password"`                // password
+	APIKey                string        `mapstructure:"api_key"`                 // api_key(最高优先级)
+	ServiceToken          string        `mapstructure:"service_token"`           // service_token(优先级高于username&password)
 	Insecure              bool          `mapstructure:"insecure"`                // 关闭TLS
 	MaxRetries            int           `mapstructure:"max_retries"`             // 最大重试次数
 	CompressRequestBody   bool          `mapstructure:"compress_request_body"`   // 启用压缩
