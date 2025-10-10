@@ -25,7 +25,7 @@ type App struct {
 	conf                *conf.Config
 	jobManager          *job.SystemJobManager
 	cacheManager        *cache.SystemCacheManager
-	elasticsearchClient *elasticsearch.Client
+	elasticsearchClient *elasticsearch.TypedClient
 	httpServer          *initialize.HttpServer
 	traceSpanExporter   tracesdk.SpanExporter
 	tracerProvider      *tracesdk.TracerProvider

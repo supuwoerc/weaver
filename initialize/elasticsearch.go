@@ -48,7 +48,7 @@ func (l *ElasticsearchLogger) LogRoundTrip(req *http.Request, res *http.Response
 	return nil
 }
 
-func NewElasticsearchClient(conf *conf.Config, logger elastictransport.Logger) *elasticsearch.Client {
+func NewElasticsearchClient(conf *conf.Config, logger elastictransport.Logger) *elasticsearch.TypedClient {
 	cfg := elasticsearch.Config{
 		Addresses:           conf.Elasticsearch.Addresses,
 		Username:            conf.Elasticsearch.Username,
@@ -73,7 +73,7 @@ func NewElasticsearchClient(conf *conf.Config, logger elastictransport.Logger) *
 			cfg.DiscoverNodesInterval = conf.Elasticsearch.DiscoverNodesInterval * time.Second
 		}
 	}
-	client, err := elasticsearch.NewClient(cfg)
+	client, err := elasticsearch.NewTypedClient(cfg)
 	if err != nil {
 		panic(err)
 	}
