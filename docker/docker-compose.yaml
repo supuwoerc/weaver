@@ -112,6 +112,7 @@ services:
       - business_net
 
   # Elasticsearch 搜索引擎
+  # elasticsearch-setup-passwords interactive 容器内执行可重置相关密码
   elasticsearch:
     container_name: "gin-web-es"
     image: elasticsearch:8.12.2
@@ -137,11 +138,10 @@ services:
     restart: unless-stopped
     environment:
       - "TZ=Asia/Shanghai"
-      - "I18N_LOCALE=zh-CN"
-      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200"
-      - "ELASTICSEARCH_SERVICEACCOUNTTOKEN=AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjpfUnBQQXpsS1FDQzZCanJQUnZ3c2l3"
     ports:
       - "5601:5601"
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     networks:
       - business_net
     depends_on:
