@@ -69,6 +69,7 @@ func WireApp() *App {
 	systemCacheManager := cache2.NewSystemCacheManager(v2...)
 	elasticsearchLogger := initialize.NewElasticsearchLogger(loggerLogger, config)
 	typedClient := initialize.NewElasticsearchClient(config, elasticsearchLogger)
+	client := initialize.NewConsulClient(config)
 	engine := initialize.NewEngine(emailClient, commonRedisClient, loggerLogger, config)
 	httpServer := initialize.NewServer(config, engine, loggerLogger)
 	exporter := initialize.NewOTLPExporter(config)
@@ -79,8 +80,8 @@ func WireApp() *App {
 	authMiddleware := middleware.NewAuthMiddleware(config, userCache, tokenBuilder, permissionDAO)
 	basicApi := v1.NewBasicApi(routerGroup, loggerLogger, config, authMiddleware)
 	attachmentDAO := dao.NewAttachmentDAO(basicDAO)
-	client := initialize.NewS3Client(config)
-	s3CompatibleStorage := initialize.NewS3CompatibleStorage(config, client)
+	s3Client := initialize.NewS3Client(config)
+	s3CompatibleStorage := initialize.NewS3CompatibleStorage(config, s3Client)
 	attachmentService := attachment.NewAttachmentService(basicService, attachmentDAO, s3CompatibleStorage)
 	api := attachment2.NewAttachmentApi(basicApi, attachmentService)
 	redisStore := captcha.NewRedisStore(commonRedisClient, config)
@@ -100,6 +101,7 @@ func WireApp() *App {
 		jobManager:          systemJobManager,
 		cacheManager:        systemCacheManager,
 		elasticsearchClient: typedClient,
+		consulClient:        client,
 		httpServer:          httpServer,
 		traceSpanExporter:   exporter,
 		tracerProvider:      tracerProvider,

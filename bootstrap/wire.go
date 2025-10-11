@@ -27,6 +27,8 @@ func WireApp() *App {
 
 		initialize.NewViper,
 
+		initialize.NewConsulClient,
+
 		initialize.NewWriterSyncer,
 
 		initialize.NewZapLogger,

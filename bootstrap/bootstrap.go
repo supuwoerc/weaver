@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/hashicorp/consul/api"
 	"github.com/supuwoerc/weaver/api/v1/attachment"
 	"github.com/supuwoerc/weaver/api/v1/captcha"
 	"github.com/supuwoerc/weaver/api/v1/department"
@@ -26,6 +27,7 @@ type App struct {
 	jobManager          *job.SystemJobManager
 	cacheManager        *cache.SystemCacheManager
 	elasticsearchClient *elasticsearch.TypedClient
+	consulClient        *api.Client
 	httpServer          *initialize.HttpServer
 	traceSpanExporter   tracesdk.SpanExporter
 	tracerProvider      *tracesdk.TracerProvider

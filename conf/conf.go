@@ -12,6 +12,7 @@ type Config struct {
 	Cors          CorsConfig          `mapstructure:"cors"`           // cors相关配置
 	Captcha       CaptchaConfig       `mapstructure:"captcha"`        // 验证码相关配置
 	Account       AccountConfig       `mapstructure:"account"`        // 账户相关配置
+	Consul        ConsulConfig        `mapstructure:"consul"`         // consul配置
 	Redis         RedisConfig         `mapstructure:"redis"`          // redis配置
 	GORM          GORMConfig          `mapstructure:"gorm"`           // gorm配置
 	OSS           OSSConfig           `mapstructure:"oss"`            // oss配置
