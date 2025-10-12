@@ -19,6 +19,7 @@ import (
 	"github.com/supuwoerc/weaver/middleware"
 	cache2 "github.com/supuwoerc/weaver/pkg/cache"
 	"github.com/supuwoerc/weaver/pkg/captcha"
+	"github.com/supuwoerc/weaver/pkg/consul"
 	"github.com/supuwoerc/weaver/pkg/job"
 	"github.com/supuwoerc/weaver/pkg/jwt"
 	"github.com/supuwoerc/weaver/pkg/logger"
@@ -70,6 +71,7 @@ func WireApp() *App {
 	elasticsearchLogger := initialize.NewElasticsearchLogger(loggerLogger, config)
 	typedClient := initialize.NewElasticsearchClient(config, elasticsearchLogger)
 	client := initialize.NewConsulClient(config)
+	serviceRegister := consul.NewServiceRegistry(client, emailClient, loggerLogger)
 	engine := initialize.NewEngine(emailClient, commonRedisClient, loggerLogger, config)
 	httpServer := initialize.NewHttpServer(config, engine, loggerLogger)
 	exporter := initialize.NewOTLPExporter(config)
@@ -102,6 +104,7 @@ func WireApp() *App {
 		cacheManager:        systemCacheManager,
 		elasticsearchClient: typedClient,
 		consulClient:        client,
+		serviceRegister:     serviceRegister,
 		httpServer:          httpServer,
 		traceSpanExporter:   exporter,
 		tracerProvider:      tracerProvider,

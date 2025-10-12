@@ -13,6 +13,7 @@ import (
 	"github.com/google/wire"
 	goredislib "github.com/redis/go-redis/v9"
 	"github.com/supuwoerc/weaver/initialize"
+	"github.com/supuwoerc/weaver/pkg/consul"
 	"github.com/supuwoerc/weaver/pkg/logger"
 	"github.com/supuwoerc/weaver/pkg/utils"
 	"github.com/supuwoerc/weaver/providers"
@@ -28,6 +29,10 @@ func WireApp() *App {
 		initialize.NewViper,
 
 		initialize.NewConsulClient,
+
+		wire.Bind(new(consul.RegisterEmailClient), new(*initialize.EmailClient)),
+		wire.Bind(new(consul.RegisterLogger), new(*logger.Logger)),
+		consul.NewServiceRegistry,
 
 		initialize.NewWriterSyncer,
 

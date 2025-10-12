@@ -11,9 +11,6 @@ func NewConsulClient(conf *conf.Config) *api.Client {
 	if conf.Consul.Address == "" {
 		panic("consul address is required")
 	}
-	if conf.Consul.Token == "" {
-		panic(" No ACL token provided,some operations may fail")
-	}
 	cfg := &api.Config{
 		Address: conf.Consul.Address,
 		Scheme:  conf.Consul.Scheme,

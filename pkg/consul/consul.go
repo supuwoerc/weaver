@@ -8,26 +8,38 @@ import (
 	"time"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/supuwoerc/weaver/pkg/constant"
 	"github.com/supuwoerc/weaver/pkg/logger"
 )
 
+type RegisterEmailClient interface {
+	Alarm2Admin(ctx context.Context, subject constant.Subject, body string) error
+}
+
+type RegisterLogger interface {
+	logger.LogCtxInterface
+}
+
 // ServiceRegister 服务注册器
 type ServiceRegister struct {
-	client     *api.Client
-	serviceID  string
-	registered bool
-	logger     logger.LogCtxInterface
-	mutex      sync.RWMutex
+	client      *api.Client
+	serviceID   string
+	registered  bool
+	logger      RegisterLogger
+	emailClient RegisterEmailClient
+	mutex       sync.RWMutex
 }
 
 // ServiceOption 服务注册选项
 type ServiceOption func(*api.AgentServiceRegistration)
 
 // NewServiceRegistry 创建服务注册器
-func NewServiceRegistry(client *api.Client) *ServiceRegister {
+func NewServiceRegistry(client *api.Client, emailClient RegisterEmailClient, logger RegisterLogger) *ServiceRegister {
 	return &ServiceRegister{
-		client:     client,
-		registered: false,
+		client:      client,
+		registered:  false,
+		emailClient: emailClient,
+		logger:      logger,
 	}
 }
 
@@ -107,10 +119,13 @@ func (sr *ServiceRegister) KeepAlive(ctx context.Context) error {
 		case <-ticker.C:
 			// 发送心跳或更新 TTL 检查
 			if err := sr.updateTTL(); err != nil {
-				sr.logger.WithContext(context.Background()).Errorw("Failed to update TTL", "err", err)
+				sr.logger.WithContext(ctx).Errorw("Failed to update TTL, Try to register again", "err", err)
 				// 尝试重新注册
 				if err = sr.reregister(); err != nil {
-					sr.logger.WithContext(context.Background()).Errorw("Failed to reregister", "err", err)
+					sr.logger.WithContext(ctx).Errorw("Failed to reregister", "err", err)
+					if alarmErr := sr.emailClient.Alarm2Admin(ctx, constant.ServiceRegister, err.Error()); alarmErr != nil {
+						sr.logger.WithContext(ctx).Errorw("Failed to alarm to admin", "err", alarmErr)
+					}
 				}
 			}
 		}
