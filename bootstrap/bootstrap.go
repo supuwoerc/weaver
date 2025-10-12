@@ -20,6 +20,7 @@ import (
 	"github.com/supuwoerc/weaver/pkg/consul"
 	"github.com/supuwoerc/weaver/pkg/job"
 	"github.com/supuwoerc/weaver/pkg/logger"
+	"github.com/supuwoerc/weaver/pkg/utils"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -100,13 +101,18 @@ func (a *App) Close() {
 	}
 }
 
+// 获取出口IP
+func (a *App) getOutboundIP() string {
+	return utils.GetOutboundIP()
+}
+
 // 服务注册
 func (a *App) registerService() error {
 	interval := 15 * time.Second
 	if a.conf.System.HealthCheckInterval > 0 {
 		interval = a.conf.System.HealthCheckInterval * time.Second
 	}
-	return a.serviceRegister.Register(a.conf.AppName, a.httpServer.Addr(), a.httpServer.Port(),
+	return a.serviceRegister.Register(a.conf.AppName, a.getOutboundIP(), a.httpServer.Port(),
 		consul.WithTags(a.conf.AppName, a.conf.AppVersion, a.conf.Env),
 		consul.WithMeta(map[string]string{
 			"version": a.conf.AppVersion,
