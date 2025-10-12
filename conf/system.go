@@ -3,6 +3,7 @@ package conf
 import "time"
 
 type SystemConfig struct {
+	Scheme              string        `mapstructure:"scheme"`                // 服务scheme: http https
 	Port                int           `mapstructure:"port"`                  // 端口
 	BaseURL             string        `mapstructure:"base_url"`              // 服务base_url
 	DefaultLang         string        `mapstructure:"default_lang"`          // 默认语言

@@ -183,10 +183,10 @@ func WithMeta(meta map[string]string) ServiceOption {
 }
 
 // WithHTTPCheck 设置 HTTP 健康检查
-func WithHTTPCheck(path string, interval time.Duration) ServiceOption {
+func WithHTTPCheck(scheme, path string, interval time.Duration) ServiceOption {
 	return func(reg *api.AgentServiceRegistration) {
 		reg.Check = &api.AgentServiceCheck{
-			HTTP:                           fmt.Sprintf("http://%s:%d%s", reg.Address, reg.Port, path),
+			HTTP:                           fmt.Sprintf("%s://%s:%d%s", scheme, reg.Address, reg.Port, path),
 			Timeout:                        "3s",
 			Interval:                       interval.String(),
 			DeregisterCriticalServiceAfter: "1m",

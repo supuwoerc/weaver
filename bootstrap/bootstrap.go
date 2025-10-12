@@ -108,6 +108,10 @@ func (a *App) getOutboundIP() string {
 
 // 服务注册
 func (a *App) registerService() error {
+	scheme := "http"
+	if a.conf.System.Scheme != "" {
+		scheme = a.conf.System.Scheme
+	}
 	interval := 15 * time.Second
 	if a.conf.System.HealthCheckInterval > 0 {
 		interval = a.conf.System.HealthCheckInterval * time.Second
@@ -118,7 +122,7 @@ func (a *App) registerService() error {
 			"version": a.conf.AppVersion,
 			"env":     a.conf.Env,
 		}),
-		consul.WithHTTPCheck(healthCheckEndpoint, interval),
+		consul.WithHTTPCheck(scheme, healthCheckEndpoint, interval),
 	)
 }
 
