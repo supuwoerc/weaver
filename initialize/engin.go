@@ -44,6 +44,8 @@ func NewEngine(emailClient *EmailClient, rc *local.CommonRedisClient, logger *lo
 	r.Use(middleware.NewLimiterMiddleware(rc, conf).RequestLimit())
 	// 系统相关路由
 	router.InitSystemWebRouter(r)
+	// consul健康检查路由
+	router.InitHealthCheckRouter(r)
 	// swag相关路由
 	router.InitSwagWebRouter(r, conf)
 	// prometheus相关路由

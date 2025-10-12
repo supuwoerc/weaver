@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/hashicorp/consul/api"
@@ -16,9 +17,14 @@ import (
 	"github.com/supuwoerc/weaver/initialize"
 	"github.com/supuwoerc/weaver/pkg/cache"
 	"github.com/supuwoerc/weaver/pkg/constant"
+	"github.com/supuwoerc/weaver/pkg/consul"
 	"github.com/supuwoerc/weaver/pkg/job"
 	"github.com/supuwoerc/weaver/pkg/logger"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+)
+
+const (
+	healthCheckEndpoint string = "/health"
 )
 
 type App struct {
@@ -28,6 +34,7 @@ type App struct {
 	cacheManager        *cache.SystemCacheManager
 	elasticsearchClient *elasticsearch.TypedClient
 	consulClient        *api.Client
+	serviceRegister     *consul.ServiceRegister
 	httpServer          *initialize.HttpServer
 	traceSpanExporter   tracesdk.SpanExporter
 	tracerProvider      *tracesdk.TracerProvider
@@ -56,6 +63,10 @@ func (a *App) Run() {
 			}
 		}
 	}
+	// 注册服务
+	if err := a.registerService(); err != nil {
+		panic(err)
+	}
 	a.httpServer.Run()
 }
 
@@ -70,6 +81,10 @@ func (a *App) Close() {
 		_ = a.logger.Sync()
 	}()
 	defer a.logger.Info("app clean is executed")
+	// 先下线服务,避免外部继续调用服务
+	if err := a.serviceRegister.Deregister(); err != nil {
+		a.logger.Errorw("Failed to deregister service", "err", err.Error())
+	}
 	// 停止定时任务
 	a.jobManager.Stop()
 	// 执行相关 hook
@@ -83,6 +98,22 @@ func (a *App) Close() {
 			}
 		}
 	}
+}
+
+// 服务注册
+func (a *App) registerService() error {
+	interval := 15 * time.Second
+	if a.conf.System.HealthCheckInterval > 0 {
+		interval = a.conf.System.HealthCheckInterval * time.Second
+	}
+	return a.serviceRegister.Register(a.conf.AppName, a.httpServer.Addr(), a.httpServer.Port(),
+		consul.WithTags(a.conf.AppName, a.conf.AppVersion, a.conf.Env),
+		consul.WithMeta(map[string]string{
+			"version": a.conf.AppVersion,
+			"env":     a.conf.Env,
+		}),
+		consul.WithHTTPCheck(healthCheckEndpoint, interval),
+	)
 }
 
 type Cli struct {

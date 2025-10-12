@@ -68,7 +68,7 @@ func WireApp() *App {
 
 		wire.Bind(new(http.Handler), new(*gin.Engine)),
 		initialize.NewEngine,
-		initialize.NewServer,
+		initialize.NewHttpServer,
 		router.NewRouter,
 
 		providers.SystemJobProvider,

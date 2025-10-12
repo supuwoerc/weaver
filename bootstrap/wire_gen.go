@@ -71,7 +71,7 @@ func WireApp() *App {
 	typedClient := initialize.NewElasticsearchClient(config, elasticsearchLogger)
 	client := initialize.NewConsulClient(config)
 	engine := initialize.NewEngine(emailClient, commonRedisClient, loggerLogger, config)
-	httpServer := initialize.NewServer(config, engine, loggerLogger)
+	httpServer := initialize.NewHttpServer(config, engine, loggerLogger)
 	exporter := initialize.NewOTLPExporter(config)
 	tracerProvider := initialize.NewTracerProvider(config, exporter)
 	routerGroup := router.NewRouter(engine)

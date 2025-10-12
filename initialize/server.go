@@ -28,15 +28,14 @@ var (
 type HttpServer struct {
 	httpServer *http.Server
 	logger     *logger.Logger
+	port       int
+	conf       *conf.Config
 	isLinux    bool
 }
 
-// NewServer 创建http服务器
-func NewServer(conf *conf.Config, handle http.Handler, logger *logger.Logger) *HttpServer {
-	port := conf.System.Port
-	if port == 0 {
-		port = defaultPort
-	}
+// NewHttpServer 创建http服务器
+func NewHttpServer(conf *conf.Config, handle http.Handler, logger *logger.Logger) *HttpServer {
+	port := wrapPort(conf.System.Port)
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", host, port),
 		Handler: handle,
@@ -44,8 +43,25 @@ func NewServer(conf *conf.Config, handle http.Handler, logger *logger.Logger) *H
 	return &HttpServer{
 		httpServer: srv,
 		logger:     logger,
+		port:       port,
+		conf:       conf,
 		isLinux:    isLinux,
 	}
+}
+
+func wrapPort(port int) int {
+	if port == 0 {
+		port = defaultPort
+	}
+	return port
+}
+
+func (s *HttpServer) Port() int {
+	return wrapPort(s.conf.System.Port)
+}
+
+func (s *HttpServer) Addr() string {
+	return s.httpServer.Addr
 }
 
 func (s *HttpServer) Run() {
