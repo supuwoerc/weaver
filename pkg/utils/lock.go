@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -193,7 +194,13 @@ func (l *RedisLock) extend(ctx context.Context) bool {
 		)
 		return false
 	}
+	// FIXME:续期失败错误修复
 	ok, err := l.Mutex.Extend()
+	select {
+	case <-l.stopChan:
+		return false
+	default:
+	}
 	if err != nil {
 		l.logger.WithContext(ctx).Errorw("lock couldn't be extended", "err", err.Error(), "name", l.Name())
 		return false
@@ -206,9 +213,21 @@ func (l *RedisLock) extend(ctx context.Context) bool {
 
 // autoExtend 自动延长锁的过期时间
 func (l *RedisLock) autoExtend(ctx context.Context) {
-	extendInterval := l.duration / 3
-	ticker := time.NewTicker(extendInterval)
-	defer ticker.Stop()
+	// 基础续约间隔，TTL 的 1/3
+	base := l.duration / 3
+	if base < time.Second {
+		base = time.Second
+	}
+	// 抖动比例（0~20%）
+	const jitterRatio = 0.2
+	nextWait := func() time.Duration {
+		// 0 ~ base*jitterRatio 的正向抖动
+		j := time.Duration(rand.Int63n(int64(float64(base) * jitterRatio)))
+		// 保守的向前一点，降低过期风险
+		return base - j
+	}
+	timer := time.NewTimer(nextWait())
+	defer timer.Stop()
 	for {
 		select {
 		case <-ctx.Done():
@@ -216,7 +235,7 @@ func (l *RedisLock) autoExtend(ctx context.Context) {
 			return
 		case <-l.stopChan:
 			return
-		case <-ticker.C:
+		case <-timer.C:
 			select {
 			case <-ctx.Done():
 				l.unlockWithLog(ctx)
@@ -226,6 +245,9 @@ func (l *RedisLock) autoExtend(ctx context.Context) {
 			default:
 				if success := l.extend(ctx); !success {
 					return
+				} else {
+					// 下一轮续约前重新设置带抖动的等待时间
+					timer.Reset(nextWait())
 				}
 			}
 		}

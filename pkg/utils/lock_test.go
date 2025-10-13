@@ -1098,13 +1098,14 @@ func (r *RedisLockSuite) TestRedisLock_AutoExtend() {
 		r.mutex.AssertNotCalled(t, "Unlock")
 	})
 
+	// FIXME test case
 	r.Run("ticker triggers extend - successful case", func() {
 		ctx := context.Background()
 		testLogger := logger.NewLogger(zaptest.NewLogger(r.T()).Sugar())
 		// 重新初始化 lock，使用非常短的 duration 使 ticker 快速触发
 		r.lock = &RedisLock{
 			Mutex:         r.mutex,
-			duration:      90 * time.Millisecond, // duration/3 = 30ms
+			duration:      1 * time.Second,
 			logger:        testLogger,
 			stopChan:      make(chan struct{}),
 			extendDone:    make(chan struct{}),
@@ -1127,7 +1128,7 @@ func (r *RedisLockSuite) TestRedisLock_AutoExtend() {
 		select {
 		case <-done:
 			// 期望的行为
-		case <-time.After(1 * time.Second):
+		case <-time.After(2 * time.Second):
 			t.Error("autoExtend should complete after extend fails")
 		}
 		// 验证 extend 被调用了两次
