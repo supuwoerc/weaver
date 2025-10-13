@@ -176,39 +176,38 @@ func (l *RedisLock) extend(ctx context.Context) bool {
 	case <-l.stopChan:
 		return false
 	default:
+		if !l.state.CompareAndSwap(lockStateLocked, lockStateExtending) {
+			return false
+		}
+		l.extendDone = make(chan struct{})
+		defer func() {
+			l.state.CompareAndSwap(lockStateExtending, lockStateLocked)
+			close(l.extendDone)
+		}()
+		deadline, ok := ctx.Deadline()
+		if ok && !deadline.After(l.Mutex.Until()) {
+			l.logger.WithContext(ctx).Warnw("skipping extend due to approaching deadline",
+				"name", l.Name(),
+				"deadline", deadline,
+				"mutex until", l.Mutex.Until(),
+			)
+			return false
+		}
+		ok, err := l.Mutex.Extend()
+		select {
+		case <-l.stopChan:
+			return false
+		default:
+			if err != nil {
+				l.logger.WithContext(ctx).Errorw("lock couldn't be extended", "err", err.Error(), "name", l.Name())
+				return false
+			} else if !ok {
+				l.logger.WithContext(ctx).Errorw("redis extend lock fail ", "name", l.Name())
+				return false
+			}
+			return true
+		}
 	}
-	if !l.state.CompareAndSwap(lockStateLocked, lockStateExtending) {
-		return false
-	}
-	l.extendDone = make(chan struct{})
-	defer func() {
-		l.state.CompareAndSwap(lockStateExtending, lockStateLocked)
-		close(l.extendDone)
-	}()
-	deadline, ok := ctx.Deadline()
-	if ok && !deadline.After(l.Mutex.Until()) {
-		l.logger.WithContext(ctx).Warnw("skipping extend due to approaching deadline",
-			"name", l.Name(),
-			"deadline", deadline,
-			"mutex until", l.Mutex.Until(),
-		)
-		return false
-	}
-	// FIXME:续期失败错误修复
-	ok, err := l.Mutex.Extend()
-	select {
-	case <-l.stopChan:
-		return false
-	default:
-	}
-	if err != nil {
-		l.logger.WithContext(ctx).Errorw("lock couldn't be extended", "err", err.Error(), "name", l.Name())
-		return false
-	} else if !ok {
-		l.logger.WithContext(ctx).Errorw("redis extend lock fail ", "name", l.Name())
-		return false
-	}
-	return true
 }
 
 // autoExtend 自动延长锁的过期时间
