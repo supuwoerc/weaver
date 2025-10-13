@@ -572,29 +572,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/ping": {
-            "get": {
-                "description": "简单的健康检查接口，返回pong",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "系统监控"
-                ],
-                "summary": "健康检查",
-                "responses": {
-                    "10000": {
-                        "description": "健康检查成功，code=10000",
-                        "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-string"
-                        }
-                    }
-                }
-            }
-        },
         "/ping/check-lock": {
             "get": {
                 "security": [
@@ -1446,6 +1423,15 @@ const docTemplate = `{
         "models.Role": {
             "type": "object",
             "properties": {
+                "ancestors": {
+                    "type": "string"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -1457,6 +1443,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "parent": {
+                    "$ref": "#/definitions/models.Role"
+                },
+                "parent_id": {
+                    "type": "integer"
                 },
                 "permissions": {
                     "type": "array",
@@ -1613,6 +1605,11 @@ const docTemplate = `{
                     "maxLength": 20,
                     "minLength": 1
                 },
+                "parent_id": {
+                    "description": "父角色ID",
+                    "type": "integer",
+                    "minimum": 1
+                },
                 "permissions": {
                     "description": "角色关联权限",
                     "type": "array",
@@ -1767,6 +1764,11 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 1
+                },
+                "parent_id": {
+                    "description": "父角色ID",
+                    "type": "integer",
+                    "minimum": 1
                 },
                 "permissions": {
                     "description": "角色关联权限",
@@ -2265,6 +2267,15 @@ const docTemplate = `{
         "response.PermissionDetailRole": {
             "type": "object",
             "properties": {
+                "ancestors": {
+                    "type": "string"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -2276,6 +2287,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "parent": {
+                    "$ref": "#/definitions/models.Role"
+                },
+                "parent_id": {
+                    "type": "integer"
                 },
                 "permissions": {
                     "description": "权限"
@@ -2443,6 +2460,15 @@ const docTemplate = `{
         "response.RoleDetailResponse": {
             "type": "object",
             "properties": {
+                "ancestors": {
+                    "type": "string"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -2454,6 +2480,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "parent": {
+                    "$ref": "#/definitions/models.Role"
+                },
+                "parent_id": {
+                    "type": "integer"
                 },
                 "permissions": {
                     "description": "权限",
@@ -2480,6 +2512,15 @@ const docTemplate = `{
         "response.RoleListRowResponse": {
             "type": "object",
             "properties": {
+                "ancestors": {
+                    "type": "string"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -2496,6 +2537,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "parent": {
+                    "$ref": "#/definitions/models.Role"
+                },
+                "parent_id": {
+                    "type": "integer"
                 },
                 "permissions": {
                     "description": "权限"

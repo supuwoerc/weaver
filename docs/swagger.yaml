@@ -116,6 +116,12 @@ definitions:
     type: object
   models.Role:
     properties:
+      ancestors:
+        type: string
+      children:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
       created_at:
         type: string
       creator:
@@ -124,6 +130,10 @@ definitions:
         type: integer
       name:
         type: string
+      parent:
+        $ref: '#/definitions/models.Role'
+      parent_id:
+        type: integer
       permissions:
         items:
           $ref: '#/definitions/models.Permission'
@@ -230,6 +240,10 @@ definitions:
         maxLength: 20
         minLength: 1
         type: string
+      parent_id:
+        description: 父角色ID
+        minimum: 1
+        type: integer
       permissions:
         description: 角色关联权限
         items:
@@ -342,6 +356,10 @@ definitions:
         maxLength: 20
         minLength: 1
         type: string
+      parent_id:
+        description: 父角色ID
+        minimum: 1
+        type: integer
       permissions:
         description: 角色关联权限
         items:
@@ -671,6 +689,12 @@ definitions:
     type: object
   response.PermissionDetailRole:
     properties:
+      ancestors:
+        type: string
+      children:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
       created_at:
         type: string
       creator:
@@ -679,6 +703,10 @@ definitions:
         type: integer
       name:
         type: string
+      parent:
+        $ref: '#/definitions/models.Role'
+      parent_id:
+        type: integer
       permissions:
         description: 权限
       updated_at:
@@ -787,6 +815,12 @@ definitions:
     type: object
   response.RoleDetailResponse:
     properties:
+      ancestors:
+        type: string
+      children:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
       created_at:
         type: string
       creator:
@@ -795,6 +829,10 @@ definitions:
         type: integer
       name:
         type: string
+      parent:
+        $ref: '#/definitions/models.Role'
+      parent_id:
+        type: integer
       permissions:
         description: 权限
         items:
@@ -812,6 +850,12 @@ definitions:
     type: object
   response.RoleListRowResponse:
     properties:
+      ancestors:
+        type: string
+      children:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
       created_at:
         type: string
       creator:
@@ -822,6 +866,10 @@ definitions:
         type: integer
       name:
         type: string
+      parent:
+        $ref: '#/definitions/models.Role'
+      parent_id:
+        type: integer
       permissions:
         description: 权限
       updated_at:
@@ -1281,21 +1329,6 @@ paths:
       summary: 获取账户可访问的前端权限(菜单权限 & 路由权限)
       tags:
       - 权限管理
-  /ping:
-    get:
-      consumes:
-      - application/json
-      description: 简单的健康检查接口，返回pong
-      produces:
-      - text/plain
-      responses:
-        "10000":
-          description: 健康检查成功，code=10000
-          schema:
-            $ref: '#/definitions/response.BasicResponse-string'
-      summary: 健康检查
-      tags:
-      - 系统监控
   /ping/check-lock:
     get:
       consumes:

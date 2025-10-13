@@ -30,9 +30,8 @@ func NewPingApi(basic *v1.BasicApi, service Service) *Api {
 		BasicApi: basic,
 		service:  service,
 	}
-	group := basic.Route.Group("ping")
+	group := basic.Route.Group("check")
 	{
-		group.GET("", pinApi.Ping)
 		group.GET("exception", pinApi.Exception)
 		group.GET("check-permission", basic.Auth.LoginRequired(), basic.Auth.PermissionRequired(), pinApi.CheckPermission)
 		group.GET("slow", pinApi.SlowResponse)
@@ -41,19 +40,6 @@ func NewPingApi(basic *v1.BasicApi, service Service) *Api {
 		group.GET("span-trace", pinApi.SpanTrace)
 	}
 	return pinApi
-}
-
-// Ping
-//
-//	@Summary		健康检查
-//	@Description	简单的健康检查接口，返回pong
-//	@Tags			系统监控
-//	@Accept			json
-//	@Produce		text/plain
-//	@Success		10000	{object}	response.BasicResponse[string]	"健康检查成功，code=10000"
-//	@Router			/ping [get]
-func (p *Api) Ping(ctx *gin.Context) {
-	response.SuccessWithData[string](ctx, "pong")
 }
 
 // Exception
