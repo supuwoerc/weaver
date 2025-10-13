@@ -128,9 +128,8 @@ func (g *GormLogger) cleanSQL(sql string) string {
 }
 
 func NewGORM(conf *conf.Config, l logger.Interface) *gorm.DB {
-	dsn := conf.GORM.DSN
 	logLevel := conf.GORM.LogLevel
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(mysql.Open(conf.GORM.DSN()), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   tablePrefix,
 			SingularTable: true,

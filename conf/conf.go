@@ -7,6 +7,7 @@ type Config struct {
 	AppVersion    string              `mapstructure:"app_version"`    // 应用版本
 	Env           string              `mapstructure:"env"`            // 环境
 	System        SystemConfig        `mapstructure:"system"`         // 系统相关配置
+	Email         Email               `mapstructure:"email"`          // 邮件配置
 	JWT           JWTConfig           `mapstructure:"jwt"`            // jwt相关配置
 	Logger        LoggerConfig        `mapstructure:"logger"`         // logger相关配置
 	Cors          CorsConfig          `mapstructure:"cors"`           // cors相关配置

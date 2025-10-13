@@ -3,8 +3,6 @@ package initialize
 import (
 	"os"
 
-	"github.com/supuwoerc/weaver/conf"
-
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -14,7 +12,7 @@ const (
 	configPath = "./config"
 )
 
-func NewViper() *conf.Config {
+func NewViper() *viper.Viper {
 	v := viper.New()
 	v.SetConfigType(configType)
 	v.AddConfigPath(configPath)
@@ -30,12 +28,7 @@ func NewViper() *conf.Config {
 	if err := v.MergeInConfig(); err != nil {
 		panic(err)
 	}
-	// 映射到配置对象中
-	var globalConfig conf.Config
-	if err := v.Unmarshal(&globalConfig); err != nil {
-		panic(err)
-	}
-	return &globalConfig
+	return v
 }
 
 // 辅助函数判断环境

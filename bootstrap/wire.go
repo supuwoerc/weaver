@@ -28,7 +28,11 @@ func WireApp() *App {
 
 		initialize.NewViper,
 
+		initialize.LoadConsulConfig,
+
 		initialize.NewConsulClient,
+
+		initialize.LoadConfig,
 
 		wire.Bind(new(consul.RegisterEmailClient), new(*initialize.EmailClient)),
 		wire.Bind(new(consul.RegisterLogger), new(*logger.Logger)),
@@ -90,6 +94,13 @@ func WireApp() *App {
 func WireCli() *Cli {
 	wire.Build(
 		initialize.NewViper,
+
+		initialize.LoadConsulConfig,
+
+		initialize.NewConsulClient,
+
+		initialize.LoadConfig,
+
 		initialize.NewWriterSyncer,
 
 		initialize.NewZapLogger,

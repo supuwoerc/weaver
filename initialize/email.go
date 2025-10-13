@@ -16,10 +16,10 @@ import (
 )
 
 func NewDialer(conf *conf.Config) *gomail.Dialer {
-	h := conf.System.Email.Host
-	p := conf.System.Email.Port
-	u := conf.System.Email.User
-	pwd := conf.System.Email.Password
+	h := conf.Email.Host
+	p := conf.Email.Port
+	u := conf.Email.User
+	pwd := conf.Email.Password
 	if strings.TrimSpace(h) == "" {
 		panic("email.host is required")
 	}

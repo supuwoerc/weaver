@@ -6,6 +6,7 @@ type ConsulConfig struct {
 	Address            string        `mapstructure:"address"`              // address
 	Scheme             string        `mapstructure:"scheme"`               // http or https
 	Token              string        `mapstructure:"token"`                // token
+	KVKey              string        `mapstructure:"kv_key"`               // kv_key
 	WaitTime           time.Duration `mapstructure:"wait_time"`            // wait_time
 	CAFile             string        `mapstructure:"ca_file"`              // ca_file (CA 配置（三选一）)
 	CertFile           string        `mapstructure:"cert_file"`            // cert_file (CA 配置（三选一）)

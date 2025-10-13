@@ -41,7 +41,10 @@ import (
 // Injectors from wire.go:
 
 func WireApp() *App {
-	config := initialize.NewViper()
+	viper := initialize.NewViper()
+	consulConfig := initialize.LoadConsulConfig(viper)
+	client := initialize.NewConsulClient(consulConfig)
+	config := initialize.LoadConfig(viper, client)
 	writeSyncer := initialize.NewWriterSyncer(config)
 	sugaredLogger := initialize.NewZapLogger(config, writeSyncer)
 	loggerLogger := logger.NewLogger(sugaredLogger)
@@ -70,7 +73,6 @@ func WireApp() *App {
 	systemCacheManager := cache2.NewSystemCacheManager(v2...)
 	elasticsearchLogger := initialize.NewElasticsearchLogger(loggerLogger, config)
 	typedClient := initialize.NewElasticsearchClient(config, elasticsearchLogger)
-	client := initialize.NewConsulClient(config)
 	serviceRegister := consul.NewServiceRegistry(client, emailClient, loggerLogger)
 	engine := initialize.NewEngine(emailClient, commonRedisClient, loggerLogger, config)
 	httpServer := initialize.NewHttpServer(config, engine, loggerLogger)
@@ -120,7 +122,10 @@ func WireApp() *App {
 }
 
 func WireCli() *Cli {
-	config := initialize.NewViper()
+	viper := initialize.NewViper()
+	consulConfig := initialize.LoadConsulConfig(viper)
+	client := initialize.NewConsulClient(consulConfig)
+	config := initialize.LoadConfig(viper, client)
 	writeSyncer := initialize.NewWriterSyncer(config)
 	sugaredLogger := initialize.NewZapLogger(config, writeSyncer)
 	loggerLogger := logger.NewLogger(sugaredLogger)

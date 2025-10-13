@@ -15,7 +15,6 @@ type SystemConfig struct {
 	EmailTemplateDir    string        `mapstructure:"email_template_dir"`    // 邮件模板目录
 	TemplateDir         string        `mapstructure:"template_dir"`          // 模板目录
 	Admin               Admin         `mapstructure:"admin"`                 // 管理员信息
-	Email               Email         `mapstructure:"email"`                 // 邮件配置
 	Hooks               Hooks         `mapstructure:"hooks"`                 // hooks
 	RateLimit           RateLimit     `mapstructure:"rate_limit"`            // 请求限速
 	HealthCheckInterval time.Duration `mapstructure:"health_check_interval"` // 服务健康检查间隔
@@ -23,12 +22,6 @@ type SystemConfig struct {
 
 type Admin struct {
 	Email string `mapstructure:"email"` // 邮箱
-}
-type Email struct {
-	Host     string `mapstructure:"host"`     // host
-	Port     int    `mapstructure:"port"`     // port
-	User     string `mapstructure:"host"`     // user
-	Password string `mapstructure:"password"` // password
 }
 
 type Hooks struct {
