@@ -22,6 +22,148 @@
     "host": "localhost:8804",
     "basePath": "/api/v1",
     "paths": {
+        "/check/check-lock": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "测试权限字段锁功能",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "锁测试",
+                "responses": {
+                    "10000": {
+                        "description": "锁测试成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    },
+                    "10001": {
+                        "description": "锁测试失败，code=10001",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/check/check-permission": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "检查用户权限的测试接口",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "权限检查测试",
+                "responses": {}
+            }
+        },
+        "/check/exception": {
+            "get": {
+                "description": "故意触发除零异常进行测试",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "异常测试",
+                "responses": {
+                    "10000": {
+                        "description": "异常测试成功，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-int"
+                        }
+                    }
+                }
+            }
+        },
+        "/check/logger-trace": {
+            "get": {
+                "description": "测试日志追踪功能",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "日志追踪测试",
+                "responses": {}
+            }
+        },
+        "/check/slow": {
+            "get": {
+                "description": "模拟慢响应的测试接口",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "慢响应测试",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "睡眠秒数",
+                        "name": "t",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/check/span-trace": {
+            "get": {
+                "description": "简单的链路追踪接口，返回trace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "系统监控"
+                ],
+                "summary": "链路追踪",
+                "responses": {
+                    "10000": {
+                        "description": "链路追踪，code=10000",
+                        "schema": {
+                            "$ref": "#/definitions/response.BasicResponse-string"
+                        }
+                    }
+                }
+            }
+        },
         "/department/create": {
             "post": {
                 "security": [
@@ -565,148 +707,6 @@
                         "description": "参数验证失败，code=10002",
                         "schema": {
                             "$ref": "#/definitions/response.BasicResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/ping/check-lock": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "测试权限字段锁功能",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "系统监控"
-                ],
-                "summary": "锁测试",
-                "responses": {
-                    "10000": {
-                        "description": "锁测试成功，code=10000",
-                        "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
-                        }
-                    },
-                    "10001": {
-                        "description": "锁测试失败，code=10001",
-                        "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/ping/check-permission": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "检查用户权限的测试接口",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "系统监控"
-                ],
-                "summary": "权限检查测试",
-                "responses": {}
-            }
-        },
-        "/ping/exception": {
-            "get": {
-                "description": "故意触发除零异常进行测试",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "系统监控"
-                ],
-                "summary": "异常测试",
-                "responses": {
-                    "10000": {
-                        "description": "异常测试成功，code=10000",
-                        "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-int"
-                        }
-                    }
-                }
-            }
-        },
-        "/ping/logger-trace": {
-            "get": {
-                "description": "测试日志追踪功能",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "系统监控"
-                ],
-                "summary": "日志追踪测试",
-                "responses": {}
-            }
-        },
-        "/ping/slow": {
-            "get": {
-                "description": "模拟慢响应的测试接口",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "系统监控"
-                ],
-                "summary": "慢响应测试",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "睡眠秒数",
-                        "name": "t",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/ping/span-trace": {
-            "get": {
-                "description": "简单的链路追踪接口，返回trace",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "系统监控"
-                ],
-                "summary": "链路追踪",
-                "responses": {
-                    "10000": {
-                        "description": "链路追踪，code=10000",
-                        "schema": {
-                            "$ref": "#/definitions/response.BasicResponse-string"
                         }
                     }
                 }

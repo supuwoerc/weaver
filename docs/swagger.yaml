@@ -974,6 +974,98 @@ info:
   title: Weaver Service
   version: "1.0"
 paths:
+  /check/check-lock:
+    get:
+      consumes:
+      - application/json
+      description: 测试权限字段锁功能
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 锁测试成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+        "10001":
+          description: 锁测试失败，code=10001
+          schema:
+            $ref: '#/definitions/response.BasicResponse-any'
+      security:
+      - BearerAuth: []
+      summary: 锁测试
+      tags:
+      - 系统监控
+  /check/check-permission:
+    get:
+      consumes:
+      - application/json
+      description: 检查用户权限的测试接口
+      produces:
+      - text/plain
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: 权限检查测试
+      tags:
+      - 系统监控
+  /check/exception:
+    get:
+      consumes:
+      - application/json
+      description: 故意触发除零异常进行测试
+      produces:
+      - application/json
+      responses:
+        "10000":
+          description: 异常测试成功，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-int'
+      summary: 异常测试
+      tags:
+      - 系统监控
+  /check/logger-trace:
+    get:
+      consumes:
+      - application/json
+      description: 测试日志追踪功能
+      produces:
+      - text/plain
+      responses: {}
+      summary: 日志追踪测试
+      tags:
+      - 系统监控
+  /check/slow:
+    get:
+      consumes:
+      - application/json
+      description: 模拟慢响应的测试接口
+      parameters:
+      - description: 睡眠秒数
+        in: query
+        name: t
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses: {}
+      summary: 慢响应测试
+      tags:
+      - 系统监控
+  /check/span-trace:
+    get:
+      consumes:
+      - application/json
+      description: 简单的链路追踪接口，返回trace
+      produces:
+      - text/plain
+      responses:
+        "10000":
+          description: 链路追踪，code=10000
+          schema:
+            $ref: '#/definitions/response.BasicResponse-string'
+      summary: 链路追踪
+      tags:
+      - 系统监控
   /department/create:
     post:
       consumes:
@@ -1329,98 +1421,6 @@ paths:
       summary: 获取账户可访问的前端权限(菜单权限 & 路由权限)
       tags:
       - 权限管理
-  /ping/check-lock:
-    get:
-      consumes:
-      - application/json
-      description: 测试权限字段锁功能
-      produces:
-      - application/json
-      responses:
-        "10000":
-          description: 锁测试成功，code=10000
-          schema:
-            $ref: '#/definitions/response.BasicResponse-any'
-        "10001":
-          description: 锁测试失败，code=10001
-          schema:
-            $ref: '#/definitions/response.BasicResponse-any'
-      security:
-      - BearerAuth: []
-      summary: 锁测试
-      tags:
-      - 系统监控
-  /ping/check-permission:
-    get:
-      consumes:
-      - application/json
-      description: 检查用户权限的测试接口
-      produces:
-      - text/plain
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: 权限检查测试
-      tags:
-      - 系统监控
-  /ping/exception:
-    get:
-      consumes:
-      - application/json
-      description: 故意触发除零异常进行测试
-      produces:
-      - application/json
-      responses:
-        "10000":
-          description: 异常测试成功，code=10000
-          schema:
-            $ref: '#/definitions/response.BasicResponse-int'
-      summary: 异常测试
-      tags:
-      - 系统监控
-  /ping/logger-trace:
-    get:
-      consumes:
-      - application/json
-      description: 测试日志追踪功能
-      produces:
-      - text/plain
-      responses: {}
-      summary: 日志追踪测试
-      tags:
-      - 系统监控
-  /ping/slow:
-    get:
-      consumes:
-      - application/json
-      description: 模拟慢响应的测试接口
-      parameters:
-      - description: 睡眠秒数
-        in: query
-        name: t
-        required: true
-        type: integer
-      produces:
-      - text/plain
-      responses: {}
-      summary: 慢响应测试
-      tags:
-      - 系统监控
-  /ping/span-trace:
-    get:
-      consumes:
-      - application/json
-      description: 简单的链路追踪接口，返回trace
-      produces:
-      - text/plain
-      responses:
-        "10000":
-          description: 链路追踪，code=10000
-          schema:
-            $ref: '#/definitions/response.BasicResponse-string'
-      summary: 链路追踪
-      tags:
-      - 系统监控
   /public/captcha/signup:
     get:
       consumes:

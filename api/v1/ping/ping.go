@@ -50,7 +50,7 @@ func NewPingApi(basic *v1.BasicApi, service Service) *Api {
 //	@Accept			json
 //	@Produce		json
 //	@Success		10000	{object}	response.BasicResponse[int]	"异常测试成功，code=10000"
-//	@Router			/ping/exception [get]
+//	@Router			/check/exception [get]
 func (p *Api) Exception(ctx *gin.Context) {
 	num := 100 - (99 + 1)
 	response.SuccessWithData[int](ctx, 1/num)
@@ -64,7 +64,7 @@ func (p *Api) Exception(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		text/plain
 //	@Security		BearerAuth
-//	@Router			/ping/check-permission [get]
+//	@Router			/check/check-permission [get]
 func (p *Api) CheckPermission(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "ok")
 }
@@ -77,7 +77,7 @@ func (p *Api) CheckPermission(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		text/plain
 //	@Param			t	query	int	true	"睡眠秒数"
-//	@Router			/ping/slow [get]
+//	@Router			/check/slow [get]
 func (p *Api) SlowResponse(ctx *gin.Context) {
 	value := ctx.Query("t")
 	second, err := strconv.Atoi(value)
@@ -98,7 +98,7 @@ func (p *Api) SlowResponse(ctx *gin.Context) {
 //	@Security		BearerAuth
 //	@Success		10000	{object}	response.BasicResponse[any]	"锁测试成功，code=10000"
 //	@Failure		10001	{object}	response.BasicResponse[any]	"锁测试失败，code=10001"
-//	@Router			/ping/check-lock [get]
+//	@Router			/check/check-lock [get]
 func (p *Api) LockResponse(ctx *gin.Context) {
 	err := p.service.LockPermissionField(ctx)
 	if err != nil {
@@ -115,7 +115,7 @@ func (p *Api) LockResponse(ctx *gin.Context) {
 //	@Tags			系统监控
 //	@Accept			json
 //	@Produce		text/plain
-//	@Router			/ping/logger-trace [get]
+//	@Router			/check/logger-trace [get]
 func (p *Api) LoggerTrace(ctx *gin.Context) {
 	p.Logger.WithContext(ctx).Infow("test message", "content", "hello trace!!!")
 	ctx.String(http.StatusOK, "ok")
@@ -129,7 +129,7 @@ func (p *Api) LoggerTrace(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		text/plain
 //	@Success		10000	{object}	response.BasicResponse[string]	"链路追踪，code=10000"
-//	@Router			/ping/span-trace [get]
+//	@Router			/check/span-trace [get]
 func (p *Api) SpanTrace(ctx *gin.Context) {
 	// 从上下文中获取当前span
 	span := trace.SpanFromContext(ctx.Request.Context())
