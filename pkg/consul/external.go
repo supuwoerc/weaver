@@ -1,6 +1,9 @@
 package consul
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/hashicorp/consul/api"
 	"github.com/supuwoerc/weaver/pkg/utils"
 )
@@ -19,4 +22,15 @@ func NewServiceDiscoveryClient(client *api.Client, logger DiscoveryLogger) *Serv
 		discovery:    discovery,
 		loadBalancer: lb,
 	}
+}
+
+type ServiceCallFunc func(ctx context.Context, ins *ServiceInstance) (any, error)
+
+func (sd *ServiceDiscoveryClient) CallService(ctx context.Context, serviceName string, fn ServiceCallFunc) (any, error) {
+	instance, err := sd.loadBalancer.GetServiceInstance(serviceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get service instance: %w", err)
+	}
+	defer sd.loadBalancer.ReleaseConnection(instance.ID)
+	return fn(ctx, instance)
 }

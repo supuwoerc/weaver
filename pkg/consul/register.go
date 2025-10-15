@@ -44,7 +44,7 @@ func NewServiceRegistry(client *api.Client, emailClient RegisterEmailClient, log
 }
 
 // Register 注册服务
-func (sr *ServiceRegister) Register(serviceName, address string, port int, opts ...ServiceOption) error {
+func (sr *ServiceRegister) Register(serviceName, address, protocol string, port int, opts ...ServiceOption) error {
 	sr.mutex.Lock()
 	defer sr.mutex.Unlock()
 	if sr.registered {
@@ -66,6 +66,7 @@ func (sr *ServiceRegister) Register(serviceName, address string, port int, opts 
 		Meta: map[string]string{
 			"hostname": hostname,
 			"started":  time.Now().Format(time.DateTime),
+			"protocol": protocol,
 		},
 	}
 	// 应用选项

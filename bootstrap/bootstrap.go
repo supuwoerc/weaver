@@ -116,7 +116,7 @@ func (a *App) registerService() error {
 	if a.conf.System.HealthCheckInterval > 0 {
 		interval = a.conf.System.HealthCheckInterval * time.Second
 	}
-	return a.serviceRegister.Register(a.conf.AppName, a.getOutboundIP(), a.httpServer.Port(),
+	return a.serviceRegister.Register(a.conf.AppName, a.getOutboundIP(), a.conf.System.Scheme, a.httpServer.Port(),
 		consul.WithTags(a.conf.AppName, a.conf.AppVersion, a.conf.Env),
 		consul.WithMeta(map[string]string{
 			"version": a.conf.AppVersion,

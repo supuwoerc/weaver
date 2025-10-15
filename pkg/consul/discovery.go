@@ -20,6 +20,27 @@ type ServiceInstance struct {
 	Meta    map[string]string
 }
 
+func (s *ServiceInstance) DetectProtocol() string {
+	if protocol, exists := s.Meta["protocol"]; exists {
+		return protocol
+	}
+	for _, tag := range s.Tags {
+		switch tag {
+		case "http", "https":
+			return "http"
+		case "grpc":
+			return "grpc"
+		case "tcp":
+			return "tcp"
+		case "udp":
+			return "udp"
+		case "thrift":
+			return "thrift"
+		}
+	}
+	return "http" // 默认协议
+}
+
 func (s *ServiceInstance) GetInstanceID() string {
 	return s.ID
 }
