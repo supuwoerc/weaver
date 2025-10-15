@@ -20,8 +20,8 @@ type Discovery[T any] interface {
 }
 
 type Instance interface {
-	InstanceID() string
-	Address() string
+	GetInstanceID() string
+	GetAddress() string
 }
 
 // LoadBalancer 负载均衡器
@@ -73,7 +73,7 @@ func (lb *LoadBalancer[T]) roundRobin(serviceName string, instances []T) (T, err
 	instance := instances[index]
 	// 更新索引
 	lb.currentIndex[serviceName] = (index + 1) % len(instances)
-	lb.connCounts[instance.InstanceID()]++
+	lb.connCounts[instance.GetInstanceID()]++
 	return instance, nil
 }
 
@@ -83,7 +83,7 @@ func (lb *LoadBalancer[T]) random(instances []T) (T, error) {
 	defer lb.mutex.Unlock()
 	index := rand.Intn(len(instances))
 	instance := instances[index]
-	lb.connCounts[instance.InstanceID()]++
+	lb.connCounts[instance.GetInstanceID()]++
 	return instance, nil
 }
 
@@ -95,7 +95,7 @@ func (lb *LoadBalancer[T]) leastConnections(instances []T) (T, error) {
 	minConnections := -1
 	ok := false
 	for _, instance := range instances {
-		connCount := lb.connCounts[instance.InstanceID()]
+		connCount := lb.connCounts[instance.GetInstanceID()]
 		if minConnections == -1 || connCount < minConnections {
 			minConnections = connCount
 			selectedInstance = instance
@@ -103,7 +103,7 @@ func (lb *LoadBalancer[T]) leastConnections(instances []T) (T, error) {
 		}
 	}
 	if ok {
-		lb.connCounts[selectedInstance.InstanceID()]++
+		lb.connCounts[selectedInstance.GetInstanceID()]++
 	}
 	return selectedInstance, nil
 }
@@ -127,7 +127,7 @@ func (lb *LoadBalancer[T]) GetInstanceStats(serviceName string) (map[string]int,
 	lb.mutex.RLock()
 	defer lb.mutex.RUnlock()
 	for _, instance := range instances {
-		stats[instance.Address()] = lb.connCounts[instance.InstanceID()]
+		stats[instance.GetAddress()] = lb.connCounts[instance.GetInstanceID()]
 	}
 	return stats, nil
 }

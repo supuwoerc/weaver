@@ -19,6 +19,15 @@ type ServiceInstance struct {
 	Tags    []string
 	Meta    map[string]string
 }
+
+func (s *ServiceInstance) GetInstanceID() string {
+	return s.ID
+}
+
+func (s *ServiceInstance) GetAddress() string {
+	return s.Address
+}
+
 type DiscoveryLogger interface {
 	logger.LogCtxInterface
 }
